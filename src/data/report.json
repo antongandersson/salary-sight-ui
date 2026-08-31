@@ -1,0 +1,3774 @@
+{
+  "anchors": {
+    "net_payout": 8
+  },
+  "checks": [
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K1",
+      "check_id": "K1-D1-L000",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "antal × sats: 165,00 × 94,00 = 15.510,00  =  15.510,00 (trykt beløb) ✓ eksakt",
+        "inputs": [
+          {
+            "label": "antal",
+            "source": "slip:line[0].quantity",
+            "value": 165.0
+          },
+          {
+            "label": "sats",
+            "source": "slip:line[0].unit_price",
+            "value": 94.0
+          },
+          {
+            "label": "beløb",
+            "source": "slip:line[0].observed_amount",
+            "value": 15510.0
+          }
+        ],
+        "sources": [
+          "slip:line[0]"
+        ]
+      },
+      "duty": "D1",
+      "finding": null,
+      "line_index": 0,
+      "missing": null,
+      "note": "",
+      "note_source": null,
+      "quotes": [],
+      "section": "lines",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Linjens egen aritmetik",
+      "title_source": "template"
+    },
+    {
+      "authored": true,
+      "basis": null,
+      "check_class": "K3",
+      "check_id": "K3-contract-start-date",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "lønsedlens header 17.06.2024 = kontrakt 17.06.2024 (s. 1)",
+        "inputs": [
+          {
+            "label": "lønsedlens trykte ansættelsesdato (ååååmmdd)",
+            "source": "lønseddel: header",
+            "value": 20240617.0
+          },
+          {
+            "label": "kontraktens ansættelsesdato (ååååmmdd)",
+            "source": "kontrakt s. 1",
+            "value": 20240617.0
+          }
+        ],
+        "sources": [
+          "lønseddel",
+          "kontrakt s. 1"
+        ]
+      },
+      "duty": "C2/C3",
+      "finding": null,
+      "line_index": 0,
+      "missing": null,
+      "note": "Lønsedlens header trykker ansættelsesdatoen 17.06.2024, og kontrakten (s. 1) oplyser den samme dato. De to dokumenter er holdt op mod hinanden her; hvad datoen i øvrigt bruges til, afgøres af de kontroller, der læser den, og siges dér.",
+      "note_source": "template",
+      "quotes": [
+        "17.06.2024"
+      ],
+      "section": "lines",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Ansættelsesdato — kontraktens dato genfindes i lønsedlens header",
+      "title_source": "template"
+    },
+    {
+      "authored": true,
+      "basis": null,
+      "check_class": "K3",
+      "check_id": "K3-contract-unstated",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": true,
+      "computation": {
+        "arithmetic": "kontrakten angiver ikke: aftalt timeløn, aftalt månedsløn, arbejdsgiverpension, medarbejderpension; ingen sammenligning er udført.",
+        "inputs": [
+          {
+            "label": "kontraktfelter uden angivelse",
+            "source": "kontrakt",
+            "value": 4.0
+          }
+        ],
+        "sources": [
+          "kontrakt"
+        ]
+      },
+      "duty": "C1/C4",
+      "finding": null,
+      "line_index": 0,
+      "missing": null,
+      "note": "Kontrakten angiver hverken timeløn, månedsløn eller pensionsprocenter, så der er ingen kontraktsats at holde sedlens sats op mod, og der er ikke sammenlignet noget her. Er der fundet en mindstesats for uddannelsesåret, der gælder for perioden, prøves satsen mod den i rapportens K4-kontrol — og kan betingelserne for den sats ikke afgøres, siger den kontrol det. Er der ingen, står satsen uprøvet.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "lines",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "REFUSED",
+      "title": "Kontraktkontrol af løn og pension bevidst ikke udført — kontrakten angiver intet beløb",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K4",
+      "check_id": "K4-IND25-elevlon-aar2-L000",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "trykt sats 94,00 kr/t < regelens mindstesats 97,30 kr/t; trinnet er ikke gættet: lønsedlen for 2025-11 betaler en trykt sats på præcis 94,00 kr/t, som er kolonnen for uddannelsesår 2 i regel IND25-elevlon-aar2, gyldig 01.05.2025–28.02.2026, så arbejdsgiveren har selv indplaceret lærlingen der; sammenligningen er foretaget mod uddannelsesår 2 (97,30 kr/t, gyldig 01.03.2026–28.02.2027); satsen svarer ikke til nogen kolonne, der var gyldig i perioden, men præcis til kolonnen i regel IND25-elevlon-aar2, der udløb 28.02.2026",
+        "inputs": [
+          {
+            "label": "trykt sats",
+            "source": "lønseddel",
+            "value": 94.0
+          },
+          {
+            "label": "mindstesats",
+            "source": "regel IND25-elevlon-aar2",
+            "value": 97.3
+          }
+        ],
+        "sources": [
+          "regel IND25-elevlon-aar2",
+          "IND25 satser p.267 — Mindstelønnen for lærlinge såvel under som over 18 år",
+          "sagens egen lønseddel for 2025-11 (arbejdsgiverens indplacering)"
+        ]
+      },
+      "duty": "B1",
+      "finding": null,
+      "kroner": {
+        "alternatives": null,
+        "arithmetic": "mindstesats 97,30 kr/t − betalt sats 94,00 kr/t = 3,30 kr/t; 3,30 kr/t × 165,00 timer = 544,50 kr",
+        "convention": "gulv-konventionen er facit (GD14-09); kalendersplit og loft vises som forbehold og indgår ikke i beløbet; afledte poster er regnet af sedlens egne trykte procenter og vises ved siden af; de lægges ikke til beløbet",
+        "coupling": null,
+        "derived": [
+          {
+            "arithmetic": "9,00 % × 544,50 = 49,00",
+            "grundlag": 15595.71,
+            "grundlag_lines": [
+              0,
+              7
+            ],
+            "kr": 49.0,
+            "label": "Fritvalg, opsparet",
+            "line_index": 5,
+            "pct": 9.0,
+            "proof": "grundlaget 15.595,71 er summen af sedlens egne trykte beløb på linje 0, 7 — lønlinjen er en af dem, så rettelsen indgår i grundlaget",
+            "rule_check_id": "K4-IND25-S25-fritvalg-bidrag-stk1-L005",
+            "rule_id": "IND25-S25-fritvalg-bidrag-stk1",
+            "rule_percent": 10.0,
+            "rule_text": "overenskomstens sats for linjen er 10,00 % — regel IND25-S25-fritvalg-bidrag-stk1; af rettelsen ville det være 10,00 % × 544,50 = 54,45 kr, og forskellen på selve satsen er opgjort i K4-IND25-S25-fritvalg-bidrag-stk1-L005",
+            "source": "lønseddel: linje 5 «Fritvalg, opsparet» trykker 9,00 %",
+            "text": "Fritvalg, opsparet: 9,00 % × 544,50 = 49,00 kr"
+          },
+          {
+            "arithmetic": "4,00 % × 544,50 = 21,78",
+            "grundlag": 15510.0,
+            "grundlag_lines": [
+              0
+            ],
+            "kr": 21.78,
+            "label": "Søgnehelligdag, opsparet",
+            "line_index": 6,
+            "pct": 4.0,
+            "proof": "grundlaget 15.510,00 er summen af sedlens egne trykte beløb på linje 0 — lønlinjen er en af dem, så rettelsen indgår i grundlaget",
+            "rule_check_id": "K4-IND25-S25-fritvalg-sh-opsparing-stk3-L006",
+            "rule_id": "IND25-S25-fritvalg-sh-opsparing-stk3",
+            "rule_percent": 4.0,
+            "rule_text": "overenskomstens sats for linjen er den samme — regel IND25-S25-fritvalg-sh-opsparing-stk3",
+            "source": "lønseddel: linje 6 «Søgnehelligdag, opsparet» trykker 4,00 %",
+            "text": "Søgnehelligdag, opsparet: 4,00 % × 544,50 = 21,78 kr"
+          }
+        ],
+        "derived_refused": [
+          {
+            "basis": 19047.06,
+            "label": "Store bededagstillæg, opsparet",
+            "line_index": 7,
+            "pct": 0.45,
+            "text": "Store bededagstillæg, opsparet (0,45 % af trykt grundlag 19.047,06)",
+            "why": "linjens trykte grundlag er ikke en entydig sum af sedlens egne trykte beløb med lønlinjen i, så det er ikke vist på sedlen, at rettelsen indgår i det"
+          }
+        ],
+        "derived_total": 70.78,
+        "expected": 97.3,
+        "explanation": "satsforskel 3,30 kr/t × trykt antal 165,00 = 544,50 kr",
+        "factors": [
+          {
+            "label": "trykt sats",
+            "source": "lønseddel",
+            "value": 94.0
+          },
+          {
+            "label": "mindstesats",
+            "source": "regel IND25-elevlon-aar2",
+            "value": 97.3
+          },
+          {
+            "label": "antal",
+            "source": "lønseddel",
+            "value": 165.0
+          }
+        ],
+        "how": "sats",
+        "kr": 544.5,
+        "printed": 94.0,
+        "rollup": null,
+        "summed": true
+      },
+      "line_index": 0,
+      "missing": null,
+      "note": "regel IND25-elevlon-aar2; kilde: IND25 satser p.267 — Mindstelønnen for lærlinge såvel under som over 18 år. Grundlag: uddannelsesår 2 (afledt af aftalestart 17.06.2024 — IND25 satser p.267 — Mindstelønnen for lærlinge såvel under som over 18 år, Mindstelønnen for lærlinge såvel under som over 18 år); medarbejdergruppe elev (afledt af ansættelsesform (kontrakt)).. gulv-konvention: trinnet regnes fra første hele lønperiode efter årsdagen; beløbet er mindst dette beløb Uddannelsestrinnet er her ikke aflæst af en uddannelsesplan, men fastslået af arbejdsgiverens egen lønindplacering på sagens egne lønsedler: en sats — trykt eller udledt af lønlinjens egne tal — der rammer præcis én af satstabellens kolonner for perioden. Det er arbejdsgiverens egen indplacering, ikke en afgørelse af lærlingens uddannelsestid. Skolens uddannelsesplan eller skoleperiodeoversigten kan flytte den: et højere trin gør kravet større, mens et lavere trin betyder, at arbejdsgiveren har betalt over sin egen mindstesats.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "lines",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "MISMATCH",
+      "title": "Mindstesats — sats under gulvet",
+      "title_source": "template"
+    },
+    {
+      "authored": true,
+      "basis": null,
+      "check_class": "K7",
+      "check_id": "K7-E3-capacity",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "(21 hverdage heraf 3 betalte fridage (1. maj, Kristi himmelfartsdag, 2. pinsedag)) × 37,00 t/uge ÷ 5,00 dage = 155,40 t kapacitet i 2026-05-01–2026-05-31\nbogførte timer til almindelig sats 165,00 t > kapacitet 155,40 t (forskel 9,60 t)",
+        "inputs": [
+          {
+            "label": "hverdage i perioden",
+            "source": "kalender",
+            "value": 21.0
+          },
+          {
+            "label": "fridage på hverdage",
+            "source": "platformens arbejdstidstabel (fridage)",
+            "value": 3.0
+          },
+          {
+            "label": "ugenorm",
+            "source": "platformens arbejdstidstabel (ugenorm)",
+            "value": 37.0
+          },
+          {
+            "label": "arbejdsuge",
+            "source": "platformens arbejdstidstabel (ugenorm)",
+            "value": 5.0
+          },
+          {
+            "label": "periodens kapacitet",
+            "source": "platformens arbejdstidstabel (ugenorm og fridage)",
+            "value": 155.4
+          },
+          {
+            "label": "bogførte timer til almindelig sats",
+            "source": "lønseddel",
+            "value": 165.0
+          },
+          {
+            "label": "timer pr. hverdag i perioden",
+            "source": "kontrollens eget regnestykke",
+            "value": 7.8571
+          },
+          {
+            "label": "timer pr. arbejdsdag uden fridagene",
+            "source": "kontrollens eget regnestykke",
+            "value": 9.1667
+          },
+          {
+            "label": "dagsnorm",
+            "source": "platformens arbejdstidstabel (ugenorm)",
+            "value": 7.4
+          },
+          {
+            "label": "den anden læsnings kapacitet",
+            "source": "platformens arbejdstidstabel (ugenorm og fridage)",
+            "value": 133.2
+          },
+          {
+            "label": "den anden læsnings forskel",
+            "source": "kontrollens eget regnestykke",
+            "value": 31.8
+          },
+          {
+            "label": "forskel pr. hverdag",
+            "source": "kontrollens eget regnestykke",
+            "value": 0.4571
+          },
+          {
+            "label": "laveste overarbejdssats",
+            "source": "regel IND25-S13-overarbejde-forud-hverdag-dag",
+            "value": 48.1
+          }
+        ],
+        "sources": [
+          "lønseddel",
+          "platformens arbejdstidstabel (ugenorm og fridage)",
+          "overenskomstregel IND25-S13-overarbejde-forud-hverdag-dag",
+          "overenskomstregel IND25-S13-overarbejde-hverdag-1-2-time"
+        ]
+      },
+      "duty": "E3",
+      "finding": {
+        "alternatives": [
+          "lovligt varierende arbejdstid",
+          "overarbejde, der ikke er betalt som overarbejde"
+        ],
+        "conditional_amount": 461.76,
+        "kind": "deviation",
+        "unit": "t",
+        "value": 9.6
+      },
+      "line_index": 0,
+      "missing": {
+        "artifact": "overarbejdstimer",
+        "ask_target": "member",
+        "closable_by_document": false,
+        "kind": "svar",
+        "spec_2b_input": 5,
+        "unlocks": "afgørelsen af, om timerne over kapaciteten er varierende arbejdstid eller overarbejde"
+      },
+      "note": "Sedlen bogfører flere timer til sin egen almindelige sats, end periodens normale arbejdstid kan rumme. Kapaciteten er regnet på den ugenorm, kontrollens arbejdstidstabel indeholder — 37,00 timer om ugen fordelt på 5,00 dage — og periodens fridage er talt MED som betalte dage. Tallene er ikke slået op i teksten til den overenskomst, sedlen er kontrolleret mod, så gælder der en anden norm for denne ansættelse, ændrer det regnestykket. Det kan være lovligt varierende arbejdstid, og det kan være overarbejde, der ikke er betalt som overarbejde. Månedstal alene skiller ikke de to ting, så regnestykket står her, og der rejses ingen anklage. Svaret om overarbejdstimer er det, der kan afgøre det. Perioden har 3 fridag(e) på hverdage (1. maj, Kristi himmelfartsdag, 2. pinsedag), og sedlen bogfører dem selv: 165,00 t fordelt på periodens 21 hverdage er 7,86 t pr. dag, mod 9,17 t pr. dag hvis kun de 18 arbejdsdage var bogført — og kun det første tal ligner dagsnormen 7,40 t. Fridagene er derfor talt MED i periodens kapacitet og ikke trukket fra. Trækkes de fra kapaciteten alene, mens sedlen betaler dem, tælles de samme dage to gange, og forskellen kommer til at ligne overarbejde uden at være det. For denne medarbejdergruppe (elev, afledt af ansættelsesform (kontrakt)) er fridage betalte dage; selve bestemmelsen om det står ikke i det regelgrundlag, kontrollen har indlæst, så der henvises ikke til en paragraf for den. Under den anden læsning — fridagene ikke betalt inden for de bogførte timer — ville kapaciteten være 133,20 t og forskellen 31,80 t. Forskellen svarer til 0,46 t pr. dag over de 21 dage, kapaciteten er regnet på, holdt op mod dagsnormen 7,40 t. Hvis timerne skulle betales som overarbejde, ville det svare til 461,76 kr: den laveste overarbejdssats, der er læst for denne overenskomst i perioden, er 48,10 kr/t. Satsen står i 2 bestemmelser med samme beløb, og kontrollen kan ikke afgøre, hvilken af dem der gælder for netop disse timer, så der henvises ikke til én af dem. Beløbet er betinget og er ikke et krav mod arbejdsgiveren.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "slip_level",
+      "substance": "finding",
+      "superseded": [],
+      "surface": "check",
+      "terminal": "NEEDS_INPUT",
+      "title": "Timer ud over periodens normale kapacitet",
+      "title_source": "template"
+    },
+    {
+      "authored": true,
+      "basis": null,
+      "check_class": "K7",
+      "check_id": "K7-E3-hours-identity",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "norm 165,00 t + overtid 0,00 t = 165,00 t = betalte timer 165,00 t",
+        "inputs": [
+          {
+            "label": "periodenorm",
+            "source": "sedlens egen trykte norm",
+            "value": 165.0
+          },
+          {
+            "label": "overtid",
+            "source": "lønseddel",
+            "value": 0.0
+          },
+          {
+            "label": "betalte timer",
+            "source": "lønseddel",
+            "value": 165.0
+          }
+        ],
+        "sources": [
+          "lønseddel"
+        ]
+      },
+      "duty": "E3",
+      "finding": null,
+      "line_index": 0,
+      "missing": null,
+      "note": "Kontrollen afstemmer sedlens egne trykte tal med hinanden: periodenormen, overtidstimerne og de betalte timer. Begge tal kommer fra samme lønsystem, så kontrollen fanger, at systemet modsiger sig selv — og kun det. Den er ikke en kontrol af, om periodens timer ligger inden for den normale arbejdstid; det afgøres i kontrollen af periodens normale kapacitet. Den siger heller ikke, om lønnen for timerne er rigtig — det afgøres af kontrollerne på lønlinjerne.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "slip_level",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Sedlens egne timetal stemmer indbyrdes — norm + overtid = betalte timer",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K1",
+      "check_id": "K1-D1-L001",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "grundlag × procent: 19.483,47 × 2,00 = 389,67  =  389,67 (trykt beløb) ✓ eksakt",
+        "inputs": [
+          {
+            "label": "grundlag",
+            "source": "slip:line[1].marker_1",
+            "value": 19483.47
+          },
+          {
+            "label": "sats",
+            "source": "slip:line[1].unit_price",
+            "value": 2.0
+          },
+          {
+            "label": "beløb",
+            "source": "slip:line[1].observed_amount",
+            "value": 389.67
+          }
+        ],
+        "sources": [
+          "slip:line[1]"
+        ]
+      },
+      "duty": "D1",
+      "finding": null,
+      "line_index": 1,
+      "missing": null,
+      "note": "",
+      "note_source": null,
+      "quotes": [],
+      "section": "lines",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Linjens egen aritmetik",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K4",
+      "check_id": "K4-IND25-S34-pension-medarbejder-L001",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "trykt procent: 2,00 % på linjen «Arbejdsmarkedspension, medarbejderprocent» = overenskomstens 2,00 % (regel IND25-S34-pension-medarbejder, §34 s.87)\ngrundlag 19.483,47 × 2,00 % = 389,67 = trykt 389,67",
+        "inputs": [
+          {
+            "label": "trykt procent",
+            "source": "lønseddel",
+            "value": 2.0
+          },
+          {
+            "label": "overenskomstens procent",
+            "source": "regel IND25-S34-pension-medarbejder",
+            "value": 2.0
+          },
+          {
+            "label": "grundlag (trykt)",
+            "source": "lønseddel",
+            "value": 19483.47
+          },
+          {
+            "label": "trykt beløb",
+            "source": "lønseddel",
+            "value": 389.67
+          },
+          {
+            "label": "forventet beløb",
+            "source": "beregnet: grundlag × overenskomstens procent",
+            "value": 389.67
+          }
+        ],
+        "sources": [
+          "regel IND25-S34-pension-medarbejder",
+          "§34 s.87",
+          "lønseddel"
+        ]
+      },
+      "duty": "B1",
+      "finding": null,
+      "line_index": 1,
+      "missing": null,
+      "note": "regel IND25-S34-pension-medarbejder; kilde: §34 s.87. Grundlag: alder 26 (oplyst).  Reglens grundlag: a_indkomst; sammenligningen gælder procenten — om sedlens eget grundlag er opgjort rigtigt, står i K5-rækken for grundlaget.",
+      "note_source": "template",
+      "quotes": [
+        "Pensionsbidragene udgør mindst: … Arbejdsgiver- Arbejds- Samlet … 1.6.2023 10,0 pct. 2,0 pct. 12,0 pct. 1.5.2025 11,0 pct. 2,0 pct. 13,0 pct."
+      ],
+      "section": "lines",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Bidragsprocent — pension (medarbejderbidrag) — sats opfyldt",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": {
+        "alternative_excluding_payouts": null,
+        "alternative_label": null,
+        "alternative_reading": null,
+        "alternative_value": null,
+        "components": [
+          {
+            "amount": 19483.47,
+            "label": "trykt pensionsgrundlag",
+            "line_index": 1
+          }
+        ],
+        "deductions": [],
+        "label": "sedlens trykte pensionsgrundlag",
+        "open_point": null,
+        "payout_components": [],
+        "reading": "trykt_grundlag",
+        "source": "lønseddel",
+        "value": 19483.47
+      },
+      "check_class": "K4",
+      "check_id": "K4-IND25-S34-pension-medarbejder-grundlag-L001",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "trykt grundlag 19.483,47; sedlens eget AM-grundlag 15.021,33 (forskel 4.462,14); sedlens egne plus-linjer før medarbejderens egne bidrag 15.510,00 (forskel 3.973,47)\net større grundlag giver mindst overenskomstens bidrag, uanset om beregningsgrundlaget opgøres før eller efter medarbejderens egne bidrag (regel IND25-S34-pension-medarbejder, §34 s.87); kilde til periodens egne tal: sedlens egne lønlinjer minus sedlens egne egenbidrag, afstemt mod AM-bidragslinjens eget trykte grundlag",
+        "inputs": [
+          {
+            "label": "trykt grundlag",
+            "source": "lønseddel",
+            "value": 19483.47
+          },
+          {
+            "label": "sedlens eget AM-grundlag",
+            "source": "lønseddel",
+            "value": 15021.33
+          },
+          {
+            "label": "sedlens plus-linjer før medarbejderens egne bidrag",
+            "source": "lønseddel",
+            "value": 15510.0
+          }
+        ],
+        "sources": [
+          "regel IND25-S34-pension-medarbejder",
+          "§34 s.87",
+          "lønseddel"
+        ]
+      },
+      "duty": "B1",
+      "finding": null,
+      "line_index": 1,
+      "missing": null,
+      "note": "regel IND25-S34-pension-medarbejder; kilde: §34 s.87.",
+      "note_source": "template",
+      "quotes": [
+        "Pensionsbidragene udgør mindst: … Arbejdsgiver- Arbejds- Samlet … 1.6.2023 10,0 pct. 2,0 pct. 12,0 pct. 1.5.2025 11,0 pct. 2,0 pct. 13,0 pct."
+      ],
+      "section": "lines",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Pensionsgrundlag — grundlaget er mindst så stort som sedlens egne opgørelser før og efter medarbejderens egne bidrag",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K5",
+      "check_id": "K5-D4-L001",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "trykt grundlag 19.483,47 — ikke afstemt mod sedlens egne tal; nærmeste enkeltbeløb: 15.510,00 (Normaltimer 1 x sats), difference 3.973,47",
+        "inputs": [
+          {
+            "label": "trykt grundlag",
+            "source": "slip:line[1]",
+            "value": 19483.47
+          },
+          {
+            "label": "nærmeste enkeltbeløb (Normaltimer 1 x sats)",
+            "source": "slip:lines",
+            "value": 15510.0
+          }
+        ],
+        "sources": [
+          "slip:line[1]"
+        ]
+      },
+      "duty": "D4",
+      "finding": null,
+      "line_index": 1,
+      "missing": {
+        "artifact": "grundlagets sammensætning — sedlen oplyser den ikke",
+        "ask_target": "unstated",
+        "closable_by_document": false,
+        "kind": "ikke oplyst på sedlen",
+        "spec_2b_input": null,
+        "unlocks": "grundlaget kan afstemmes mod de lønelementer, der indgår i det"
+      },
+      "note": "Ingen kombination af op til 7 af de indlæste trykte beløb giver dette grundlag. Sedlen har 2 kontolinje(r) med penge, arbejdsgiveren har sat til side, hvis boks ikke trykker en kolonne for selve lønperioden; de kan ikke indgå i en periodesøgning. Indlæsningen af denne seddel har afvist 2 felt(er) ved navn — «FERIEPENGE», «SALDI» — og udgiver dem ikke; de tal, de måtte trykke, har derfor ikke indgået i søgningen. Det er en mangel ved indlæsningen af sedlen, ikke ved sedlen.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "lines",
+      "substance": "generic",
+      "superseded": [],
+      "surface": "check",
+      "terminal": "FORBEHOLD",
+      "title": "Grundlaget kan ikke rekonstrueres — grundlaget på linjen «Arbejdsmarkedspension, medarbejderprocent»",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K2",
+      "check_id": "K2-atp-L002",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "165,00 timer i perioden → mindst 117 arbejdstimer pr. måned → lovsats 99,00\n99,00 (lovsats)  =  99,00 (trykt)",
+        "inputs": [
+          {
+            "label": "trykt ATP-bidrag",
+            "source": "slip:line[2].observed_amount",
+            "value": 99.0
+          },
+          {
+            "label": "lovsats LAW-DK-atp-1-3-sats",
+            "source": "rule:LAW-DK-atp-1-3-sats.expectation.value",
+            "value": 33.0
+          },
+          {
+            "label": "lovsats LAW-DK-atp-2-3-sats",
+            "source": "rule:LAW-DK-atp-2-3-sats.expectation.value",
+            "value": 66.0
+          },
+          {
+            "label": "lovsats LAW-DK-atp-fuld-sats",
+            "source": "rule:LAW-DK-atp-fuld-sats.expectation.value",
+            "value": 99.0
+          },
+          {
+            "label": "arbejdstimer i perioden",
+            "source": "slip:lønseddelens timelinjer",
+            "value": 165.0
+          }
+        ],
+        "sources": [
+          "slip:line[2]",
+          "rule:LAW-DK-atp-1-3-sats",
+          "rule:LAW-DK-atp-2-3-sats",
+          "rule:LAW-DK-atp-fuld-sats"
+        ]
+      },
+      "duty": "K2",
+      "finding": null,
+      "line_index": 2,
+      "missing": null,
+      "note": "Timetallet er sedlens eget (payslip_derived). Lovgrundlag: ATP-loven (Lov om Arbejdsmarkedets Tillægspension), jf. retsinformation.dk; ATP A-sats satser (atp.dk), lønmodtagerandel 1/3.",
+      "note_source": "template",
+      "quotes": [
+        "PARAFRASE: ATP A-sats, fuld sats (2024-): lønmodtagerandel 99,00 kr./md."
+      ],
+      "section": "lines",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "ATP-bidrag — sats og timeinterval kontrolleret",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K2",
+      "check_id": "K2-am_bidrag-L003",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "15.021,33 × 8,00 % (lovens sats) = 1.201,71  =  1.202,00 (trykt beløb) ✓ afrundet til hele kroner\nLinjens egen aritmetik: grundlag × procent: 15.021,33 × 8,00 = 1.201,71  =  1.202,00 (trykt beløb) ✓ afrundet til hele kroner",
+        "inputs": [
+          {
+            "label": "grundlag",
+            "source": "slip:line[3].marker_1",
+            "value": 15021.33
+          },
+          {
+            "label": "lovens sats (LAW-DK-am-bidrag-8-pct)",
+            "source": "rule:LAW-DK-am-bidrag-8-pct.expectation.value",
+            "value": 8.0
+          },
+          {
+            "label": "trykt beløb",
+            "source": "slip:line[3].observed_amount",
+            "value": 1202.0
+          },
+          {
+            "label": "sats",
+            "source": "slip:line[3].unit_price",
+            "value": 8.0
+          },
+          {
+            "label": "beløb",
+            "source": "slip:line[3].observed_amount",
+            "value": 1202.0
+          }
+        ],
+        "sources": [
+          "slip:line[3]",
+          "rule:LAW-DK-am-bidrag-8-pct"
+        ]
+      },
+      "duty": "K2",
+      "finding": null,
+      "line_index": 3,
+      "missing": null,
+      "note": "Bundet til linjen via linjens klassifikation (semantic_tags). Lovgrundlag: Arbejdsmarkedsbidragsloven (AMBL), § 1 og § 2, jf. retsinformation.dk.",
+      "note_source": "template",
+      "quotes": [
+        "Bidraget udgør 8 pct. af grundlaget."
+      ],
+      "section": "lines",
+      "substance": null,
+      "superseded": [
+        "K1-D1-L003"
+      ],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Lovens sats anvendt — AM-bidrag (afrundet til hele kroner)",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K5",
+      "check_id": "K5-D4-L003",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "15.510,00 (Normaltimer 1 x sats) − 389,67 (Arbejdsmarkedspension, medarbejderprocent) − 99,00 (ATP-bidrag af løn) = 15.021,33  =  15.021,33 (trykt grundlag) ✓ eksakt",
+        "inputs": [
+          {
+            "label": "trykt grundlag",
+            "source": "slip:line[3]",
+            "value": 15021.33
+          },
+          {
+            "label": "Normaltimer 1 x sats",
+            "source": "slip:line[0].observed_amount",
+            "value": 15510.0
+          },
+          {
+            "label": "Arbejdsmarkedspension, medarbejderprocent",
+            "source": "slip:line[1].observed_amount",
+            "value": -389.67
+          },
+          {
+            "label": "ATP-bidrag af løn",
+            "source": "slip:line[2].observed_amount",
+            "value": -99.0
+          }
+        ],
+        "sources": [
+          "slip:line[0]",
+          "slip:line[1]",
+          "slip:line[2]",
+          "slip:line[3]"
+        ]
+      },
+      "duty": "D4",
+      "finding": null,
+      "line_index": 3,
+      "missing": null,
+      "note": "Rekonstrueret af sedlens egne trykte beløb — lønlinjer, saldiboksens periodetal og tal trykt i linjens egen etiket; det er den eneste kombination af op til 7 af dem, der giver beløbet.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "lines",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Grundlag rekonstrueret — grundlaget på linjen «AM-bidrag»",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K1",
+      "check_id": "K1-D1-L004",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "grundlag × procent: 8.280,00 × 37,00 = 3.063,60  =  3.064,00 (trykt beløb) ✓ afrundet til hele kroner",
+        "inputs": [
+          {
+            "label": "grundlag",
+            "source": "slip:line[4].marker_1",
+            "value": 8280.0
+          },
+          {
+            "label": "sats",
+            "source": "slip:line[4].unit_price",
+            "value": 37.0
+          },
+          {
+            "label": "beløb",
+            "source": "slip:line[4].observed_amount",
+            "value": 3064.0
+          }
+        ],
+        "sources": [
+          "slip:line[4]"
+        ]
+      },
+      "duty": "D1",
+      "finding": null,
+      "line_index": 4,
+      "missing": null,
+      "note": "",
+      "note_source": null,
+      "quotes": [],
+      "section": "lines",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Linjens egen aritmetik",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K2",
+      "check_id": "K2-askat-beregning-L004",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "8.280,00 × 37,00 % (trykt trækprocent) = 3.063,60  =  3.064,00 (trykt) — rundet OP med 0,40",
+        "inputs": [
+          {
+            "label": "trækprocent (trykt på linjen)",
+            "source": "slip:line[4].unit_price",
+            "value": 37.0
+          },
+          {
+            "label": "A-skattegrundlag",
+            "source": "slip:line[4].marker_1",
+            "value": 8280.0
+          },
+          {
+            "label": "trykt A-skat",
+            "source": "slip:line[4].observed_amount",
+            "value": 3064.0
+          }
+        ],
+        "sources": [
+          "slip:line[4]"
+        ]
+      },
+      "duty": "D3",
+      "finding": null,
+      "line_index": 4,
+      "missing": {
+        "artifact": "sedlens egen A-indkomst og skattefradrag som selvstændige oplysninger (til at afgøre, om metodens første trin — nedrunding til hele 10 kr. — er brugt)",
+        "ask_target": "unstated",
+        "closable_by_document": false,
+        "kind": "tal på lønsedlen",
+        "spec_2b_input": null,
+        "unlocks": "om oprundingen af A-skatten til hele kroner har hjemmel"
+      },
+      "note": "En oprunding til hele kroner er tilladt som en del af én bestemt metode, og metoden kræver, at grundlaget samtidig er rundet NED til hele 10 kr. Det kan ikke afgøres på denne seddel — enten oplyser den ikke A-indkomst og skattefradrag hver for sig, eller også følger grundlaget dem uden nedrunding. Der rejses ingen indsigelse. Lovgrundlag: Den juridiske vejledning A.B.4.1.1.2.6 (Nedrunding ved beregning af A-skat og AM-bidrag), under bemyndigelsen i kildeskatteloven § 48, stk. 6.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "lines",
+      "substance": "generic",
+      "superseded": [],
+      "surface": "check",
+      "terminal": "FORBEHOLD",
+      "title": "A-skatten er rundet op til hele kroner",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K2",
+      "check_id": "K2-askat-grundlag-L004",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "13.819,33 (A-indkomst) − 5.530,00 (fradrag) = 8.289,33\nnedrundet til nærmeste 10 kr. = 8.280,00  =  8.280,00 (trykt grundlag) ✓",
+        "inputs": [
+          {
+            "label": "A-indkomst (sedlens egen oplysning)",
+            "source": "slip:declared_facts.a_indkomst",
+            "value": 13819.33
+          },
+          {
+            "label": "skattefradrag (sedlens egen oplysning)",
+            "source": "slip:declared_facts.skattefradrag",
+            "value": 5530.0
+          },
+          {
+            "label": "trykt A-skattegrundlag",
+            "source": "slip:line[4].marker_1",
+            "value": 8280.0
+          }
+        ],
+        "sources": [
+          "slip:line[4]",
+          "slip:declared_facts",
+          "law:KSL-§48"
+        ]
+      },
+      "duty": "D3",
+      "finding": null,
+      "line_index": 4,
+      "missing": null,
+      "note": "Lovgrundlag: Kildeskatteloven § 48, stk. 3 og stk. 6.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "lines",
+      "substance": null,
+      "superseded": [
+        "K5-D4-L004"
+      ],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "A-skattegrundlaget er opgjort som loven foreskriver",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K2",
+      "check_id": "K2-askat-sats",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": true,
+      "computation": {
+        "arithmetic": "trykt trækprocent: 37,00 %\nindeholdt A-skat i alt: 3.064,00\nskattekortets trækprocent: ikke oplyst",
+        "inputs": [
+          {
+            "label": "indeholdt A-skat i alt",
+            "source": "slip:lines",
+            "value": 3064.0
+          },
+          {
+            "label": "trykt trækprocent",
+            "source": "slip:line[4].unit_price",
+            "value": 37.0
+          }
+        ],
+        "sources": [
+          "slip:lines",
+          "law:KSL-§48"
+        ]
+      },
+      "duty": "D3",
+      "finding": null,
+      "line_index": 4,
+      "missing": {
+        "artifact": "trækprocent og månedsfradrag fra skattekortet (eller forskudsopgørelsen)",
+        "ask_target": "member",
+        "closable_by_document": true,
+        "kind": "dokument / oplysning",
+        "spec_2b_input": 4,
+        "unlocks": "A-skattens sats og fradrag kan kontrolleres, ikke kun sedlens egen multiplikation"
+      },
+      "note": "Trækprocenten fastsættes på medlemmets eget skattekort (Kildeskatteloven § 48, stk. 5) og står ikke til kontrol på lønsedlen. En seddel kan regne helt korrekt med en forkert trækprocent — det er målt den hyppigste A-skattefejl — så den kontrol kræver kortet.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "slip_level",
+      "substance": "generic",
+      "superseded": [],
+      "surface": "check",
+      "terminal": "NEEDS_INPUT",
+      "title": "Trækprocenten kan ikke kontrolleres mod sedlen",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K1",
+      "check_id": "K1-D1-L005",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "grundlag × procent: 15.595,71 × 9,00 = 1.403,61  =  1.403,61 (trykt beløb) ✓ eksakt",
+        "inputs": [
+          {
+            "label": "grundlag",
+            "source": "slip:line[5].marker_1",
+            "value": 15595.71
+          },
+          {
+            "label": "sats",
+            "source": "slip:line[5].unit_price",
+            "value": 9.0
+          },
+          {
+            "label": "beløb",
+            "source": "slip:line[5].observed_amount",
+            "value": 1403.61
+          }
+        ],
+        "sources": [
+          "slip:line[5]"
+        ]
+      },
+      "duty": "D1",
+      "finding": null,
+      "line_index": 5,
+      "missing": null,
+      "note": "",
+      "note_source": null,
+      "quotes": [],
+      "section": "lines",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Linjens egen aritmetik",
+      "title_source": "template"
+    },
+    {
+      "authored": true,
+      "basis": null,
+      "check_class": "K4",
+      "check_id": "K4-IND25-S25-fritvalg-bidrag-stk1-L005",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "trykt procent: 9,00 % på linjen «Fritvalg, opsparet» ≠ overenskomstens 10,00 % (regel IND25-S25-fritvalg-bidrag-stk1, §25 s.71)\ngrundlag 15.595,71 × 10,00 % = 1.559,57 mod trykt 1.403,61   difference -155,96",
+        "inputs": [
+          {
+            "label": "trykt procent",
+            "source": "lønseddel",
+            "value": 9.0
+          },
+          {
+            "label": "overenskomstens procent",
+            "source": "regel IND25-S25-fritvalg-bidrag-stk1",
+            "value": 10.0
+          },
+          {
+            "label": "grundlag (trykt)",
+            "source": "lønseddel",
+            "value": 15595.71
+          },
+          {
+            "label": "trykt beløb",
+            "source": "lønseddel",
+            "value": 1403.61
+          },
+          {
+            "label": "forventet beløb",
+            "source": "beregnet: grundlag × overenskomstens procent",
+            "value": 1559.57
+          }
+        ],
+        "sources": [
+          "regel IND25-S25-fritvalg-bidrag-stk1",
+          "§25 s.71",
+          "lønseddel"
+        ]
+      },
+      "duty": "B1",
+      "finding": null,
+      "kroner": {
+        "alternatives": null,
+        "arithmetic": "grundlag 15.595,71 × 10,00 % = 1.559,57; forventet beløb 1.559,57 − trykt beløb 1.403,61 = 155,96 kr",
+        "convention": "beløbet er rækkens egen forskel mellem det forventede og det trykte; afledte poster vises ved siden af og indgår ikke i det",
+        "coupling": null,
+        "derived": [],
+        "derived_refused": [],
+        "derived_total": null,
+        "expected": 10.0,
+        "explanation": "bidragsforskel 155,96 kr (forventet 1.559,57 kr mod trykt 1.403,61 kr)",
+        "factors": [
+          {
+            "label": "trykt procent",
+            "source": "lønseddel",
+            "value": 9.0
+          },
+          {
+            "label": "overenskomstens procent",
+            "source": "regel IND25-S25-fritvalg-bidrag-stk1",
+            "value": 10.0
+          },
+          {
+            "label": "grundlag (trykt)",
+            "source": "lønseddel",
+            "value": 15595.71
+          },
+          {
+            "label": "trykt beløb",
+            "source": "lønseddel",
+            "value": 1403.61
+          },
+          {
+            "label": "forventet beløb",
+            "source": "beregnet: grundlag × overenskomstens procent",
+            "value": 1559.57
+          }
+        ],
+        "how": "procent",
+        "kr": 155.96,
+        "printed": 9.0,
+        "rollup": null,
+        "summed": true
+      },
+      "line_index": 5,
+      "missing": null,
+      "note": "regel IND25-S25-fritvalg-bidrag-stk1; kilde: §25 s.71.  Reglens grundlag: ferieberettiget_lon; sammenligningen gælder procenten — om sedlens eget grundlag er opgjort rigtigt, står i K5-rækken for grundlaget.",
+      "note_source": "template",
+      "quotes": [
+        "Virksomheden indbetaler på medarbejderens Fritvalgs Lønkonto 9 pct. (fra 1. marts 2026: 10 pct. og 1. marts 2027: 11 pct.) af den ferieberettigede løn, som stilles til rådighed for medarbejderens frie valg."
+      ],
+      "section": "lines",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "MISMATCH",
+      "title": "Bidragsprocent — fritvalgskonto (arbejdsgiverbidrag) — trykt procent afviger fra overenskomsten",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K5",
+      "check_id": "K5-D4-L005",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "15.510,00 (Normaltimer 1 x sats) + 85,71 (Store bededagstillæg, opsparet) = 15.595,71  =  15.595,71 (trykt grundlag) ✓ eksakt",
+        "inputs": [
+          {
+            "label": "trykt grundlag",
+            "source": "slip:line[5]",
+            "value": 15595.71
+          },
+          {
+            "label": "Normaltimer 1 x sats",
+            "source": "slip:line[0].observed_amount",
+            "value": 15510.0
+          },
+          {
+            "label": "Store bededagstillæg, opsparet",
+            "source": "slip:line[7].observed_amount",
+            "value": 85.71
+          }
+        ],
+        "sources": [
+          "slip:line[0]",
+          "slip:line[5]",
+          "slip:line[7]"
+        ]
+      },
+      "duty": "D4",
+      "finding": null,
+      "line_index": 5,
+      "missing": null,
+      "note": "Rekonstrueret af sedlens egne trykte beløb — lønlinjer, saldiboksens periodetal og tal trykt i linjens egen etiket; det er den eneste kombination af op til 7 af dem, der giver beløbet.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "lines",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Grundlag rekonstrueret — grundlaget på linjen «Fritvalg, opsparet»",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K1",
+      "check_id": "K1-D1-L006",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "grundlag × procent: 15.510,00 × 4,00 = 620,40  =  620,40 (trykt beløb) ✓ eksakt",
+        "inputs": [
+          {
+            "label": "grundlag",
+            "source": "slip:line[6].marker_1",
+            "value": 15510.0
+          },
+          {
+            "label": "sats",
+            "source": "slip:line[6].unit_price",
+            "value": 4.0
+          },
+          {
+            "label": "beløb",
+            "source": "slip:line[6].observed_amount",
+            "value": 620.4
+          }
+        ],
+        "sources": [
+          "slip:line[6]"
+        ]
+      },
+      "duty": "D1",
+      "finding": null,
+      "line_index": 6,
+      "missing": null,
+      "note": "",
+      "note_source": null,
+      "quotes": [],
+      "section": "lines",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Linjens egen aritmetik",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K4",
+      "check_id": "K4-IND25-S25-fritvalg-sh-opsparing-stk3-L006",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "trykt procent: 4,00 % på linjen «Søgnehelligdag, opsparet» = overenskomstens 4,00 % (regel IND25-S25-fritvalg-sh-opsparing-stk3, §25 s.72)\ngrundlag 15.510,00 × 4,00 % = 620,40 = trykt 620,40",
+        "inputs": [
+          {
+            "label": "trykt procent",
+            "source": "lønseddel",
+            "value": 4.0
+          },
+          {
+            "label": "overenskomstens procent",
+            "source": "regel IND25-S25-fritvalg-sh-opsparing-stk3",
+            "value": 4.0
+          },
+          {
+            "label": "grundlag (trykt)",
+            "source": "lønseddel",
+            "value": 15510.0
+          },
+          {
+            "label": "trykt beløb",
+            "source": "lønseddel",
+            "value": 620.4
+          },
+          {
+            "label": "forventet beløb",
+            "source": "beregnet: grundlag × overenskomstens procent",
+            "value": 620.4
+          }
+        ],
+        "sources": [
+          "regel IND25-S25-fritvalg-sh-opsparing-stk3",
+          "§25 s.72",
+          "lønseddel"
+        ]
+      },
+      "duty": "B1",
+      "finding": null,
+      "line_index": 6,
+      "missing": null,
+      "note": "regel IND25-S25-fritvalg-sh-opsparing-stk3; kilde: §25 s.72.  Reglens grundlag: ferieberettiget_lon; sammenligningen gælder procenten — om sedlens eget grundlag er opgjort rigtigt, står i K5-rækken for grundlaget.",
+      "note_source": "template",
+      "quotes": [
+        "For alle medarbejdere, der ikke får løn på søgnehelligdage, henlægges opsparingen på 4 pct. af den ferieberettigede løn til Fritvalgs Lønkontoen."
+      ],
+      "section": "lines",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Bidragsprocent — SH-opsparing (arbejdsgiverbidrag) — sats opfyldt",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K5",
+      "check_id": "K5-D4-L006",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "15.510,00 (Normaltimer 1 x sats) = 15.510,00  =  15.510,00 (trykt grundlag) ✓ eksakt",
+        "inputs": [
+          {
+            "label": "trykt grundlag",
+            "source": "slip:line[6]",
+            "value": 15510.0
+          },
+          {
+            "label": "Normaltimer 1 x sats",
+            "source": "slip:line[0].observed_amount",
+            "value": 15510.0
+          }
+        ],
+        "sources": [
+          "slip:line[0]",
+          "slip:line[6]"
+        ]
+      },
+      "duty": "D4",
+      "finding": null,
+      "line_index": 6,
+      "missing": null,
+      "note": "Rekonstrueret af sedlens egne trykte beløb — lønlinjer, saldiboksens periodetal og tal trykt i linjens egen etiket; det er den eneste kombination af op til 7 af dem, der giver beløbet.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "lines",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Grundlag rekonstrueret — grundlaget på linjen «Søgnehelligdag, opsparet»",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K1",
+      "check_id": "K1-D1-L007",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "grundlag × procent: 19.047,06 × 0,45 = 85,71  =  85,71 (trykt beløb) ✓ eksakt",
+        "inputs": [
+          {
+            "label": "grundlag",
+            "source": "slip:line[7].marker_1",
+            "value": 19047.06
+          },
+          {
+            "label": "sats",
+            "source": "slip:line[7].unit_price",
+            "value": 0.45
+          },
+          {
+            "label": "beløb",
+            "source": "slip:line[7].observed_amount",
+            "value": 85.71
+          }
+        ],
+        "sources": [
+          "slip:line[7]"
+        ]
+      },
+      "duty": "D1",
+      "finding": null,
+      "line_index": 7,
+      "missing": null,
+      "note": "",
+      "note_source": null,
+      "quotes": [],
+      "section": "lines",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Linjens egen aritmetik",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K2",
+      "check_id": "K2-helligdag_tillaeg-L007",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "19.047,06 × 0,45 % (lovens sats) = 85,71  =  85,71 (trykt beløb) ✓ eksakt",
+        "inputs": [
+          {
+            "label": "grundlag",
+            "source": "slip:line[7].marker_1",
+            "value": 19047.06
+          },
+          {
+            "label": "lovens sats (LAW-DK-store-bededag-loentillaeg)",
+            "source": "rule:LAW-DK-store-bededag-loentillaeg.expectation.value",
+            "value": 0.45
+          },
+          {
+            "label": "trykt beløb",
+            "source": "slip:line[7].observed_amount",
+            "value": 85.71
+          }
+        ],
+        "sources": [
+          "slip:line[7]",
+          "rule:LAW-DK-store-bededag-loentillaeg"
+        ]
+      },
+      "duty": "K2",
+      "finding": null,
+      "line_index": 7,
+      "missing": null,
+      "note": "Bundet til linjen via reglens eget payslip_pattern «Bededagstillæg». Lovgrundlag: LOV nr 214 af 06/03/2023 (LTA 2023/214), § 3, stk. 1 og stk. 2. Loven udtrykker satsen af årslønnen; her er den holdt op mod det grundlag, sedlen selv trykker for perioden. Om årets samlede tillæg svarer til 0,45 % af årslønnen er et spørgsmål på tværs af sedler (K6).",
+      "note_source": "template",
+      "quotes": [
+        "PARAFRASE: Store bededag er ikke længere en helligdag (lov nr. 214 af 6. marts 2023, i kraft 1. januar 2024). Lønmodtagere med fast månedsløn modtager i stedet et løntillæg på 0,45 pct. af årslønnen. Tillægget optjenes løbende og afregnes enten to gange årligt sammen med lønnen for maj og august eller løbende med lønudbetalingen."
+      ],
+      "section": "lines",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Satsen svarer til lovens, holdt op mod periodens eget grundlag — løntillæg for store bededag",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K5",
+      "check_id": "K5-D4-L007",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "trykt grundlag 19.047,06 — ikke afstemt mod sedlens egne tal; nærmeste enkeltbeløb: 15.510,00 (Normaltimer 1 x sats), difference 3.537,06",
+        "inputs": [
+          {
+            "label": "trykt grundlag",
+            "source": "slip:line[7]",
+            "value": 19047.06
+          },
+          {
+            "label": "nærmeste enkeltbeløb (Normaltimer 1 x sats)",
+            "source": "slip:lines",
+            "value": 15510.0
+          }
+        ],
+        "sources": [
+          "slip:line[7]"
+        ]
+      },
+      "duty": "D4",
+      "finding": null,
+      "line_index": 7,
+      "missing": {
+        "artifact": "grundlagets sammensætning — sedlen oplyser den ikke",
+        "ask_target": "unstated",
+        "closable_by_document": false,
+        "kind": "ikke oplyst på sedlen",
+        "spec_2b_input": null,
+        "unlocks": "grundlaget kan afstemmes mod de lønelementer, der indgår i det"
+      },
+      "note": "Ingen kombination af op til 7 af de indlæste trykte beløb giver dette grundlag. Sedlen har 2 kontolinje(r) med penge, arbejdsgiveren har sat til side, hvis boks ikke trykker en kolonne for selve lønperioden; de kan ikke indgå i en periodesøgning. Indlæsningen af denne seddel har afvist 2 felt(er) ved navn — «FERIEPENGE», «SALDI» — og udgiver dem ikke; de tal, de måtte trykke, har derfor ikke indgået i søgningen. Det er en mangel ved indlæsningen af sedlen, ikke ved sedlen.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "lines",
+      "substance": "generic",
+      "superseded": [],
+      "surface": "check",
+      "terminal": "FORBEHOLD",
+      "title": "Grundlaget kan ikke rekonstrueres — grundlaget på linjen «Store bededagstillæg, opsparet»",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K1",
+      "check_id": "K1-D2-udbetaling",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "13.819,33 (A-indkomst) − 3.064,00 (A-skat) = 10.755,33  =  10.755,33 (trykt) ✓ eksakt",
+        "inputs": [
+          {
+            "label": "A-indkomst",
+            "source": "slip:declared_facts.a_indkomst",
+            "value": 13819.33
+          },
+          {
+            "label": "A-skat",
+            "source": "slip:line[4].observed_amount",
+            "value": -3064.0
+          },
+          {
+            "label": "Til udbetaling",
+            "source": "slip:line[8].observed_amount",
+            "value": 10755.33
+          }
+        ],
+        "sources": [
+          "slip:declared_facts",
+          "slip:line[4]",
+          "slip:line[8]"
+        ]
+      },
+      "duty": "D2",
+      "finding": null,
+      "line_index": 8,
+      "missing": null,
+      "note": "Periodetilknytning: A-indkomst afstemt i K1-D2-a-indkomst; alle led er periodens egne linjer. Kæden kan ikke se fejl i linjer længere oppe på sedlen.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "slip_level",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Udbetalingskæden — sedlens egne trykte totaler kan afstemmes",
+      "title_source": "template"
+    },
+    {
+      "authored": true,
+      "basis": null,
+      "check_class": "K6",
+      "check_id": "K6-D5-tilvaekst-009",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "18,72 (ultimo 2026-05) − 16,64 (ultimo 2026-04) = 2,08 · boksen trykker ingen bevægelse for perioden på denne konto",
+        "inputs": [
+          {
+            "label": "ultimo 2026-04",
+            "source": "forrige seddel",
+            "value": 16.64
+          },
+          {
+            "label": "ultimo 2026-05",
+            "source": "denne seddel",
+            "value": 18.72
+          }
+        ],
+        "sources": [
+          "denne seddels saldiboks (2026-05)",
+          "forrige seddels saldiboks (2026-04)"
+        ]
+      },
+      "duty": "D5",
+      "finding": null,
+      "line_index": 9,
+      "missing": {
+        "artifact": "lønperiodens egen bevægelse på kontoen, trykt på sedlen",
+        "ask_target": "unstated",
+        "closable_by_document": false,
+        "kind": "tal på lønsedlen",
+        "spec_2b_input": null,
+        "unlocks": "saldokæden mellem de to lønsedler"
+      },
+      "note": "Saldiboksen trykker kontoens saldo, men ingen bevægelse for selve lønperioden. Forskellen mellem de to sedler er vist, men den er ikke afstemt mod et periodetal. Kontoens betegnelse er ikke henført til en kendt post, så sedlens periodelinjer kan ikke knyttes til kontoen.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "cross_slip",
+      "substance": "generic",
+      "superseded": [],
+      "surface": "check",
+      "terminal": "FORBEHOLD",
+      "title": "Tilvækst uden trykt periodetal — Lovpligtige, indeværende år",
+      "title_source": "template"
+    },
+    {
+      "authored": true,
+      "basis": null,
+      "check_class": "K6",
+      "check_id": "K6-D5-saldokaede-011",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "5.486,84 (ultimo 2026-04) + 1.403,61 (beløbet på linjen «Fritvalg, opsparet», 2026-05) = 6.890,45 · trykt ultimo 2026-05: 6.890,45 · afvigelse 0,00 · saldotømning — ikke efterbetaling af K4-IND25-S25-fritvalg-bidrag-stk1, K4-IND25-elevlon-aar1, K4-IND25-elevlon-aar2",
+        "inputs": [
+          {
+            "label": "ultimo 2026-04",
+            "source": "forrige seddel",
+            "value": 5486.84
+          },
+          {
+            "label": "ultimo 2026-05",
+            "source": "denne seddel",
+            "value": 6890.45
+          },
+          {
+            "label": "beløbet på linjen «Fritvalg, opsparet», 2026-05",
+            "source": "denne seddel, 11",
+            "value": 1403.61
+          }
+        ],
+        "sources": [
+          "denne seddels saldiboks (2026-05)",
+          "forrige seddels saldiboks (2026-04)"
+        ]
+      },
+      "duty": "D5",
+      "finding": null,
+      "line_index": 11,
+      "missing": null,
+      "note": "Saldiboksen trykker ingen bevægelse for perioden; bevægelsen er sammensat af de beløb, sedlen selv har trykt — periodens egne linjer for samme post og andre saldibokse med samme post, der trykker en bevægelse. Kæden går op med den sammensatte bevægelse. Kæden siger ikke, om selve beløbet er optjent rigtigt; det bestemmes af kontrollerne på lønlinjerne. Saldotømning — ikke efterbetaling af K4-IND25-S25-fritvalg-bidrag-stk1, K4-IND25-elevlon-aar1, K4-IND25-elevlon-aar2.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "cross_slip",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Saldokæde — Fritvalg",
+      "title_source": "template"
+    },
+    {
+      "authored": true,
+      "basis": null,
+      "check_class": "K6",
+      "check_id": "K6-D5-saldokaede-012",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "2.425,20 (ultimo 2026-04) + 620,40 (beløbet på linjen «Søgnehelligdag, opsparet», 2026-05) = 3.045,60 · trykt ultimo 2026-05: 3.045,60 · afvigelse 0,00 · saldotømning — ikke efterbetaling af K4-IND25-S25-fritvalg-bidrag-stk1, K4-IND25-elevlon-aar1, K4-IND25-elevlon-aar2",
+        "inputs": [
+          {
+            "label": "ultimo 2026-04",
+            "source": "forrige seddel",
+            "value": 2425.2
+          },
+          {
+            "label": "ultimo 2026-05",
+            "source": "denne seddel",
+            "value": 3045.6
+          },
+          {
+            "label": "beløbet på linjen «Søgnehelligdag, opsparet», 2026-05",
+            "source": "denne seddel, 12",
+            "value": 620.4
+          }
+        ],
+        "sources": [
+          "denne seddels saldiboks (2026-05)",
+          "forrige seddels saldiboks (2026-04)"
+        ]
+      },
+      "duty": "D5",
+      "finding": null,
+      "line_index": 12,
+      "missing": null,
+      "note": "Saldiboksen trykker ingen bevægelse for perioden; bevægelsen er sammensat af de beløb, sedlen selv har trykt — periodens egne linjer for samme post og andre saldibokse med samme post, der trykker en bevægelse. Kæden går op med den sammensatte bevægelse. Kæden siger ikke, om selve beløbet er optjent rigtigt; det bestemmes af kontrollerne på lønlinjerne. Saldotømning — ikke efterbetaling af K4-IND25-S25-fritvalg-bidrag-stk1, K4-IND25-elevlon-aar1, K4-IND25-elevlon-aar2.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "cross_slip",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Saldokæde — Søgnehelligdag",
+      "title_source": "template"
+    },
+    {
+      "authored": true,
+      "basis": null,
+      "check_class": "K6",
+      "check_id": "K6-D5-saldokaede-013",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "1.598,45 (ultimo 2026-04) + 85,71 (beløbet på linjen «Store bededagstillæg, opsparet», 2026-05) = 1.684,16 · trykt ultimo 2026-05: 1.684,16 · afvigelse 0,00 · saldotømning — ikke efterbetaling af K4-IND25-S25-fritvalg-bidrag-stk1, K4-IND25-elevlon-aar1, K4-IND25-elevlon-aar2",
+        "inputs": [
+          {
+            "label": "ultimo 2026-04",
+            "source": "forrige seddel",
+            "value": 1598.45
+          },
+          {
+            "label": "ultimo 2026-05",
+            "source": "denne seddel",
+            "value": 1684.16
+          },
+          {
+            "label": "beløbet på linjen «Store bededagstillæg, opsparet», 2026-05",
+            "source": "denne seddel, 13",
+            "value": 85.71
+          }
+        ],
+        "sources": [
+          "denne seddels saldiboks (2026-05)",
+          "forrige seddels saldiboks (2026-04)"
+        ]
+      },
+      "duty": "D5",
+      "finding": null,
+      "line_index": 13,
+      "missing": null,
+      "note": "Saldiboksen trykker ingen bevægelse for perioden; bevægelsen er sammensat af de beløb, sedlen selv har trykt — periodens egne linjer for samme post og andre saldibokse med samme post, der trykker en bevægelse. Kæden går op med den sammensatte bevægelse. Kæden siger ikke, om selve beløbet er optjent rigtigt; det bestemmes af kontrollerne på lønlinjerne. Saldotømning — ikke efterbetaling af K4-IND25-S25-fritvalg-bidrag-stk1, K4-IND25-elevlon-aar1, K4-IND25-elevlon-aar2.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "cross_slip",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Saldokæde — Store bededagstillæg",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K1",
+      "check_id": "K1-D2-a-indkomst",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "15.021,33 (AM-bidragspligtig A-indkomst) − 1.202,00 (AM-bidrag) = 13.819,33  =  13.819,33 (trykt) ✓ eksakt",
+        "inputs": [
+          {
+            "label": "AM-bidragspligtig A-indkomst",
+            "source": "slip:line[3].marker_1",
+            "value": 15021.33
+          },
+          {
+            "label": "AM-bidrag",
+            "source": "slip:line[3].observed_amount",
+            "value": -1202.0
+          },
+          {
+            "label": "A-indkomst",
+            "source": "slip:declared_facts.a_indkomst",
+            "value": 13819.33
+          }
+        ],
+        "sources": [
+          "slip:declared_facts",
+          "slip:line[3]"
+        ]
+      },
+      "duty": "D2",
+      "finding": null,
+      "line_index": null,
+      "missing": null,
+      "note": "Periodetilknytning: AM-bidragspligtig A-indkomst 15.021,33 er periodens egne AM-bidragslinjers eget trykte grundlag. Kæden kan ikke se fejl i linjer længere oppe på sedlen.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "slip_level",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "A-indkomst-kæden",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K2",
+      "check_id": "K2-loenseddel-formalia",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "oplyst (12/12): lønperiode, arbejdsgiverens identitet (CVR/navn), medarbejderens identitet, timer/antal, sats, løn før skat (brutto/A-indkomst), A-skat, AM-bidrag, ATP, pension (hvis der er en pensionsordning), feriepenge / feriesaldo, til udbetaling (netto)\nikke oplyst (0/12): ingen",
+        "inputs": [
+          {
+            "label": "oplyste punkter",
+            "source": "lønseddel",
+            "value": 12.0
+          },
+          {
+            "label": "punkter på tjeklisten",
+            "source": "tjekliste",
+            "value": 12.0
+          }
+        ],
+        "sources": [
+          "lønseddel",
+          "regelsnapshot (ingen lønseddelregel indlæst)"
+        ]
+      },
+      "duty": "K2",
+      "finding": null,
+      "line_index": null,
+      "missing": null,
+      "note": "Identitetsoplysninger vises kun som oplyst/ikke oplyst; ingen personoplysning gengives. En manglende oplysning er et forbehold om lønsedlens fuldstændighed, ikke en afvigelse i et beløb. kilde: ikke i regelsnapshottet — tjeklisten følger arbejdsgiverens oplysningspligt efter kildeskatteloven/-bekendtgørelsen (skriftlig meddelelse om A-indkomst samt indeholdt A-skat og AM-bidrag) og almindelig praksis for danske lønsedler; ingen lovtekst citeres, da ingen er indlæst",
+      "note_source": "template",
+      "quotes": [],
+      "section": "coverage",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Lønseddel — lovpligtige oplysninger — alle punkter oplyst",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K4",
+      "check_id": "K4-IND25-S34-pension-arbejdsgiver-infoboks",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "trykt i infoboksen «virksomhedsprocent»: 11,00 % ≥ overenskomstens 11,00 % (regel IND25-S34-pension-arbejdsgiver, §34 s.87)",
+        "inputs": [
+          {
+            "label": "trykt procent",
+            "source": "lønseddel (infoboks)",
+            "value": 11.0
+          },
+          {
+            "label": "overenskomstens procent",
+            "source": "regel IND25-S34-pension-arbejdsgiver",
+            "value": 11.0
+          }
+        ],
+        "sources": [
+          "regel IND25-S34-pension-arbejdsgiver",
+          "§34 s.87",
+          "lønseddel (infoboks)"
+        ]
+      },
+      "duty": "B1",
+      "finding": null,
+      "line_index": null,
+      "missing": null,
+      "note": "regel IND25-S34-pension-arbejdsgiver; kilde: §34 s.87. Grundlag: alder 26 (oplyst).",
+      "note_source": "template",
+      "quotes": [
+        "Pensionsbidragene udgør mindst: … Arbejdsgiver- Arbejds- Samlet … 1.6.2023 10,0 pct. 2,0 pct. 12,0 pct. 1.5.2025 11,0 pct. 2,0 pct. 13,0 pct."
+      ],
+      "section": "coverage",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Bidragsprocent — pension (arbejdsgiverbidrag) — sats opfyldt",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K4",
+      "check_id": "K4-IND25-S34-pension-arbejdsgiver-manglende-bidrag",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "sedlen indeholder uafkodede rækker, der kan være pensionslinjer; bidragets fravær kan ikke fastslås med sikkerhed",
+        "inputs": [
+          {
+            "label": "overenskomstens procent",
+            "source": "regel IND25-S34-pension-arbejdsgiver",
+            "value": 11.0
+          }
+        ],
+        "sources": [
+          "regel IND25-S34-pension-arbejdsgiver",
+          "§34 s.87"
+        ]
+      },
+      "duty": "B1",
+      "finding": null,
+      "line_index": null,
+      "missing": {
+        "artifact": "en tydeligere kopi af lønsedlen uden uafkodede rækker",
+        "ask_target": "unstated",
+        "closable_by_document": false,
+        "kind": "tal på lønsedlen",
+        "spec_2b_input": null,
+        "unlocks": "om pensionsbidraget er betalt"
+      },
+      "note": "regel IND25-S34-pension-arbejdsgiver; kilde: §34 s.87.",
+      "note_source": "template",
+      "quotes": [
+        "Pensionsbidragene udgør mindst: … Arbejdsgiver- Arbejds- Samlet … 1.6.2023 10,0 pct. 2,0 pct. 12,0 pct. 1.5.2025 11,0 pct. 2,0 pct. 13,0 pct."
+      ],
+      "section": "slip_level",
+      "substance": "generic",
+      "superseded": [],
+      "surface": "check",
+      "terminal": "FORBEHOLD",
+      "title": "Manglende bidrag — pension (arbejdsgiverbidrag) — uafkodede rækker på sedlen",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K4",
+      "check_id": "K4-IND25-SL13-pension-omfattede-laerlinge-daekning",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "ansættelsesdatoen i kontrakten (s. 1, «17.06.2024»); 2 måneders anciennitet giver ordinær omfattelse fra 17.08.2024. 31 af 31 kalenderdage ligger fra og med den dato i denne trykt lønperiode (regel IND25-SL13-pension-omfattede-laerlinge, §L13 s.271); alderen er oplyst: 26 år",
+        "inputs": [
+          {
+            "label": "alderskrav (år)",
+            "source": "regel IND25-SL13-pension-omfattede-laerlinge",
+            "value": 18.0
+          },
+          {
+            "label": "anciennitetskrav (måneder)",
+            "source": "regel IND25-SL13-pension-omfattede-laerlinge",
+            "value": 2.0
+          }
+        ],
+        "sources": [
+          "regel IND25-SL13-pension-omfattede-laerlinge",
+          "§L13 s.271"
+        ]
+      },
+      "duty": "B1",
+      "finding": null,
+      "line_index": null,
+      "missing": null,
+      "note": "regel IND25-SL13-pension-omfattede-laerlinge; kilde: §L13 s.271. Grundlag: medarbejdergruppe elev (afledt af ansættelsesform (kontrakt)).",
+      "note_source": "template",
+      "quotes": [
+        "Lærlinge omfattes af pensionsordningen i Industriens Overenskomst § 34, når de fylder 18 år samt har opnået to måneders anciennitet."
+      ],
+      "section": "coverage",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Dækning — pension — medarbejderen er omfattet fra 17.08.2024",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K4",
+      "check_id": "K4-daekning-arbejdsgiver",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "overenskomstdækning: omfattet — kilde uddannelsesaftalen, § 8 Løn og andre vilkår, felt Overenskomst + § 55 i lov om erhvervsuddannelser; s. 2; «Industriens overenskomst»",
+        "inputs": [
+          {
+            "label": "overenskomstdækning dokumenteret",
+            "source": "uddannelsesaftalen, § 8 Løn og andre vilkår, felt Overenskomst + § 55 i lov om erhvervsuddannelser",
+            "value": 1.0
+          }
+        ],
+        "sources": [
+          "sagens oplysninger om overenskomstdækning"
+        ]
+      },
+      "duty": "B0",
+      "finding": null,
+      "line_index": null,
+      "missing": null,
+      "note": "Omfattet af overenskomsten betyder, at overenskomsten gælder for ansættelsen; det siger intet om, hvorvidt et beløb er kontrolleret — det gør rækkerne nedenfor.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "coverage",
+      "substance": null,
+      "superseded": [],
+      "surface": "case_header",
+      "terminal": "OK",
+      "title": "Overenskomstdækning: omfattet — kilde uddannelsesaftalen, § 8 Løn og andre vilkår, felt Overenskomst + § 55 i lov om erhvervsuddannelser; s. 2; «Industriens overenskomst»",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K4",
+      "check_id": "K4-daekning-overenskomst",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "overenskomst: IND25 — registreringens tildeling; lønperiode 2026-05; snapshottets satsserier for IND25 dækker perioden: ja (34 regler med gyldig sats)\nmedarbejdergruppe: elev (afledt af ansættelsesform (kontrakt))\nuddannelsesår: 2 (afledt af aftalestart 17.06.2024)\nugentlig norm: 37,00 t/uge (oplyst)\nansættelsesform: elev (oplyst)\nalder: 26 år (oplyst)",
+        "inputs": [
+          {
+            "label": "lønperiode",
+            "source": "lønseddel",
+            "value": 202605.0
+          },
+          {
+            "label": "regler med gyldig sats for perioden",
+            "source": "regelsnapshot",
+            "value": 34.0
+          },
+          {
+            "label": "uddannelsesår",
+            "source": "afledt af aftalestart 17.06.2024",
+            "value": 2.0
+          },
+          {
+            "label": "ugentlig norm",
+            "source": "oplyst",
+            "value": 37.0
+          },
+          {
+            "label": "alder",
+            "source": "oplyst",
+            "value": 26.0
+          }
+        ],
+        "sources": [
+          "registreringens tildeling",
+          "regelsnapshot",
+          "medarbejderkontekst (kilder)"
+        ]
+      },
+      "duty": "B0",
+      "finding": null,
+      "line_index": null,
+      "missing": null,
+      "note": "Grundlaget er de oplysninger, kontrollerne nedenfor er afgjort på; hver oplysning står med sin kilde. En oplysning markeret «ikke fastslået» er ikke gættet — de kontroller, der kræver den, står som NEEDS_INPUT.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "coverage",
+      "substance": null,
+      "superseded": [],
+      "surface": "case_header",
+      "terminal": "OK",
+      "title": "IND25-udgaven, satser pr. 01.03.2026",
+      "title_source": "template"
+    },
+    {
+      "authored": false,
+      "basis": null,
+      "check_class": "K4",
+      "check_id": "K4-hours_norm-2026-05",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": true,
+      "computation": {
+        "arithmetic": "overenskomstens normer: 37,00 t/uge (IND25-S14-arbejdstidsnorm); 34,00 t/uge (IND25-S15-norm-faste-uger-2-3skift, fixed); 35,00 t/uge (IND25-S15-norm-turnus-1-2-3skift, average); 35,50 t/uge (IND25-S15-norm-turnus-1-2skift-og-1-3skift, average); 34,00 t/uge (IND25-S15-norm-turnus-2-3skift, average); 37,00 t/uge (IND25-S9-arbejdstidsnorm-37t, fixed)\nsedlens egen ugenorm: ikke trykt",
+        "inputs": [
+          {
+            "label": "overenskomstens norm (IND25-S14-arbejdstidsnorm)",
+            "source": "regel IND25-S14-arbejdstidsnorm",
+            "value": 37.0
+          },
+          {
+            "label": "overenskomstens norm (IND25-S15-norm-faste-uger-2-3skift)",
+            "source": "regel IND25-S15-norm-faste-uger-2-3skift",
+            "value": 34.0
+          },
+          {
+            "label": "overenskomstens norm (IND25-S15-norm-turnus-1-2-3skift)",
+            "source": "regel IND25-S15-norm-turnus-1-2-3skift",
+            "value": 35.0
+          },
+          {
+            "label": "overenskomstens norm (IND25-S15-norm-turnus-1-2skift-og-1-3skift)",
+            "source": "regel IND25-S15-norm-turnus-1-2skift-og-1-3skift",
+            "value": 35.5
+          },
+          {
+            "label": "overenskomstens norm (IND25-S15-norm-turnus-2-3skift)",
+            "source": "regel IND25-S15-norm-turnus-2-3skift",
+            "value": 34.0
+          },
+          {
+            "label": "overenskomstens norm (IND25-S9-arbejdstidsnorm-37t)",
+            "source": "regel IND25-S9-arbejdstidsnorm-37t",
+            "value": 37.0
+          }
+        ],
+        "sources": [
+          "regel IND25-S14-arbejdstidsnorm",
+          "regel IND25-S15-norm-faste-uger-2-3skift",
+          "regel IND25-S15-norm-turnus-1-2-3skift",
+          "regel IND25-S15-norm-turnus-1-2skift-og-1-3skift",
+          "regel IND25-S15-norm-turnus-2-3skift",
+          "regel IND25-S9-arbejdstidsnorm-37t",
+          "lønseddel"
+        ]
+      },
+      "duty": "B1",
+      "finding": null,
+      "line_index": null,
+      "missing": {
+        "artifact": "sedlens egen ugenorm, trykt på sedlen",
+        "ask_target": "unstated",
+        "closable_by_document": true,
+        "kind": "tal på lønsedlen",
+        "spec_2b_input": null,
+        "unlocks": "arbejdstidsnormen kan holdes op mod overenskomsten"
+      },
+      "note": "Normen kan kun holdes op mod den ugenorm, sedlen selv trykker; en oplyst kontraktnorm kontrolleres i K3, og periodens timer mod normalarbejdstiden i K7's kapacitetsrække. Skifteholdsnormer gælder kun skifteholdsarbejde, som sedlen ikke angiver.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "slip_level",
+      "substance": "generic",
+      "superseded": [
+        "K3-contract-weekly-hours"
+      ],
+      "surface": "check",
+      "terminal": "FORBEHOLD",
+      "title": "Arbejdstidsnorm — sedlen trykker ingen ugenorm",
+      "title_source": "template"
+    },
+    {
+      "authored": true,
+      "basis": null,
+      "check_class": "K6",
+      "check_id": "K6-D5-daekning",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": false,
+      "computation": {
+        "arithmetic": "lønsedler i sagen: 25 · lønperioder: 2024-07–2026-06 · måneder uden seddel: — · måneder med ulæst seddel: — · udaterede sedler: 0 · kontrollen brugte alle 25\na-indkomst: 2025-01 7.231,26 → 2025-02 8.614,75 → 2025-03 9.998,24 → 2025-06 14.494,77 → 2025-09 1.383,57 → 2025-10 1.959,14 → 2025-11 3.589,38 → 2025-12 5.458,55 → 2026-04 12.469,17\na-indkomst: 2025-01 13.838,28 → 2025-02 25.859,73 → 2025-03 37.881,18 → 2025-04 51.114,18 → 2025-06 76.974,09 → 2025-08 103.439,27 → 2025-09 115.460,80 → 2025-10 120.409,33 → 2025-11 134.594,32 → 2025-12 175.541,36 → 2026-02 29.797,78 → 2026-03 45.410,57 → 2026-04 61.023,36\na-skat: 2025-01 2.670,00 → 2025-02 3.181,00 → 2025-03 3.692,00 → 2025-06 5.355,00 → 2025-09 511,00 → 2025-10 722,00 → 2025-11 1.326,00 → 2025-12 2.015,00 → 2026-04 4.608,00\na-skat, samlet: 2025-01 3.538,00 → 2025-02 6.403,00 → 2025-03 9.268,00 → 2025-04 12.581,00 → 2025-06 18.267,00 → 2025-08 23.461,00 → 2025-09 25.608,00 → 2025-10 25.819,00 → 2025-11 28.769,00 → 2025-12 41.617,00 → 2026-02 6.929,00 → 2026-03 10.656,00 → 2026-04 14.383,00\nam-bidrag (8,00%): 2025-01 627,00 → 2025-02 747,00 → 2025-03 867,00 → 2025-06 1.257,00 → 2025-09 120,00 → 2025-10 170,00 → 2025-11 312,00 → 2025-12 475,00 → 2026-04 1.085,00\nam-bidrag, samlet: 2025-01 1.203,00 → 2025-02 2.248,00 → 2025-03 3.293,00 → 2025-04 4.443,00 → 2025-06 6.691,00 → 2025-08 8.992,00 → 2025-09 10.037,00 → 2025-10 10.467,00 → 2025-11 11.701,00 → 2025-12 15.262,00 → 2026-02 2.592,00 → 2026-03 3.950,00 → 2026-04 5.308,00\nam-grundlag: 2025-01 15.041,28 → 2025-02 28.107,73 → 2025-03 41.174,18 → 2025-04 55.557,18 → 2025-06 83.665,09 → 2025-08 112.431,27 → 2025-09 125.497,80 → 2025-10 130.876,33 → 2025-11 146.295,32 → 2025-12 190.803,36 → 2026-02 32.389,78 → 2026-03 49.360,57 → 2026-04 66.331,36\narbejdsmarkedspension, medarbejderbidrag: 2025-01 345,62 → 2025-02 646,16 → 2025-03 946,70 → 2025-04 1.277,29 → 2025-06 1.923,45 → 2025-08 2.584,65 → 2025-09 2.885,19 → 2025-10 3.010,23 → 2025-11 3.364,48 → 2025-12 3.770,68 → 2026-02 743,92 → 2026-03 1.133,59 → 2026-04 1.523,26\narbejdsmarkedspension, virksomhedsbidrag: 2025-01 1.728,11 → 2025-02 3.230,81 → 2025-03 4.733,51 → 2025-04 6.386,48 → 2025-06 9.940,41 → 2025-08 13.576,99 → 2025-09 15.229,97 → 2025-10 15.917,70 → 2025-11 17.866,05 → 2025-12 20.100,15 → 2026-02 4.091,54 → 2026-03 6.234,73 → 2026-04 8.377,92\narbejdstimer: 2025-01 172,50 → 2025-02 322,50 → 2025-03 472,50 → 2025-04 637,50 → 2025-06 960,00 → 2025-08 1.290,00 → 2025-09 1.440,00 → 2025-10 1.500,00 → 2025-11 1.650,00 → 2025-12 1.822,00 → 2026-02 315,00 → 2026-03 480,00 → 2026-04 645,00\natp, medarbejderbidrag: 2025-01 99,00 → 2025-02 198,00 → 2025-03 297,00 → 2025-04 396,00 → 2025-06 594,00 → 2025-08 792,00 → 2025-09 891,00 → 2025-10 990,00 → 2025-11 1.089,00 → 2025-12 1.188,00 → 2026-02 198,00 → 2026-03 297,00 → 2026-04 396,00\natp, virksomhedsbidrag: 2025-01 198,00 → 2025-02 396,00 → 2025-03 594,00 → 2025-04 792,00 → 2025-06 1.188,00 → 2025-08 1.584,00 → 2025-09 1.782,00 → 2025-10 1.980,00 → 2025-11 2.178,00 → 2025-12 2.376,00 → 2026-02 396,00 → 2026-03 594,00 → 2026-04 792,00\nferiepenge efter skat: 2025-09 872,57 → 2025-10 1.237,14 → 2025-11 2.263,38 → 2025-12 3.443,55 → 2026-04 7.861,17\nferiepengegrundlag: 2025-09 12.028,61 → 2025-10 17.033,11 → 2025-11 31.211,03 → 2025-12 47.468,38 → 2026-04 108.433,43\nferiepengeopsparing: 2025-09 1.503,57 → 2025-10 2.129,14 → 2025-11 3.901,38 → 2025-12 5.933,55 → 2026-04 13.554,17\nfritvalg: 2026-01 1.403,61 → 2026-02 2.679,62 → 2026-03 4.083,23 → 2026-04 5.486,84 → 2026-05 6.890,45\ni alt: 2026-01 10,40 → 2026-02 12,48 → 2026-03 14,56 → 2026-04 16,64 → 2026-05 18,72\nlovpligtige, indeværende år: 2026-01 10,40 → 2026-02 12,48 → 2026-03 14,56 → 2026-04 16,64 → 2026-05 18,72\nstore bededagstillæg: 2026-01 1.349,11 → 2026-02 1.427,03 → 2026-03 1.512,74 → 2026-04 1.598,45 → 2026-05 1.684,16\nstore bededagstillæg, grundlag: 2025-01 113.803,71 → 2025-02 128.344,13 → 2025-03 142.884,55 → 2025-04 158.879,01 → 2025-06 190.463,71 → 2025-08 222.782,94 → 2025-09 237.473,49 → 2025-10 243.585,50 → 2025-11 260.901,01 → 2025-12 280.756,12 → 2026-02 317.118,13 → 2026-03 336.165,19 → 2026-04 355.212,25\nsøgnehelligdag: 2026-01 620,40 → 2026-02 1.184,40 → 2026-03 1.804,80 → 2026-04 2.425,20 → 2026-05 3.045,60",
+        "inputs": [
+          {
+            "label": "lønsedler i sagen",
+            "source": "sagens registrering",
+            "value": 25.0
+          },
+          {
+            "label": "måneder uden seddel",
+            "source": "sagens registrering",
+            "value": 0.0
+          },
+          {
+            "label": "måneder med ulæst seddel",
+            "source": "sagens registrering",
+            "value": 0.0
+          },
+          {
+            "label": "udaterede sedler",
+            "source": "sagens registrering",
+            "value": 0.0
+          }
+        ],
+        "sources": [
+          "sagens registrerede lønsedler (2024-07–2026-06)"
+        ]
+      },
+      "duty": "D5",
+      "finding": null,
+      "line_index": null,
+      "missing": null,
+      "note": "Sagen har 25 lønperioder fra 2024-07 til 2026-06 uden hul og uden udaterede sedler. Alle sagsperioder er stillet i rækkefølge, og kæden brugte dem alle.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "cross_slip",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "OK",
+      "title": "Sagsdækning: 25 lønperioder (2024-07–2026-06)",
+      "title_source": "template"
+    }
+  ],
+  "context_facts": {
+    "agreement_id": "IND25",
+    "alder": {
+      "bound": false,
+      "label": "alder",
+      "source": "oplyst",
+      "upper": null,
+      "value": 26
+    },
+    "contract_start_date": {
+      "page": 1,
+      "quote": "17.06.2024",
+      "value": "2024-06-17"
+    },
+    "coverage": {
+      "evidence": {
+        "page": 2,
+        "quote": "Industriens overenskomst",
+        "value": "Industriens overenskomst"
+      },
+      "source": "uddannelsesaftalen, § 8 Løn og andre vilkår, felt Overenskomst + § 55 i lov om erhvervsuddannelser",
+      "status": "omfattet"
+    },
+    "elevaar": {
+      "label": "uddannelsesår",
+      "source": "afledt af aftalestart 17.06.2024",
+      "value": 2
+    },
+    "employment_type": {
+      "label": "ansættelsesform",
+      "source": "oplyst",
+      "value": "elev"
+    },
+    "staff_group": {
+      "label": "medarbejdergruppe",
+      "source": "afledt af ansættelsesform (kontrakt)",
+      "value": "elev"
+    },
+    "timer_pr_uge": {
+      "label": "ugentlig norm",
+      "source": "oplyst",
+      "value": 37.0
+    }
+  },
+  "counters": {
+    "by_class": {
+      "K1": 8,
+      "K2": 7,
+      "K3": 2,
+      "K4": 9,
+      "K5": 5,
+      "K6": 5,
+      "K7": 2,
+      "K8": 0
+    },
+    "by_class_terminal": {
+      "K1": {
+        "FORBEHOLD": 0,
+        "KONTROLPUNKT": 0,
+        "MISMATCH": 0,
+        "NEEDS_INPUT": 0,
+        "OK": 8,
+        "REFUSED": 0
+      },
+      "K2": {
+        "FORBEHOLD": 1,
+        "KONTROLPUNKT": 0,
+        "MISMATCH": 0,
+        "NEEDS_INPUT": 1,
+        "OK": 5,
+        "REFUSED": 0
+      },
+      "K3": {
+        "FORBEHOLD": 0,
+        "KONTROLPUNKT": 0,
+        "MISMATCH": 0,
+        "NEEDS_INPUT": 0,
+        "OK": 1,
+        "REFUSED": 1
+      },
+      "K4": {
+        "FORBEHOLD": 2,
+        "KONTROLPUNKT": 0,
+        "MISMATCH": 2,
+        "NEEDS_INPUT": 0,
+        "OK": 5,
+        "REFUSED": 0
+      },
+      "K5": {
+        "FORBEHOLD": 2,
+        "KONTROLPUNKT": 0,
+        "MISMATCH": 0,
+        "NEEDS_INPUT": 0,
+        "OK": 3,
+        "REFUSED": 0
+      },
+      "K6": {
+        "FORBEHOLD": 1,
+        "KONTROLPUNKT": 0,
+        "MISMATCH": 0,
+        "NEEDS_INPUT": 0,
+        "OK": 4,
+        "REFUSED": 0
+      },
+      "K7": {
+        "FORBEHOLD": 0,
+        "KONTROLPUNKT": 0,
+        "MISMATCH": 0,
+        "NEEDS_INPUT": 1,
+        "OK": 1,
+        "REFUSED": 0
+      },
+      "K8": {
+        "FORBEHOLD": 0,
+        "KONTROLPUNKT": 0,
+        "MISMATCH": 0,
+        "NEEDS_INPUT": 0,
+        "OK": 0,
+        "REFUSED": 0
+      }
+    },
+    "by_substance": {
+      "finding": 1,
+      "generic": 7
+    },
+    "by_terminal": {
+      "FORBEHOLD": 6,
+      "KONTROLPUNKT": 0,
+      "MISMATCH": 2,
+      "NEEDS_INPUT": 2,
+      "OK": 27,
+      "REFUSED": 1
+    },
+    "checks_total": 38,
+    "findings_by_class": {
+      "K1": 0,
+      "K2": 0,
+      "K3": 0,
+      "K4": 0,
+      "K5": 0,
+      "K6": 0,
+      "K7": 1,
+      "K8": 0
+    },
+    "row_list_by_class": {
+      "K1": 8,
+      "K2": 7,
+      "K3": 2,
+      "K4": 11,
+      "K5": 5,
+      "K6": 5,
+      "K7": 2,
+      "K8": 0
+    },
+    "row_list_by_terminal": {
+      "FORBEHOLD": 6,
+      "KONTROLPUNKT": 0,
+      "MISMATCH": 2,
+      "NEEDS_INPUT": 2,
+      "OK": 29,
+      "REFUSED": 1
+    },
+    "rows_total": 40,
+    "substance_by_terminal": {
+      "FORBEHOLD": {
+        "finding": 0,
+        "generic": 6
+      },
+      "KONTROLPUNKT": {
+        "finding": 0,
+        "generic": 0
+      },
+      "NEEDS_INPUT": {
+        "finding": 1,
+        "generic": 1
+      }
+    }
+  },
+  "lines": [
+    {
+      "amount": 15510.0,
+      "anchor": null,
+      "basis": null,
+      "checks": [
+        "K1-D1-L000",
+        "K3-contract-start-date",
+        "K3-contract-unstated",
+        "K4-IND25-elevlon-aar2-L000"
+      ],
+      "concept": "grundlon",
+      "description": "Normaltimer 1 x sats",
+      "index": 0,
+      "kind": "transaction",
+      "lane": "PAYMENT",
+      "line_type": "earnings",
+      "quantity": 165.0,
+      "rate": 94.0,
+      "role": "earning",
+      "sign": "+",
+      "tags": [
+        "grundlon"
+      ]
+    },
+    {
+      "amount": 389.67,
+      "anchor": null,
+      "basis": 19483.47,
+      "checks": [
+        "K1-D1-L001",
+        "K4-IND25-S34-pension-medarbejder-L001",
+        "K4-IND25-S34-pension-medarbejder-grundlag-L001",
+        "K5-D4-L001"
+      ],
+      "concept": "pension_employee",
+      "description": "Arbejdsmarkedspension, medarbejderprocent",
+      "index": 1,
+      "kind": "transaction",
+      "lane": "PAYMENT",
+      "line_type": "pension",
+      "quantity": null,
+      "rate": 2.0,
+      "role": "employee_pension",
+      "sign": "-",
+      "tags": [
+        "employee_share",
+        "pension"
+      ]
+    },
+    {
+      "amount": 99.0,
+      "anchor": null,
+      "basis": null,
+      "checks": [
+        "K2-atp-L002"
+      ],
+      "concept": "atp",
+      "description": "ATP-bidrag af løn",
+      "index": 2,
+      "kind": "transaction",
+      "lane": "PAYMENT",
+      "line_type": "statutory_deduction",
+      "quantity": null,
+      "rate": null,
+      "role": "atp",
+      "sign": "-",
+      "tags": [
+        "atp"
+      ]
+    },
+    {
+      "amount": 1202.0,
+      "anchor": null,
+      "basis": 15021.33,
+      "checks": [
+        "K2-am_bidrag-L003",
+        "K5-D4-L003"
+      ],
+      "concept": "am_bidrag",
+      "description": "AM-bidrag",
+      "index": 3,
+      "kind": "transaction",
+      "lane": "PAYMENT",
+      "line_type": "statutory_deduction",
+      "quantity": null,
+      "rate": 8.0,
+      "role": "am_contribution",
+      "sign": "-",
+      "tags": [
+        "am_bidrag"
+      ]
+    },
+    {
+      "amount": 3064.0,
+      "anchor": null,
+      "basis": 8280.0,
+      "checks": [
+        "K1-D1-L004",
+        "K2-askat-beregning-L004",
+        "K2-askat-grundlag-L004"
+      ],
+      "concept": "a_skat",
+      "description": "A-skat",
+      "index": 4,
+      "kind": "transaction",
+      "lane": "PAYMENT",
+      "line_type": "tax_deduction",
+      "quantity": null,
+      "rate": 37.0,
+      "role": "a_tax",
+      "sign": "-",
+      "tags": [
+        "a_skat"
+      ]
+    },
+    {
+      "amount": 1403.61,
+      "anchor": null,
+      "basis": 15595.71,
+      "checks": [
+        "K1-D1-L005",
+        "K4-IND25-S25-fritvalg-bidrag-stk1-L005",
+        "K5-D4-L005"
+      ],
+      "concept": "fritvalg_bidrag",
+      "description": "Fritvalg, opsparet",
+      "index": 5,
+      "kind": "transaction",
+      "lane": "PAYMENT",
+      "line_type": "earnings",
+      "quantity": null,
+      "rate": 9.0,
+      "role": "accrual",
+      "sign": "+",
+      "tags": [
+        "fritvalg_related"
+      ]
+    },
+    {
+      "amount": 620.4,
+      "anchor": null,
+      "basis": 15510.0,
+      "checks": [
+        "K1-D1-L006",
+        "K4-IND25-S25-fritvalg-sh-opsparing-stk3-L006",
+        "K5-D4-L006"
+      ],
+      "concept": "sh_opsparing",
+      "description": "Søgnehelligdag, opsparet",
+      "index": 6,
+      "kind": "transaction",
+      "lane": "PAYMENT",
+      "line_type": "earnings",
+      "quantity": null,
+      "rate": 4.0,
+      "role": "accrual",
+      "sign": "+",
+      "tags": []
+    },
+    {
+      "amount": 85.71,
+      "anchor": null,
+      "basis": 19047.06,
+      "checks": [
+        "K1-D1-L007",
+        "K2-helligdag_tillaeg-L007",
+        "K5-D4-L007"
+      ],
+      "concept": "bededag_tillaeg",
+      "description": "Store bededagstillæg, opsparet",
+      "index": 7,
+      "kind": "transaction",
+      "lane": "PAYMENT",
+      "line_type": "earnings",
+      "quantity": null,
+      "rate": 0.45,
+      "role": "accrual",
+      "sign": "+",
+      "tags": [
+        "tillaeg"
+      ]
+    },
+    {
+      "amount": 10755.33,
+      "anchor": "net_payout",
+      "basis": null,
+      "checks": [],
+      "concept": null,
+      "description": "Til udbetaling",
+      "index": 8,
+      "kind": "balance",
+      "lane": "SALDO",
+      "line_type": "unknown",
+      "quantity": null,
+      "rate": null,
+      "role": "balance",
+      "sign": "+",
+      "tags": []
+    },
+    {
+      "amount": 18.72,
+      "anchor": null,
+      "basis": null,
+      "checks": [],
+      "concept": null,
+      "description": "Lovpligtige, indeværende år",
+      "index": 9,
+      "kind": "balance",
+      "lane": "SALDO",
+      "line_type": "unknown",
+      "quantity": null,
+      "rate": null,
+      "role": "balance",
+      "sign": "+",
+      "tags": []
+    },
+    {
+      "amount": 18.72,
+      "anchor": null,
+      "basis": null,
+      "checks": [],
+      "concept": null,
+      "description": "I alt",
+      "index": 10,
+      "kind": "balance",
+      "lane": "SALDO",
+      "line_type": "unknown",
+      "quantity": null,
+      "rate": null,
+      "role": "balance",
+      "sign": "+",
+      "tags": []
+    },
+    {
+      "amount": 6890.45,
+      "anchor": null,
+      "basis": null,
+      "checks": [],
+      "concept": "fritvalg_bidrag",
+      "description": "Fritvalg",
+      "index": 11,
+      "kind": "balance",
+      "lane": "SALDO",
+      "line_type": "unknown",
+      "quantity": null,
+      "rate": null,
+      "role": "balance",
+      "sign": "+",
+      "tags": []
+    },
+    {
+      "amount": 3045.6,
+      "anchor": null,
+      "basis": null,
+      "checks": [],
+      "concept": "sh_opsparing",
+      "description": "Søgnehelligdag",
+      "index": 12,
+      "kind": "balance",
+      "lane": "SALDO",
+      "line_type": "unknown",
+      "quantity": null,
+      "rate": null,
+      "role": "balance",
+      "sign": "+",
+      "tags": []
+    },
+    {
+      "amount": 1684.16,
+      "anchor": null,
+      "basis": null,
+      "checks": [],
+      "concept": "bededag_tillaeg",
+      "description": "Store bededagstillæg",
+      "index": 13,
+      "kind": "balance",
+      "lane": "SALDO",
+      "line_type": "unknown",
+      "quantity": null,
+      "rate": null,
+      "role": "balance",
+      "sign": "+",
+      "tags": []
+    },
+    {
+      "admitted_reason": "abstained:UNPARSEABLE_AMOUNT",
+      "admitted_status": "UNMATCHED",
+      "amount": null,
+      "amount_unread": true,
+      "anchor": null,
+      "basis": null,
+      "checks": [],
+      "concept": null,
+      "description": "0001  Arbejdstimer   165,00",
+      "index": 14,
+      "kind": "transaction",
+      "lane": "PARSE_DROPPED",
+      "line_type": "unknown",
+      "quantity": 165.0,
+      "rate": null,
+      "role": "unclassified",
+      "sign": null,
+      "tags": []
+    },
+    {
+      "admitted_reason": "abstained:UNPARSEABLE_AMOUNT",
+      "admitted_status": "UNMATCHED",
+      "amount": null,
+      "amount_unread": true,
+      "anchor": null,
+      "basis": null,
+      "checks": [],
+      "concept": null,
+      "description": "A-Indkomst   13.819,33",
+      "index": 15,
+      "kind": "transaction",
+      "lane": "PARSE_DROPPED",
+      "line_type": "unknown",
+      "quantity": null,
+      "rate": null,
+      "role": "unclassified",
+      "sign": null,
+      "tags": []
+    },
+    {
+      "admitted_reason": "abstained:UNPARSEABLE_AMOUNT",
+      "admitted_status": "UNMATCHED",
+      "amount": null,
+      "amount_unread": true,
+      "anchor": null,
+      "basis": null,
+      "checks": [],
+      "concept": null,
+      "description": "Skattefradrag (Hovedkort)   5.530,00",
+      "index": 16,
+      "kind": "transaction",
+      "lane": "PARSE_DROPPED",
+      "line_type": "unknown",
+      "quantity": null,
+      "rate": null,
+      "role": "unclassified",
+      "sign": null,
+      "tags": []
+    },
+    {
+      "amount": 0.0,
+      "anchor": null,
+      "basis": null,
+      "checks": [],
+      "concept": null,
+      "description": "Pension overføres til (01865846)",
+      "index": 17,
+      "kind": "transaction",
+      "lane": "PARSE_DROPPED",
+      "line_type": "unknown",
+      "quantity": null,
+      "rate": null,
+      "role": "accrual",
+      "sign": null,
+      "tags": []
+    },
+    {
+      "admitted_reason": "abstained:UNPARSEABLE_AMOUNT",
+      "admitted_status": "UNMATCHED",
+      "amount": null,
+      "amount_unread": true,
+      "anchor": null,
+      "basis": null,
+      "checks": [],
+      "concept": null,
+      "description": "Virksomhedsprocent (11,00%)   2.143,19",
+      "index": 18,
+      "kind": "transaction",
+      "lane": "PARSE_DROPPED",
+      "line_type": "unknown",
+      "quantity": null,
+      "rate": null,
+      "role": "unclassified",
+      "sign": null,
+      "tags": []
+    },
+    {
+      "admitted_reason": "abstained:UNPARSEABLE_AMOUNT",
+      "admitted_status": "UNMATCHED",
+      "amount": null,
+      "amount_unread": true,
+      "anchor": null,
+      "basis": null,
+      "checks": [],
+      "concept": null,
+      "description": "Medarbejderbidrag   389,67",
+      "index": 19,
+      "kind": "transaction",
+      "lane": "PARSE_DROPPED",
+      "line_type": "unknown",
+      "quantity": null,
+      "rate": null,
+      "role": "unclassified",
+      "sign": null,
+      "tags": []
+    },
+    {
+      "amount": 0.0,
+      "anchor": null,
+      "basis": null,
+      "checks": [],
+      "concept": null,
+      "description": "Feriepenge overføres til Feriekonto",
+      "index": 20,
+      "kind": "transaction",
+      "lane": "PARSE_DROPPED",
+      "line_type": "unknown",
+      "quantity": null,
+      "rate": null,
+      "role": "accrual",
+      "sign": null,
+      "tags": []
+    },
+    {
+      "amount": 0.0,
+      "anchor": null,
+      "basis": null,
+      "checks": [],
+      "concept": null,
+      "description": "FERIEDAGE",
+      "index": 21,
+      "kind": "transaction",
+      "lane": "PARSE_DROPPED",
+      "line_type": "unknown",
+      "quantity": null,
+      "rate": null,
+      "role": "unclassified",
+      "sign": null,
+      "tags": []
+    },
+    {
+      "amount": 0.0,
+      "anchor": null,
+      "basis": null,
+      "checks": [],
+      "concept": null,
+      "description": "OPSPARINGER",
+      "index": 22,
+      "kind": "transaction",
+      "lane": "PARSE_DROPPED",
+      "line_type": "unknown",
+      "quantity": null,
+      "rate": null,
+      "role": "accrual",
+      "sign": null,
+      "tags": []
+    }
+  ],
+  "missing_inputs": [
+    {
+      "artifact": "en tydeligere kopi af lønsedlen uden uafkodede rækker",
+      "ask_target": "unstated",
+      "checks": [
+        "K4-IND25-S34-pension-arbejdsgiver-manglende-bidrag"
+      ],
+      "checks_count": 1,
+      "kind": "tal på lønsedlen",
+      "spec_2b_input": null,
+      "unlocks": "om pensionsbidraget er betalt"
+    },
+    {
+      "artifact": "grundlagets sammensætning — sedlen oplyser den ikke",
+      "ask_target": "unstated",
+      "checks": [
+        "K5-D4-L001",
+        "K5-D4-L007"
+      ],
+      "checks_count": 2,
+      "kind": "ikke oplyst på sedlen",
+      "spec_2b_input": null,
+      "unlocks": "grundlaget kan afstemmes mod de lønelementer, der indgår i det"
+    },
+    {
+      "artifact": "lønperiodens egen bevægelse på kontoen, trykt på sedlen",
+      "ask_target": "unstated",
+      "checks": [
+        "K6-D5-tilvaekst-009"
+      ],
+      "checks_count": 1,
+      "kind": "tal på lønsedlen",
+      "spec_2b_input": null,
+      "unlocks": "saldokæden mellem de to lønsedler"
+    },
+    {
+      "artifact": "overarbejdstimer",
+      "ask_target": "member",
+      "checks": [
+        "K7-E3-capacity"
+      ],
+      "checks_count": 1,
+      "kind": "svar",
+      "spec_2b_input": 5,
+      "unlocks": "afgørelsen af, om timerne over kapaciteten er varierende arbejdstid eller overarbejde"
+    },
+    {
+      "artifact": "sedlens egen A-indkomst og skattefradrag som selvstændige oplysninger (til at afgøre, om metodens første trin — nedrunding til hele 10 kr. — er brugt)",
+      "ask_target": "unstated",
+      "checks": [
+        "K2-askat-beregning-L004"
+      ],
+      "checks_count": 1,
+      "kind": "tal på lønsedlen",
+      "spec_2b_input": null,
+      "unlocks": "om oprundingen af A-skatten til hele kroner har hjemmel"
+    },
+    {
+      "artifact": "sedlens egen ugenorm, trykt på sedlen",
+      "ask_target": "unstated",
+      "checks": [
+        "K4-hours_norm-2026-05"
+      ],
+      "checks_count": 1,
+      "kind": "tal på lønsedlen",
+      "spec_2b_input": null,
+      "unlocks": "arbejdstidsnormen kan holdes op mod overenskomsten"
+    },
+    {
+      "artifact": "trækprocent og månedsfradrag fra skattekortet (eller forskudsopgørelsen)",
+      "ask_target": "member",
+      "checks": [
+        "K2-askat-sats"
+      ],
+      "checks_count": 1,
+      "kind": "dokument / oplysning",
+      "spec_2b_input": 4,
+      "unlocks": "A-skattens sats og fradrag kan kontrolleres, ikke kun sedlens egen multiplikation"
+    }
+  ],
+  "provenance": {
+    "checks_from": "slip only (K1 · K5) + statutory LAW-DK rule rows (K2) + frozen agreement rule evidence incl. typed terms (K4 · K8) + supplied period events and the audit's own policy verdicts (K7)",
+    "llm_in_render_path": false,
+    "renderer": "paytjek-rule-engine · raw_report v1"
+  },
+  "provenance_facts": null,
+  "questions": [
+    {
+      "key": "boern",
+      "label": "børn og barsel",
+      "question": "Har du børn under 18 år?",
+      "raised": true,
+      "raised_by": [
+        {
+          "binding": "concept",
+          "detail": "barselslon",
+          "rule_id": "IND25-S35-barsel-anciennitet"
+        },
+        {
+          "binding": "concept",
+          "detail": "barselslon",
+          "rule_id": "IND25-S35-barsel-andenforaelder-10uger-efter10"
+        },
+        {
+          "binding": "concept",
+          "detail": "barselslon",
+          "rule_id": "IND25-S35-barsel-andenforaelder-2uger"
+        },
+        {
+          "binding": "concept",
+          "detail": "barselslon",
+          "rule_id": "IND25-S35-barsel-deleuger-foer-juni2025"
+        },
+        {
+          "binding": "concept",
+          "detail": "barselslon",
+          "rule_id": "IND25-S35-barsel-deleuger-fra-juni2025"
+        },
+        {
+          "binding": "concept",
+          "detail": "barselslon",
+          "rule_id": "IND25-S35-barsel-graviditet-mor"
+        },
+        {
+          "binding": "concept",
+          "detail": "barselslon",
+          "rule_id": "IND25-S35-barsel-mor-10uger"
+        },
+        {
+          "binding": "concept",
+          "detail": "barselslon",
+          "rule_id": "IND25-S35-barsel-mor-9uger-efter10"
+        },
+        {
+          "binding": "concept",
+          "detail": "barselslon",
+          "rule_id": "IND25-gravides-natarb-fravaer-betaling"
+        }
+      ]
+    },
+    {
+      "key": "sygdom",
+      "label": "sygdom og arbejdsskade",
+      "question": "Har du haft sygefravær i denne lønperiode?",
+      "raised": true,
+      "raised_by": [
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-BILAG5-120dages-opsigelse"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-BILAG5-sygelon"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S15-sygelon-forhoejet-timelon"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S29-hjemsendelse-sygemelding"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S29-modregning-tabt-refusion"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S29-stk2-tilskade-modregning"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S29-stk2-tilskade-periode1-5uger"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S29-stk2-tilskade-periode2-12uger-skiftehold"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S29-stk2-tilskade-stop-dagpenge"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S29-stk3-anciennitet-sygedagpenge-taerskel"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S29-stk3-refusionsstop-modregning"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S29-stk3-sygelon-efter5uger-skift-multiplier"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S29-stop-refusion"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S29-sygdom-deldag-ingen-anciennitet"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S29-sygdom-loen-0-5uger"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S29-sygdom-loen-5-17uger"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S29-sygdom-loen-5-17uger-skiftehold"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S29-sygelon-5uger-anciennitet"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S29-sygelon-efter5uger-skiftehold"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S29-sygelon-ingen-anciennitet"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S29-tilskadekomst-5uger"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S29-tilskadekomst-loen-0-5uger"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S29-tilskadekomst-loen-5-17uger"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S30-boerneomsorgsdage-antal"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S30-borns-sygdom-dag1-lav-anciennitet"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S30-borns-sygdom-dag2-3-uden-lon"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S30-borns-sygedag-fuld-loen"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S30-hospitalsindlaeggelse-fuld-loen"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S30-ledsagelse-naertstaaende-kritisk-sygdom"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S30-stk1-b-borns-sygdom-dag1-dagpenge"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S30-stk1-b-borns-sygdom-dag1-fuld-lon"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S30-stk1-b-hospitalsindlaeggelse-fuld-lon"
+        },
+        {
+          "binding": "concept",
+          "detail": "sygdom",
+          "rule_id": "IND25-S30-stk1-borns-sygdom-dag1-under9mdr"
+        }
+      ]
+    },
+    {
+      "key": "skiftehold",
+      "label": "skiftehold og forskudt tid",
+      "question": "Arbejder du skiftehold, aften, nat eller weekend?",
+      "raised": true,
+      "raised_by": [
+        {
+          "binding": "concept",
+          "detail": "aften_tillaeg",
+          "rule_id": "IND25-BILAG10stk11-pkt-5-2-24dec-2024"
+        },
+        {
+          "binding": "concept",
+          "detail": "forskudttid_tillaeg",
+          "rule_id": "IND25-S1.3.2024-forskudttid-tillaeg1"
+        },
+        {
+          "binding": "concept",
+          "detail": "forskudttid_tillaeg",
+          "rule_id": "IND25-S1.5.2025-kr-119-10-forskudttid-tillaeg1"
+        },
+        {
+          "binding": "concept",
+          "detail": "forskudttid_tillaeg",
+          "rule_id": "IND25-S1.5.2025-kr-119-10-forskudttid-tillaeg2"
+        },
+        {
+          "binding": "concept",
+          "detail": "forskudttid_tillaeg",
+          "rule_id": "IND25-S14-forskudt-arbejd-tillaeg2-nat"
+        },
+        {
+          "binding": "concept",
+          "detail": "forskudttid_tillaeg",
+          "rule_id": "IND25-S14-forskudt-arbejd-tillaeg3-sen-nat"
+        },
+        {
+          "binding": "concept",
+          "detail": "forskudttid_tillaeg",
+          "rule_id": "IND25-S14-tillaeg1-aften"
+        },
+        {
+          "binding": "concept",
+          "detail": "forskudttid_tillaeg",
+          "rule_id": "IND25-S14-tillaeg2-nat"
+        },
+        {
+          "binding": "concept",
+          "detail": "forskudttid_tillaeg",
+          "rule_id": "IND25-S14-tillaeg3-sen-nat"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S15-stk3-skifteholdsarbe-norm-12-13"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S15-stk3-skifteholdsarbe-norm-123"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S15-stk3-skifteholdsarbe-norm-23"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S15-stk4-a-2-34-timer-for-de-aften"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S15-stk4-a-skifteholdsarbe-1skift"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S15-stk4-c-3-34-timer-gennemsnit"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S15-stk4-c-3-34-timer-ved-en-skifteholdsplan-norm"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S15-tillaeg1-hverdag-aften-nat"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S15-tillaeg2-lordag-sondag"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S15-tillaeg3-helligdag-ingen-erstatningsfridag"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S15-tillaeg4-vagtlistefridag-forskydning"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S15-varsel-overarbejdstillaeg"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S2.1-arbejdstid-skift-1-2-3"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S2.1-arbejdstid-skift-1-2-og-1-3"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S2.1-arbejdstid-skift-2-3"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S2.5-skifteholdsarbe-loenberegning-37t"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S2.5-skifteholdsarbe-norm-2-3skift"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S2.5-skifteholdsarbe-overarb-opgoerelse"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S2.5-skifteholdsarbe-underarb-opgoerelse"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S6.5-overarbejde-ved-skifteholdstillaeg"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S6.7-ekstra-fridage-konvertering"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S8.1-varsel-aendring-abc"
+        },
+        {
+          "binding": "concept",
+          "detail": "forskudttid_tillaeg",
+          "rule_id": "IND25-S9-arbejdstid-placering"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S9-skifthold-1skift-ugentlig"
+        },
+        {
+          "binding": "concept",
+          "detail": "skifteholdstillaeg",
+          "rule_id": "IND25-S9-skifthold-2-3skift-ugentlig"
+        },
+        {
+          "binding": "concept",
+          "detail": "forskudttid_tillaeg",
+          "rule_id": "IND25-normal-arbejdst-forskudt-37t"
+        }
+      ]
+    },
+    {
+      "key": "overarbejde",
+      "label": "overarbejde",
+      "question": "Har du haft overarbejde i denne lønperiode?",
+      "raised": true,
+      "raised_by": [
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement_50",
+          "rule_id": "IND25-BILAG10stk10-pkt-5-2-daglig-overtid"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-BILAG10stk11-pkt-5-2-afspadsering-frist-udbetaling"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-BILAG10stk11-pkt-5-2-shutdown-overtid"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-BILAG10stk12-pkt-5-2-afspadsering-12mdr-frist"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-BILAG10stk12-pkt-5-2-afspadsering-frist-udbetaling"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-BILAG10stk2-pkt-5-2-afspadsering-frist-udbetaling"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-BILAG10stk2-pkt-5-2-shutdown-overtid"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-BILAG10stk4-pkt-5-2-arbejde-shutdown-overtid"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-BILAG10stk5-pkt-5-2-havvind-afspadsering-frist"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-BILAG9stk6-arbejde-i-tyskl-max-ugentlig-arbejdstid"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S10-stk5-weekendarbejde-tillaeg"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S10-stk6-max-ugentlig-arbejdstid"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S13-afspadsering-offshore-udbetaling-frist"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement_50",
+          "rule_id": "IND25-S13-overarbejde-50pct"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S13-overarbejde-forskudttid-tillaeg"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S13-overarbejde-forud-hverdag-dag"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S13-overarbejde-forud-hverdag-nat"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S13-overarbejde-hverdag-1-2-time"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S13-overarbejde-hverdag-3-4-time"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S13-overarbejde-hverdag-5-time-og-frem"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S13-overarbejde-hverdagsfridag-dag"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S13-overarbejde-hverdagsfridag-nat"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S13-overarbejde-opgoerelse-fradrag"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S13-overarbejde-skiftehold-tillaeg"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S13-overarbejde-soendag-helligdag-efter-kl12"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S13-overarbejde-soendag-helligdag-foer-kl12"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S13-overarbejde-soendag-morgen-forud"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S13-stk7-a-overarbejde-a-efter-normal"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S13-stk7-d-2-betalingssatser-overarbejde-hverdag-5time"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S14-afbrydelse-sammenhaengende-uge"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S14-forskudt-overarbejde-tillaeg"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S14-forskudttid-overarbejde-tillaeg"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S14-forskudttid-varsel-5x24"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S14-varsel-manglende-overarbejdsbetaling"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S15-overskydende-timer-overtidsbetaling"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S15-stk8-opgorelse-overskydende"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S15-stk8-varsel-overarbejdstillaeg"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S6.5-overarbejde-hel-hverdagsfridag"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S6.5-overarbejde-hverdag-foer-normal"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S6.5-overarbejde-hverdag-foer-normal-nat"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S6.5-overarbejde-hverdag-klokketime"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S6.5-overarbejde-opgoerelse-forsomt-tid"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S6.5-overarbejde-skifteholdstillaeg"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S6.5-overarbejde-son-helligdag"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S6.5-overarbejde-spisepause"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S8.2-egentlige-overarbejdstimer-udenfor-opgorelse"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S8.2-opgorelse-overskydende-timer"
+        },
+        {
+          "binding": "concept",
+          "detail": "overtime_supplement",
+          "rule_id": "IND25-S9-max-ugentlig-arbejdstid"
+        }
+      ]
+    },
+    {
+      "answer": {
+        "established_by": "grundlag",
+        "source": "afledt af ansættelsesform (kontrakt)",
+        "state": "ja",
+        "value": "elev"
+      },
+      "key": "elev",
+      "label": "elev og lærling",
+      "question": "Er du elev eller lærling?",
+      "raised": true,
+      "raised_by": [
+        {
+          "binding": "concept",
+          "detail": "elevlon",
+          "rule_id": "IND25-SL8-skoleophold-laerlinge"
+        },
+        {
+          "binding": "concept",
+          "detail": "elevlon",
+          "rule_id": "IND25-elevlon-aar1"
+        },
+        {
+          "binding": "concept",
+          "detail": "elevlon",
+          "rule_id": "IND25-elevlon-aar2"
+        },
+        {
+          "binding": "concept",
+          "detail": "elevlon",
+          "rule_id": "IND25-elevlon-aar3"
+        },
+        {
+          "binding": "concept",
+          "detail": "elevlon",
+          "rule_id": "IND25-elevlon-aar4"
+        },
+        {
+          "binding": "concept",
+          "detail": "elevlon",
+          "rule_id": "IND25-elevlon-aar5"
+        },
+        {
+          "binding": "concept",
+          "detail": "elevlon",
+          "rule_id": "IND25-lon-til-voksne-stk4a"
+        },
+        {
+          "binding": "concept",
+          "detail": "elevlon",
+          "rule_id": "IND25-lon-til-voksne-stk4b"
+        },
+        {
+          "binding": "concept",
+          "detail": "elevlon",
+          "rule_id": "IND25-ov-rige-laerlin-lokalaftale-min"
+        }
+      ]
+    },
+    {
+      "key": "udearbejde",
+      "label": "udearbejde, rejse og kørsel",
+      "question": "Har du arbejdet ude eller rejst for arbejdsgiveren?",
+      "raised": true,
+      "raised_by": [
+        {
+          "binding": "concept",
+          "detail": "km_godtgorelse",
+          "rule_id": "IND25-S1.5.2025-kr-119-10-korselsgodtgorelse"
+        },
+        {
+          "binding": "concept",
+          "detail": "udearbejde_tillaeg",
+          "rule_id": "IND25-S19-befordring-inden-arbejdstid"
+        },
+        {
+          "binding": "concept",
+          "detail": "udearbejde_tillaeg",
+          "rule_id": "IND25-S19-befordringstid-betaling"
+        },
+        {
+          "binding": "concept",
+          "detail": "udearbejde_tillaeg",
+          "rule_id": "IND25-S19-udearbejde-betaling"
+        },
+        {
+          "binding": "concept",
+          "detail": "udearbejde_tillaeg",
+          "rule_id": "IND25-S19-udearbejde-tillaeg"
+        },
+        {
+          "binding": "concept",
+          "detail": "udearbejde_tillaeg",
+          "rule_id": "IND25-S19-udearbejdstillaeg-bortfald"
+        },
+        {
+          "binding": "concept",
+          "detail": "udearbejde_tillaeg",
+          "rule_id": "IND25-S19-vejpenge-befordringstid"
+        },
+        {
+          "binding": "concept",
+          "detail": "udearbejde_tillaeg",
+          "rule_id": "IND25-S19-vejpenge-lokal-forhandling"
+        },
+        {
+          "binding": "concept",
+          "detail": "km_godtgorelse",
+          "rule_id": "IND25-S21-koerselsgodtgoerelse"
+        },
+        {
+          "binding": "concept",
+          "detail": "km_godtgorelse",
+          "rule_id": "IND25-S21-stk1-benyttelse-af-e"
+        }
+      ]
+    },
+    {
+      "key": "ophoer",
+      "label": "opsigelse og fratræden",
+      "question": "Er du opsagt, fritstillet eller fratrådt?",
+      "raised": false,
+      "raised_by": []
+    },
+    {
+      "key": "akkord",
+      "label": "akkord og bonus",
+      "question": "Får du akkord, bonus eller produktivitetsløn?",
+      "raised": false,
+      "raised_by": []
+    },
+    {
+      "key": "senior",
+      "label": "seniorordning",
+      "question": "Er du på en seniorordning?",
+      "raised": false,
+      "raised_by": []
+    },
+    {
+      "key": "uddannelse",
+      "label": "kursus og efteruddannelse",
+      "question": "Har du været på kursus eller uddannelse i perioden?",
+      "raised": false,
+      "raised_by": []
+    }
+  ],
+  "refusals": [
+    {
+      "authored": true,
+      "basis": null,
+      "check_class": "K3",
+      "check_id": "K3-contract-unstated",
+      "claim_axis": "kontantkrav",
+      "closable_by_document": true,
+      "computation": {
+        "arithmetic": "kontrakten angiver ikke: aftalt timeløn, aftalt månedsløn, arbejdsgiverpension, medarbejderpension; ingen sammenligning er udført.",
+        "inputs": [
+          {
+            "label": "kontraktfelter uden angivelse",
+            "source": "kontrakt",
+            "value": 4.0
+          }
+        ],
+        "sources": [
+          "kontrakt"
+        ]
+      },
+      "duty": "C1/C4",
+      "finding": null,
+      "line_index": 0,
+      "missing": null,
+      "note": "Kontrakten angiver hverken timeløn, månedsløn eller pensionsprocenter, så der er ingen kontraktsats at holde sedlens sats op mod, og der er ikke sammenlignet noget her. Er der fundet en mindstesats for uddannelsesåret, der gælder for perioden, prøves satsen mod den i rapportens K4-kontrol — og kan betingelserne for den sats ikke afgøres, siger den kontrol det. Er der ingen, står satsen uprøvet.",
+      "note_source": "template",
+      "quotes": [],
+      "section": "lines",
+      "substance": null,
+      "superseded": [],
+      "surface": "check",
+      "terminal": "REFUSED",
+      "title": "Kontraktkontrol af løn og pension bevidst ikke udført — kontrakten angiver intet beløb",
+      "title_source": "template"
+    }
+  ],
+  "schema": "cycle11-raw-verification-report-v1",
+  "session": {
+    "corroboration": "uncontradicted",
+    "identity_split": false,
+    "missing_periods": [],
+    "periods_in_session": 24,
+    "position": 23,
+    "prior_accounts": 21,
+    "prior_is_adjacent": true,
+    "prior_period": "2026-04",
+    "prior_readings": 1,
+    "prior_slip_key": "354f1f46d626",
+    "session_id": "9a4b962a",
+    "slips_in_session": 25,
+    "trin_placement": {
+      "anchors_at_step": 4,
+      "column_value": 94.0,
+      "documented_by_period": "2025-11",
+      "ladder": "elevlon [staff_group == elev]",
+      "rate_was_derived": false,
+      "rule_id": "IND25-elevlon-aar2",
+      "same_slip": false,
+      "step": 2,
+      "valid_from": "2025-05-01",
+      "valid_to": "2026-02-28"
+    }
+  },
+  "slip": {
+    "agreement_id": "IND25",
+    "audit_generated_at": "2026-08-31T07:59:58.595635Z",
+    "audit_schema_version": "2.0.0",
+    "family": "IND25",
+    "lines_total": 23,
+    "period": "2026-05",
+    "run_id": "1cc7f85f-e2b6-4b67-8627-a2cc3e9ccf9e",
+    "slip_key": "1648f152bd84"
+  },
+  "statutory": {
+    "declared_facts": {
+      "a_indkomst": 13819.33,
+      "skattefradrag": 5530.0
+    },
+    "declared_hours": 165.0,
+    "law_rules_loaded": [
+      "LAW-DK-am-bidrag-8-pct",
+      "LAW-DK-atp-1-3-sats",
+      "LAW-DK-atp-1-3-sats-2020",
+      "LAW-DK-atp-2-3-sats",
+      "LAW-DK-atp-2-3-sats-2020",
+      "LAW-DK-atp-fuld-sats",
+      "LAW-DK-atp-fuld-sats-2020",
+      "LAW-DK-feriepenge-12-5-pct",
+      "LAW-DK-ferietillaeg-1-pct",
+      "LAW-DK-store-bededag-loentillaeg",
+      "LAW-DK-unges-arbejdstid-daglig-8-timer",
+      "LAW-DK-unges-arbejdstid-ugentlig-40-timer"
+    ],
+    "monthly_hours": 165.0,
+    "monthly_hours_source": "payslip_derived",
+    "pattern_bindings": [
+      {
+        "concept": "helligdag_tillaeg",
+        "line_index": 7,
+        "pattern": "Bededagstillæg",
+        "rule_id": "LAW-DK-store-bededag-loentillaeg",
+        "why_not_concept": "line concept bededag_tillaeg does not match rule concept helligdag_tillaeg — text-pattern fallback (B3)"
+      }
+    ],
+    "period_date": "2026-05-01"
+  }
+}
