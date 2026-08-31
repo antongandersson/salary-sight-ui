@@ -54,7 +54,7 @@ const TERMINAL_ORDER: Terminal[] = [
 function CaseScreen() {
   const [mode, setMode] = useState<Mode>("hurtig");
   const [filter, setFilter] = useState<Terminal | "ALLE">("ALLE");
-  const [tab, setTab] = useState<"kontroller" | "seddel">("kontroller");
+  const [tab, setTab] = useState<"kontroller" | "seddel" | "original">("kontroller");
   const [focus, setFocus] = useState<string | null>(null);
 
   const checks = report.checks;
