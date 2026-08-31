@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { CheckCard } from "@/components/report/CheckCard";
+import { PayslipFacsimile } from "@/components/report/PayslipFacsimile";
 import { SideRail } from "@/components/report/SideRail";
 import { SlipTable } from "@/components/report/SlipTable";
 import { StatusPill } from "@/components/report/StatusPill";
