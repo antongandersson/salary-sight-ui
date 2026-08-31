@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { CheckCard } from "@/components/report/CheckCard";
+import { PayslipFacsimile } from "@/components/report/PayslipFacsimile";
 import { SideRail } from "@/components/report/SideRail";
 import { SlipTable } from "@/components/report/SlipTable";
 import { StatusPill } from "@/components/report/StatusPill";
@@ -53,7 +54,7 @@ const TERMINAL_ORDER: Terminal[] = [
 function CaseScreen() {
   const [mode, setMode] = useState<Mode>("hurtig");
   const [filter, setFilter] = useState<Terminal | "ALLE">("ALLE");
-  const [tab, setTab] = useState<"kontroller" | "seddel">("kontroller");
+  const [tab, setTab] = useState<"kontroller" | "seddel" | "original">("kontroller");
   const [focus, setFocus] = useState<string | null>(null);
 
   const checks = report.checks;
@@ -173,7 +174,7 @@ function CaseScreen() {
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div>
             <div className="flex flex-wrap items-center gap-2 border-b border-border pb-3">
-              {(["kontroller", "seddel"] as const).map((t) => (
+              {(["kontroller", "seddel", "original"] as const).map((t) => (
                 <button
                   key={t}
                   type="button"
@@ -182,7 +183,11 @@ function CaseScreen() {
                     tab === t ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {t === "kontroller" ? "Alle kontroller" : "Lønsedlen linje for linje"}
+                  {t === "kontroller"
+                    ? "Alle kontroller"
+                    : t === "seddel"
+                      ? "Lønsedlen linje for linje"
+                      : "Original lønseddel"}
                 </button>
               ))}
               {tab === "kontroller" ? (
@@ -230,7 +235,7 @@ function CaseScreen() {
                   </section>
                 ))}
               </div>
-            ) : (
+            ) : tab === "seddel" ? (
               <div className="mt-4 space-y-4">
                 <SlipTable
                   onSelect={(id) => {
@@ -246,6 +251,23 @@ function CaseScreen() {
                   Rækker markeret «Ikke afkodet ved indlæsning» er en mangel ved indlæsningen af
                   sedlen — ikke ved sedlen. De tal, de måtte trykke, har ikke indgået i
                   kontrollerne.
+                </p>
+              </div>
+            ) : (
+              <div className="mt-4 space-y-4">
+                <PayslipFacsimile
+                  onSelect={(id) => {
+                    setFocus(id);
+                    setTab("kontroller");
+                    setFilter("ALLE");
+                    requestAnimationFrame(() =>
+                      document.getElementById(id)?.scrollIntoView({ block: "center" }),
+                    );
+                  }}
+                />
+                <p className="text-[12px] leading-relaxed text-muted-foreground">
+                  Sedlen er gengivet som den er trykt fra DataLøn. Røde rækker er dem, en kontrol
+                  har rejst en indsigelse mod — klik på kontrolmærket for at se beregningen.
                 </p>
               </div>
             )}
