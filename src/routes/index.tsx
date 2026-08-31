@@ -235,7 +235,7 @@ function CaseScreen() {
                   </section>
                 ))}
               </div>
-            ) : (
+            ) : tab === "seddel" ? (
               <div className="mt-4 space-y-4">
                 <SlipTable
                   onSelect={(id) => {
@@ -251,6 +251,23 @@ function CaseScreen() {
                   Rækker markeret «Ikke afkodet ved indlæsning» er en mangel ved indlæsningen af
                   sedlen — ikke ved sedlen. De tal, de måtte trykke, har ikke indgået i
                   kontrollerne.
+                </p>
+              </div>
+            ) : (
+              <div className="mt-4 space-y-4">
+                <PayslipFacsimile
+                  onSelect={(id) => {
+                    setFocus(id);
+                    setTab("kontroller");
+                    setFilter("ALLE");
+                    requestAnimationFrame(() =>
+                      document.getElementById(id)?.scrollIntoView({ block: "center" }),
+                    );
+                  }}
+                />
+                <p className="text-[12px] leading-relaxed text-muted-foreground">
+                  Sedlen er gengivet som den er trykt fra DataLøn. Røde rækker er dem, en kontrol
+                  har rejst en indsigelse mod — klik på kontrolmærket for at se beregningen.
                 </p>
               </div>
             )}
