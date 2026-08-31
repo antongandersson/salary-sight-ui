@@ -174,7 +174,7 @@ function CaseScreen() {
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div>
             <div className="flex flex-wrap items-center gap-2 border-b border-border pb-3">
-              {(["kontroller", "seddel"] as const).map((t) => (
+              {(["kontroller", "seddel", "original"] as const).map((t) => (
                 <button
                   key={t}
                   type="button"
@@ -183,7 +183,11 @@ function CaseScreen() {
                     tab === t ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {t === "kontroller" ? "Alle kontroller" : "Lønsedlen linje for linje"}
+                  {t === "kontroller"
+                    ? "Alle kontroller"
+                    : t === "seddel"
+                      ? "Lønsedlen linje for linje"
+                      : "Original lønseddel"}
                 </button>
               ))}
               {tab === "kontroller" ? (
