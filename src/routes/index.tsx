@@ -400,6 +400,9 @@ function CaseScreen({
           <div className="num flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-muted-foreground">
             <span>{caseLabel}</span>
             <span>Periode {periodLabel(report.slip.period)}</span>
+            <span>
+              {report.lines.length} lønlinjer · {report.counters.checks_total} kontroller
+            </span>
           </div>
           <div className="ml-auto flex flex-wrap items-center gap-2">
             {isDemoApi() ? (
@@ -455,7 +458,7 @@ function CaseScreen({
               type="button"
             >
               {nextTab === "overblik"
-                ? "Sagsgennemgang"
+                ? "Overblik"
                 : nextTab === "kontroller"
                   ? "Alle kontroller"
                   : nextTab === "seddel"
@@ -523,50 +526,36 @@ function CaseScreen({
           ) : null}
         </div>
 
-        <div className={tab === "overblik" ? "mx-auto mt-4 max-w-4xl" : "hidden"}>
-          <ReportOverview
-            key={`${report.slip.period}:${report.slip.slip_key}`}
-            onOpenReport={() => {
-              setTab("kontroller");
-              setFilter("ALLE");
-            }}
-            onSelect={showCheck}
-            report={report}
-          />
+        <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <div>
+            {tab === "overblik" ? (
+              <ReportOverview onSelect={showCheck} report={report} />
+            ) : tab === "kontroller" ? (
+              <ReportChecks filter={filter} focus={focus} mode={mode} report={report} />
+            ) : tab === "seddel" ? (
+              <SlipTable onSelect={showCheck} report={report} />
+            ) : (
+              <PayslipFacsimile onSelect={showCheck} report={report} />
+            )}
+
+            {focused ? (
+              <p className="num mt-4 text-[11px] text-muted-foreground">
+                Valgt fra lønsedlen: {focused.check_id}
+              </p>
+            ) : null}
+          </div>
+
+          <SideRail report={report} />
         </div>
 
-        {tab !== "overblik" ? (
-          <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-            <div>
-              {tab === "kontroller" ? (
-                <ReportChecks filter={filter} focus={focus} mode={mode} report={report} />
-              ) : tab === "seddel" ? (
-                <SlipTable onSelect={showCheck} report={report} />
-              ) : (
-                <PayslipFacsimile onSelect={showCheck} report={report} />
-              )}
-
-              {focused ? (
-                <p className="num mt-4 text-[11px] text-muted-foreground">
-                  Valgt fra lønsedlen: {focused.check_id}
-                </p>
-              ) : null}
-            </div>
-
-            <SideRail report={report} />
-          </div>
-        ) : null}
-
-        {tab !== "overblik" ? (
-          <SourceProof
-            caseContext={caseContext}
-            caseId={caseId}
-            contextFilename={contextFilename}
-            contextRevision={contextRevision}
-            documents={documents}
-            source={reportSource}
-          />
-        ) : null}
+        <SourceProof
+          caseContext={caseContext}
+          caseId={caseId}
+          contextFilename={contextFilename}
+          contextRevision={contextRevision}
+          documents={documents}
+          source={reportSource}
+        />
       </main>
     </div>
   );
