@@ -81,7 +81,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Sagsskærm til faglige konsulenters kontrol af lønsedler." },
       { name: "author", content: "Paytjek" },
       { property: "og:title", content: "Paytjek — lønseddelkontrol" },
-      { property: "og:description", content: "Sagsskærm til faglige konsulenters kontrol af lønsedler." },
+      {
+        property: "og:description",
+        content: "Sagsskærm til faglige konsulenters kontrol af lønsedler.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

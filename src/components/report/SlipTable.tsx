@@ -1,4 +1,4 @@
-import { kr, report, TERMINALS, type Terminal } from "@/lib/report";
+import { kr, TERMINALS, type Report, type Terminal } from "@/lib/report";
 
 const dotClass: Record<Terminal, string> = {
   MISMATCH: "bg-mismatch",
@@ -15,7 +15,13 @@ const laneLabels: Record<string, string> = {
   PARSE_DROPPED: "Ikke afkodet ved indlæsning",
 };
 
-export function SlipTable({ onSelect }: { onSelect: (checkId: string) => void }) {
+export function SlipTable({
+  onSelect,
+  report,
+}: {
+  onSelect: (checkId: string) => void;
+  report: Report;
+}) {
   const byId = new Map(report.checks.map((c) => [c.check_id, c]));
   const lanes = ["PAYMENT", "SALDO", "PARSE_DROPPED"];
 

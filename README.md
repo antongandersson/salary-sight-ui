@@ -1,10 +1,10 @@
 # Paycheck Clarity
 
-Vi skal have fundet ud af hvordan vi bedst præsetere denne json-format type til Job-konsulenter når de har brugt paytjek til deres lønskørelse til at tjekke for fejl inde i Dansk metal. 
+Vi skal have fundet ud af hvordan vi bedst præsetere denne json-format type til Job-konsulenter når de har brugt paytjek til deres lønskørelse til at tjekke for fejl inde i Dansk metal.
 
 Så det er altså det skal være en UI format i html, som kan sætte ovenpå hvad der sker på disse json-sedler.
 
-Vi skal starte os med at sætte os ind i hovedet af hvordan de mennesker der sidder og tjekker lønsedler den dag i dag arbejder på og hvordan det ska være ret UI/UX mæssigt. 
+Vi skal starte os med at sætte os ind i hovedet af hvordan de mennesker der sidder og tjekker lønsedler den dag i dag arbejder på og hvordan det ska være ret UI/UX mæssigt.
 
 Jeg sætter både lønsedler og json format op
 
@@ -28,3 +28,20 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## PayTjek middleware
+
+Forsiden opretter en sag i middleware, uploader op til 30 PDF-filer som én batch og følger
+behandlingen, indtil den færdige rapport kan vises. Dokumenttyperne genkendes af middleware; der
+ligger ikke en eksempelrapport i frontendens datavej.
+
+Demo-middleware er standard under lokal udvikling. En anden installation kan vælges med:
+
+```sh
+VITE_PAYTJEK_API_BASE_URL=https://example.test npm run dev
+```
+
+Upload sender dokumenterne til den konfigurerede middleware. Brug kun testdokumenter i demo-miljøet.
+
+En eksisterende sag kan åbnes uden en demo-sagsvælger med
+`/?case_id=<uuid>&period=<YYYY-MM>&slip_key=<nøgle>`.

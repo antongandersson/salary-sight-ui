@@ -1,4 +1,4 @@
-import { kr, report } from "@/lib/report";
+import { kr, type Report } from "@/lib/report";
 
 function Panel({
   title,
@@ -20,7 +20,7 @@ function Panel({
   );
 }
 
-export function SideRail() {
+export function SideRail({ report }: { report: Report }) {
   const cf = report.context_facts as Record<string, { value?: unknown; label?: string }>;
   const session = report.session as Record<string, unknown>;
   const trin = session["trin_placement"] as Record<string, unknown> | undefined;
@@ -59,10 +59,7 @@ export function SideRail() {
         ) : null}
       </Panel>
 
-      <Panel
-        title="Spørgsmål til medlemmet"
-        meta={`${questions.length} rejst`}
-      >
+      <Panel title="Spørgsmål til medlemmet" meta={`${questions.length} rejst`}>
         <ul className="space-y-2.5">
           {questions.map((q) => (
             <li key={q.key} className="border-l-2 border-needs/50 pl-2.5">

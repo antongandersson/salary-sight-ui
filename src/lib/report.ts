@@ -1,12 +1,4 @@
-import raw from "@/data/report.json";
-
-export type Terminal =
-  | "OK"
-  | "MISMATCH"
-  | "FORBEHOLD"
-  | "NEEDS_INPUT"
-  | "REFUSED"
-  | "KONTROLPUNKT";
+export type Terminal = "OK" | "MISMATCH" | "FORBEHOLD" | "NEEDS_INPUT" | "REFUSED" | "KONTROLPUNKT";
 
 export type ComputationInput = { label: string; source: string; value: number };
 
@@ -95,8 +87,6 @@ export type Report = {
   anchors: Record<string, number>;
 };
 
-export const report = raw as unknown as Report;
-
 export const TERMINALS: Record<
   Terminal,
   { label: string; short: string; tone: string; order: number }
@@ -133,17 +123,6 @@ export function kr(value: number | null | undefined, decimals = 2): string {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
-}
-
-export function claimTotal(checks: Check[]): number {
-  return checks.reduce((sum, c) => sum + (c.kroner?.kr ?? 0), 0);
-}
-
-export function derivedTotal(checks: Check[]): number {
-  return checks.reduce(
-    (sum, c) => sum + (c.kroner?.derived ?? []).reduce((s, d) => s + (d.kr ?? 0), 0),
-    0,
-  );
 }
 
 export function moneyChecks(checks: Check[]): Check[] {

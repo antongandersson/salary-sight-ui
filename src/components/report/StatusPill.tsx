@@ -9,13 +9,7 @@ const toneClass: Record<Terminal, string> = {
   OK: "bg-ok-soft text-ok border-ok/25",
 };
 
-export function StatusPill({
-  terminal,
-  long = false,
-}: {
-  terminal: Terminal;
-  long?: boolean;
-}) {
+export function StatusPill({ terminal, long = false }: { terminal: Terminal; long?: boolean }) {
   const meta = TERMINALS[terminal];
   return (
     <span

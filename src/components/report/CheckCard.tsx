@@ -49,7 +49,9 @@ function Evidence({ check }: { check: Check }) {
                   <p className="num mt-1 text-[12px] text-muted-foreground">{d.arithmetic}</p>
                 ) : null}
                 {d.proof ? (
-                  <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">{d.proof}</p>
+                  <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
+                    {d.proof}
+                  </p>
                 ) : null}
               </li>
             ))}
@@ -71,9 +73,7 @@ function Evidence({ check }: { check: Check }) {
           <p className="label-caps text-needs">Mangler for at kunne afgøres</p>
           <p className="mt-1 text-[13px] text-foreground">{check.missing.artifact}</p>
           {check.missing.unlocks ? (
-            <p className="mt-1 text-[12px] text-muted-foreground">
-              Åbner: {check.missing.unlocks}
-            </p>
+            <p className="mt-1 text-[12px] text-muted-foreground">Åbner: {check.missing.unlocks}</p>
           ) : null}
         </div>
       ) : null}
