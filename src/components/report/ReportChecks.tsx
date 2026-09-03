@@ -11,6 +11,7 @@ const SECTION_TITLES: Record<string, string> = {
 };
 
 type Mode = "hurtig" | "revision";
+export type CheckFilter = Terminal | "ALLE" | "OPMÆRKSOMHED";
 
 function value(value: number | null | undefined): string {
   return value == null ? "—" : kr(value);
@@ -78,14 +79,14 @@ function LineGroup({
           {line.admitted_reason ? ` · ${line.admitted_reason}` : ""}
         </p>
       ) : null}
-      <div className="space-y-3 p-3">
+      <div className="divide-y divide-border">
         {checks.map((check) => (
           <div
-            className={focus === check.check_id ? "rounded-lg ring-2 ring-ring" : ""}
+            className={focus === check.check_id ? "relative z-10 ring-2 ring-inset ring-ring" : ""}
             id={check.check_id}
             key={check.check_id}
           >
-            <CheckCard check={check} mode={mode} />
+            <CheckCard check={check} embedded mode={mode} />
           </div>
         ))}
       </div>
@@ -99,14 +100,16 @@ export function ReportChecks({
   mode,
   report,
 }: {
-  filter: Terminal | "ALLE";
+  filter: CheckFilter;
   focus: string | null;
   mode: Mode;
   report: Report;
 }) {
   const groups = useMemo(() => {
     const eligible = report.checks.filter(
-      (check) => filter === "ALLE" || check.terminal === filter,
+      (check) =>
+        filter === "ALLE" ||
+        (filter === "OPMÆRKSOMHED" ? check.terminal !== "OK" : check.terminal === filter),
     );
     const byId = new Map(eligible.map((check) => [check.check_id, check]));
     const rendered = new Set<string>();
@@ -159,14 +162,16 @@ export function ReportChecks({
           <h2 className="label-caps mb-2">
             {group.title} · {group.checks.length}
           </h2>
-          <div className="space-y-3">
+          <div className="paper divide-y divide-border overflow-hidden rounded-lg">
             {group.checks.map((check) => (
               <div
-                className={focus === check.check_id ? "rounded-lg ring-2 ring-ring" : ""}
+                className={
+                  focus === check.check_id ? "relative z-10 ring-2 ring-inset ring-ring" : ""
+                }
                 id={check.check_id}
                 key={check.check_id}
               >
-                <CheckCard check={check} mode={mode} />
+                <CheckCard check={check} embedded mode={mode} />
               </div>
             ))}
           </div>
@@ -176,14 +181,16 @@ export function ReportChecks({
       {groups.leftovers.length > 0 ? (
         <section>
           <h2 className="label-caps mb-2">Øvrige kontroller · {groups.leftovers.length}</h2>
-          <div className="space-y-3">
+          <div className="paper divide-y divide-border overflow-hidden rounded-lg">
             {groups.leftovers.map((check) => (
               <div
-                className={focus === check.check_id ? "rounded-lg ring-2 ring-ring" : ""}
+                className={
+                  focus === check.check_id ? "relative z-10 ring-2 ring-inset ring-ring" : ""
+                }
                 id={check.check_id}
                 key={check.check_id}
               >
-                <CheckCard check={check} mode={mode} />
+                <CheckCard check={check} embedded mode={mode} />
               </div>
             ))}
           </div>

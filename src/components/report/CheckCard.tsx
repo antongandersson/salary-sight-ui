@@ -122,10 +122,12 @@ export function CheckCard({
   check,
   mode,
   compact = false,
+  embedded = false,
 }: {
   check: Check;
   mode: "hurtig" | "revision";
   compact?: boolean;
+  embedded?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const expanded = mode === "revision" || open;
@@ -133,7 +135,7 @@ export function CheckCard({
 
   return (
     <article
-      className={`paper rounded-lg p-4 transition-colors ${
+      className={`${embedded ? "p-4" : "paper rounded-lg p-4"} transition-colors ${
         amount ? "border-l-[3px] border-l-mismatch" : ""
       }`}
     >

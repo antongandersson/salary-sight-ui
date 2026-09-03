@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 
-import { CheckCard } from "@/components/report/CheckCard";
 import { PayslipFacsimile } from "@/components/report/PayslipFacsimile";
-import { ReportChecks } from "@/components/report/ReportChecks";
+import { ReportChecks, type CheckFilter } from "@/components/report/ReportChecks";
 import { SideRail } from "@/components/report/SideRail";
 import { SlipTable } from "@/components/report/SlipTable";
 import { SourceProof } from "@/components/report/SourceProof";
@@ -25,7 +24,7 @@ import {
   type ReportIndexEntry,
   type ReportSource,
 } from "@/lib/paytjek-api";
-import { moneyChecks, periodLabel, TERMINALS, type Report, type Terminal } from "@/lib/report";
+import { kr, moneyChecks, periodLabel, TERMINALS, type Report, type Terminal } from "@/lib/report";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -368,7 +367,7 @@ function CaseScreen({
   selectedReportKey: string;
 }) {
   const [mode, setMode] = useState<Mode>("hurtig");
-  const [filter, setFilter] = useState<Terminal | "ALLE">("ALLE");
+  const [filter, setFilter] = useState<CheckFilter>("OPMÆRKSOMHED");
   const [tab, setTab] = useState<"kontroller" | "seddel" | "dokumentdata">("kontroller");
   const [focus, setFocus] = useState<string | null>(null);
 
@@ -382,11 +381,13 @@ function CaseScreen({
   const counts = report.counters.row_list_by_terminal ?? report.counters.by_terminal;
   const focused = focus ? checks.find((check) => check.check_id === focus) : null;
   const unresolved = rowsTotal - (counts.OK ?? 0);
+  const attentionCount = checks.filter((check) => check.terminal !== "OK").length;
 
   function showCheck(checkId: string) {
+    const selected = checks.find((check) => check.check_id === checkId);
     setFocus(checkId);
     setTab("kontroller");
-    setFilter("ALLE");
+    setFilter(selected?.terminal === "OK" ? "OK" : "OPMÆRKSOMHED");
     requestAnimationFrame(() =>
       document.getElementById(checkId)?.scrollIntoView({ block: "center" }),
     );
@@ -403,11 +404,8 @@ function CaseScreen({
           <div className="num flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-muted-foreground">
             <span>{caseLabel}</span>
             <span>Periode {periodLabel(report.slip.period)}</span>
-            <span>Seddel {report.slip.slip_key}</span>
-            <span>{String(report.slip["agreement_id"] ?? "—")}</span>
             <span>
-              {report.lines.length} lønlinjer · {report.counters.checks_total} kontroller ·{" "}
-              {rowsTotal} publicerede rækker
+              {report.lines.length} lønlinjer · {report.counters.checks_total} kontroller
             </span>
           </div>
           <div className="ml-auto flex flex-wrap items-center gap-2">
@@ -434,6 +432,7 @@ function CaseScreen({
             <div className="flex items-center gap-1 rounded-md border border-border bg-muted p-0.5">
               {(["hurtig", "revision"] as Mode[]).map((nextMode) => (
                 <button
+                  aria-pressed={mode === nextMode}
                   className={`rounded-[5px] px-3 py-1.5 text-[12px] font-semibold transition-colors ${
                     mode === nextMode
                       ? "bg-card text-foreground shadow-sm"
@@ -463,8 +462,8 @@ function CaseScreen({
             {error}
           </p>
         ) : null}
-        <section className="paper rounded-xl p-6">
-          <div className="flex flex-wrap items-start justify-between gap-8">
+        <section className="paper rounded-xl p-5">
+          <div className="flex flex-wrap items-start justify-between gap-6">
             <div>
               <p className="label-caps">Kontante krav i denne periode</p>
               <p className="num mt-1 text-4xl font-bold tracking-tight text-mismatch">
@@ -475,71 +474,78 @@ function CaseScreen({
                 tal, som middleware ikke selv har leveret.
               </p>
             </div>
-            <div className="grid grid-cols-3 gap-x-6 gap-y-3 sm:grid-cols-5">
+            <dl className="flex flex-wrap gap-x-6 gap-y-3">
               {TERMINAL_ORDER.filter((terminal) => counts[terminal]).map((terminal) => (
-                <button
-                  className={`rounded-md border px-3 py-2 text-left transition-colors ${
-                    filter === terminal
-                      ? "border-foreground/40 bg-muted"
-                      : "border-border hover:bg-muted/60"
-                  }`}
-                  key={terminal}
-                  onClick={() => {
-                    setTab("kontroller");
-                    setFilter(filter === terminal ? "ALLE" : terminal);
-                  }}
-                  type="button"
-                >
-                  <span className="num block text-2xl font-semibold text-foreground">
-                    {counts[terminal]}
-                  </span>
-                  <span className="mt-1 block text-[11px] font-medium text-muted-foreground">
+                <div className="flex flex-col" key={terminal}>
+                  <dt className="order-2 mt-0.5 text-[11px] font-medium text-muted-foreground">
                     {TERMINALS[terminal].short}
-                  </span>
-                </button>
+                  </dt>
+                  <dd className="num order-1 text-2xl font-semibold text-foreground">
+                    {counts[terminal]}
+                  </dd>
+                </div>
               ))}
-            </div>
+            </dl>
           </div>
 
-          <div className="mt-6 space-y-3 border-t border-border pt-5">
-            <p className="label-caps">Det, der bærer beløbet</p>
-            {money.length > 0 ? (
-              money.map((check) => <CheckCard check={check} key={check.check_id} mode={mode} />)
-            ) : (
-              <p className="text-[13px] text-muted-foreground">
-                Ingen kontante kravposter i perioden.
+          <div className="mt-5 border-t border-border pt-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="label-caps">Det, der bærer beløbet</p>
+              <p className="text-[11px] text-muted-foreground">
+                {Math.max(0, unresolved - money.length)} øvrige ikke-afgjorte rækker
               </p>
-            )}
-            <p className="text-[12px] text-muted-foreground">
-              {Math.max(0, unresolved - money.length)} øvrige rækker er ikke afgjort som beløb.
-            </p>
-          </div>
-        </section>
-
-        {report.counters.substance_by_terminal ? (
-          <section className="paper mt-4 rounded-lg border-l-[3px] border-l-forbehold p-4">
-            <p className="label-caps">Ikke afgjorte kontroller med konkret fund</p>
-            {undecidedFindings.length > 0 ? (
-              <ul className="mt-3 space-y-2">
-                {undecidedFindings.map((check) => (
+            </div>
+            {money.length > 0 ? (
+              <ul className="mt-2 divide-y divide-border rounded-lg border border-border">
+                {money.map((check) => (
                   <li key={check.check_id}>
                     <button
-                      className="text-left text-[13px] font-semibold text-foreground underline-offset-4 hover:text-accent hover:underline"
+                      className="flex w-full items-center justify-between gap-4 px-3 py-2.5 text-left hover:bg-muted/45"
                       onClick={() => showCheck(check.check_id)}
                       type="button"
                     >
-                      {check.check_class} · {TERMINALS[check.terminal].short} — {check.title}
+                      <span className="min-w-0">
+                        <span className="block truncate text-[13px] font-semibold text-foreground">
+                          {check.title}
+                        </span>
+                        <span className="num mt-0.5 block text-[10px] text-muted-foreground">
+                          {check.check_class} · {check.check_id}
+                        </span>
+                      </span>
+                      <span className="num shrink-0 text-[14px] font-semibold text-mismatch">
+                        {kr(check.kroner?.kr)} kr
+                      </span>
                     </button>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">
-                Ingen ikke-afgjort kontrol på denne seddel har et konkret fund; forbeholdene
-                beskriver alene, hvad kontrollen ikke kunne fastslå.
+              <p className="mt-2 text-[13px] text-muted-foreground">
+                Ingen kontante kravposter i perioden.
               </p>
             )}
-          </section>
+          </div>
+        </section>
+
+        {report.counters.substance_by_terminal && undecidedFindings.length > 0 ? (
+          <details className="paper mt-4 rounded-lg border-l-[3px] border-l-forbehold px-4 py-3">
+            <summary className="cursor-pointer text-[12px] font-semibold text-foreground">
+              {undecidedFindings.length} ikke-afgjorte kontroller har et konkret fund
+            </summary>
+            <ul className="mt-3 space-y-2 border-t border-border pt-3">
+              {undecidedFindings.map((check) => (
+                <li key={check.check_id}>
+                  <button
+                    className="text-left text-[13px] font-semibold text-foreground underline-offset-4 hover:text-accent hover:underline"
+                    onClick={() => showCheck(check.check_id)}
+                    type="button"
+                  >
+                    {check.check_class} · {TERMINALS[check.terminal].short} — {check.title}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </details>
         ) : null}
 
         <SourceProof
@@ -556,6 +562,7 @@ function CaseScreen({
             <div className="flex flex-wrap items-center gap-2 border-b border-border pb-3">
               {(["kontroller", "seddel", "dokumentdata"] as const).map((nextTab) => (
                 <button
+                  aria-pressed={tab === nextTab}
                   className={`rounded-md px-3 py-1.5 text-[13px] font-semibold transition-colors ${
                     tab === nextTab
                       ? "bg-primary text-primary-foreground"
@@ -566,7 +573,7 @@ function CaseScreen({
                   type="button"
                 >
                   {nextTab === "kontroller"
-                    ? "Alle kontroller"
+                    ? "Kontroller"
                     : nextTab === "seddel"
                       ? "Lønsedlen linje for linje"
                       : "Dokumentdata"}
@@ -575,6 +582,19 @@ function CaseScreen({
               {tab === "kontroller" ? (
                 <div className="ml-auto flex flex-wrap gap-1.5">
                   <button
+                    aria-pressed={filter === "OPMÆRKSOMHED"}
+                    className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
+                      filter === "OPMÆRKSOMHED"
+                        ? "border-foreground/40 bg-muted text-foreground"
+                        : "border-border text-muted-foreground"
+                    }`}
+                    onClick={() => setFilter("OPMÆRKSOMHED")}
+                    type="button"
+                  >
+                    Opmærksomhed {attentionCount}
+                  </button>
+                  <button
+                    aria-pressed={filter === "ALLE"}
                     className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
                       filter === "ALLE"
                         ? "border-foreground/40 bg-muted text-foreground"
@@ -583,10 +603,15 @@ function CaseScreen({
                     onClick={() => setFilter("ALLE")}
                     type="button"
                   >
-                    Alle {rowsTotal}
+                    Alle {checks.length}
                   </button>
                   {TERMINAL_ORDER.filter((terminal) => counts[terminal]).map((terminal) => (
-                    <button key={terminal} onClick={() => setFilter(terminal)} type="button">
+                    <button
+                      aria-pressed={filter === terminal}
+                      key={terminal}
+                      onClick={() => setFilter(terminal)}
+                      type="button"
+                    >
                       <span className={filter === terminal ? "opacity-100" : "opacity-60"}>
                         <StatusPill terminal={terminal} />
                       </span>
