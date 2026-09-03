@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { CheckCard } from "@/components/report/CheckCard";
 import { PayslipFacsimile } from "@/components/report/PayslipFacsimile";
+import { ReportChecks } from "@/components/report/ReportChecks";
 import { SideRail } from "@/components/report/SideRail";
 import { SlipTable } from "@/components/report/SlipTable";
 import { StatusPill } from "@/components/report/StatusPill";
@@ -18,15 +19,7 @@ import {
   type BatchStatus,
   type ReportIndexEntry,
 } from "@/lib/paytjek-api";
-import {
-  moneyChecks,
-  periodLabel,
-  SECTION_LABELS,
-  sortChecks,
-  TERMINALS,
-  type Report,
-  type Terminal,
-} from "@/lib/report";
+import { moneyChecks, periodLabel, TERMINALS, type Report, type Terminal } from "@/lib/report";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -269,24 +262,14 @@ function CaseScreen({
 
   const checks = report.checks;
   const money = useMemo(() => moneyChecks(checks), [checks]);
-  const counts = useMemo(() => {
-    const result: Partial<Record<Terminal, number>> = {};
-    for (const check of checks) result[check.terminal] = (result[check.terminal] ?? 0) + 1;
-    return result;
-  }, [checks]);
-  const visible = useMemo(
-    () =>
-      sortChecks(filter === "ALLE" ? checks : checks.filter((check) => check.terminal === filter)),
-    [checks, filter],
+  const undecidedFindings = useMemo(
+    () => checks.filter((check) => check.substance === "finding"),
+    [checks],
   );
-  const grouped = useMemo(() => {
-    const groups = new Map<string, typeof visible>();
-    for (const check of visible)
-      groups.set(check.section, [...(groups.get(check.section) ?? []), check]);
-    return [...groups.entries()];
-  }, [visible]);
+  const rowsTotal = report.counters.rows_total ?? checks.length;
+  const counts = report.counters.row_list_by_terminal ?? report.counters.by_terminal;
   const focused = focus ? checks.find((check) => check.check_id === focus) : null;
-  const unresolved = checks.length - (counts.OK ?? 0);
+  const unresolved = rowsTotal - (counts.OK ?? 0);
 
   function showCheck(checkId: string) {
     setFocus(checkId);
@@ -311,7 +294,8 @@ function CaseScreen({
             <span>Seddel {report.slip.slip_key}</span>
             <span>{String(report.slip["agreement_id"] ?? "—")}</span>
             <span>
-              {report.lines.length} linjer · {checks.length} kontroller
+              {report.lines.length} lønlinjer · {report.counters.checks_total} kontroller ·{" "}
+              {rowsTotal} publicerede rækker
             </span>
           </div>
           <div className="ml-auto flex flex-wrap items-center gap-2">
@@ -415,6 +399,32 @@ function CaseScreen({
           </div>
         </section>
 
+        {report.counters.substance_by_terminal ? (
+          <section className="paper mt-4 rounded-lg border-l-[3px] border-l-forbehold p-4">
+            <p className="label-caps">Ikke afgjorte kontroller med konkret fund</p>
+            {undecidedFindings.length > 0 ? (
+              <ul className="mt-3 space-y-2">
+                {undecidedFindings.map((check) => (
+                  <li key={check.check_id}>
+                    <button
+                      className="text-left text-[13px] font-semibold text-foreground underline-offset-4 hover:text-accent hover:underline"
+                      onClick={() => showCheck(check.check_id)}
+                      type="button"
+                    >
+                      {check.check_class} · {TERMINALS[check.terminal].short} — {check.title}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">
+                Ingen ikke-afgjort kontrol på denne seddel har et konkret fund; forbeholdene
+                beskriver alene, hvad kontrollen ikke kunne fastslå.
+              </p>
+            )}
+          </section>
+        ) : null}
+
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div>
             <div className="flex flex-wrap items-center gap-2 border-b border-border pb-3">
@@ -447,7 +457,7 @@ function CaseScreen({
                     onClick={() => setFilter("ALLE")}
                     type="button"
                   >
-                    Alle {checks.length}
+                    Alle {rowsTotal}
                   </button>
                   {TERMINAL_ORDER.filter((terminal) => counts[terminal]).map((terminal) => (
                     <button key={terminal} onClick={() => setFilter(terminal)} type="button">
@@ -461,25 +471,8 @@ function CaseScreen({
             </div>
 
             {tab === "kontroller" ? (
-              <div className="mt-4 space-y-6">
-                {grouped.map(([section, groupChecks]) => (
-                  <section key={section}>
-                    <h2 className="label-caps mb-2">
-                      {SECTION_LABELS[section] ?? section} · {groupChecks.length}
-                    </h2>
-                    <div className="space-y-3">
-                      {groupChecks.map((check) => (
-                        <div
-                          className={focus === check.check_id ? "rounded-lg ring-2 ring-ring" : ""}
-                          id={check.check_id}
-                          key={check.check_id}
-                        >
-                          <CheckCard check={check} mode={mode} />
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-                ))}
+              <div className="mt-4">
+                <ReportChecks filter={filter} focus={focus} mode={mode} report={report} />
               </div>
             ) : tab === "seddel" ? (
               <div className="mt-4">

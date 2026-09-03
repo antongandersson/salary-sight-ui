@@ -26,6 +26,7 @@ export type Check = {
   terminal: Terminal;
   section: string;
   surface: string;
+  substance?: "finding" | "generic" | null;
   duty?: string | null;
   note?: string | null;
   quotes?: string[];
@@ -51,12 +52,25 @@ export type SlipLine = {
   description: string | null;
   concept: string | null;
   amount: number | null;
+  basis?: number | null;
   quantity?: number | null;
   rate?: number | null;
   lane: string;
   line_type: string;
   sign?: string | null;
   checks: string[];
+  amount_unread?: boolean;
+  admitted_status?: string | null;
+  admitted_reason?: string | null;
+};
+
+export type ReportCounters = {
+  checks_total: number;
+  by_terminal: Partial<Record<Terminal, number>>;
+  by_class: Record<string, number>;
+  substance_by_terminal?: Partial<Record<Terminal, Partial<Record<"finding" | "generic", number>>>>;
+  rows_total?: number;
+  row_list_by_terminal?: Partial<Record<Terminal, number>>;
 };
 
 export type Report = {
@@ -64,7 +78,7 @@ export type Report = {
   slip: Record<string, unknown> & { period: string; slip_key: string; lines_total: number };
   session: Record<string, unknown>;
   context_facts: Record<string, unknown>;
-  counters: Record<string, unknown>;
+  counters: ReportCounters;
   statutory: Record<string, unknown>;
   provenance: Record<string, string | boolean>;
   checks: Check[];
@@ -126,17 +140,7 @@ export function kr(value: number | null | undefined, decimals = 2): string {
 }
 
 export function moneyChecks(checks: Check[]): Check[] {
-  return checks
-    .filter((c) => (c.kroner?.kr ?? 0) > 0)
-    .sort((a, b) => (b.kroner?.kr ?? 0) - (a.kroner?.kr ?? 0));
-}
-
-export function sortChecks(checks: Check[]): Check[] {
-  return [...checks].sort((a, b) => {
-    const t = TERMINALS[a.terminal].order - TERMINALS[b.terminal].order;
-    if (t !== 0) return t;
-    return (b.kroner?.kr ?? 0) - (a.kroner?.kr ?? 0);
-  });
+  return checks.filter((check) => (check.kroner?.kr ?? 0) > 0);
 }
 
 export function periodLabel(period: string): string {
