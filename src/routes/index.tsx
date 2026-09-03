@@ -6,6 +6,7 @@ import { PayslipFacsimile } from "@/components/report/PayslipFacsimile";
 import { ReportChecks } from "@/components/report/ReportChecks";
 import { SideRail } from "@/components/report/SideRail";
 import { SlipTable } from "@/components/report/SlipTable";
+import { SourceProof } from "@/components/report/SourceProof";
 import { StatusPill } from "@/components/report/StatusPill";
 import { ProcessingCase } from "@/components/upload/ProcessingCase";
 import { UploadCase, type UploadSubmission } from "@/components/upload/UploadCase";
@@ -13,11 +14,15 @@ import { Button } from "@/components/ui/button";
 import {
   createCase,
   getBatchStatus,
+  getCaseDetail,
   getReport,
+  isDemoApi,
   listReports,
   uploadBatch,
   type BatchStatus,
+  type DocumentSummary,
   type ReportIndexEntry,
+  type ReportSource,
 } from "@/lib/paytjek-api";
 import { moneyChecks, periodLabel, TERMINALS, type Report, type Terminal } from "@/lib/report";
 
@@ -59,6 +64,16 @@ function reportKey(entry: ReportIndexEntry): string {
   return `${entry.period}:${entry.slip_key}`;
 }
 
+function readyReports(entries: readonly ReportIndexEntry[]): ReportIndexEntry[] {
+  return entries
+    .filter((entry) => !entry.stale)
+    .sort((left, right) =>
+      right.period === left.period
+        ? right.slip_key.localeCompare(left.slip_key)
+        : right.period.localeCompare(left.period),
+    );
+}
+
 function PaytjekFlow() {
   const [phase, setPhase] = useState<Phase>("upload");
   const [busy, setBusy] = useState(false);
@@ -68,6 +83,8 @@ function PaytjekFlow() {
   const [caseLabel, setCaseLabel] = useState("");
   const [batchStatus, setBatchStatus] = useState<BatchStatus | null>(null);
   const [report, setReport] = useState<Report | null>(null);
+  const [reportSource, setReportSource] = useState<ReportSource | null>(null);
+  const [documents, setDocuments] = useState<DocumentSummary[]>([]);
   const [reportEntries, setReportEntries] = useState<ReportIndexEntry[]>([]);
   const [selectedReportKey, setSelectedReportKey] = useState("");
   const [reportLoading, setReportLoading] = useState(false);
@@ -81,9 +98,12 @@ function PaytjekFlow() {
     setBusy(true);
     setError(null);
 
-    void listReports(resumeCaseId, controller.signal)
-      .then(async (index) => {
-        const ready = index.reports.filter((entry) => !entry.stale);
+    void Promise.all([
+      listReports(resumeCaseId, controller.signal),
+      getCaseDetail(resumeCaseId, controller.signal),
+    ])
+      .then(async ([index, detail]) => {
+        const ready = readyReports(index.reports);
         const requestedPeriod = search.get("period");
         const requestedSlipKey = search.get("slip_key");
         const selected =
@@ -94,13 +114,15 @@ function PaytjekFlow() {
           ) ?? ready[0];
         if (!selected) throw new Error("Sagen har endnu ingen færdig rapport.");
 
-        const payload = await getReport(resumeCaseId, selected, controller.signal);
+        const result = await getReport(resumeCaseId, selected, controller.signal);
         if (controller.signal.aborted) return;
         setCaseId(resumeCaseId);
-        setCaseLabel(search.get("label") ?? `Sag ${resumeCaseId.slice(0, 8)}`);
+        setCaseLabel(detail.label);
+        setDocuments(detail.documents);
         setReportEntries(ready);
         setSelectedReportKey(reportKey(selected));
-        setReport(payload);
+        setReport(result.report);
+        setReportSource(result.source);
         setPhase("report");
       })
       .catch((cause: unknown) => {
@@ -118,18 +140,42 @@ function PaytjekFlow() {
     setError(null);
     try {
       const createdCase = await createCase(submission.label, submission.agreementFamily);
-      const batch = await uploadBatch(createdCase.case_id, submission.files);
+      const selectedDocuments = [
+        ...submission.payslips.map((file) => ({ file, expectedKind: "payslip" as const })),
+        ...(submission.contract
+          ? [{ file: submission.contract, expectedKind: "contract" as const }]
+          : []),
+      ];
+      const batch = await uploadBatch(
+        createdCase.case_id,
+        selectedDocuments.map((document) => document.file),
+      );
+      const expectedKindsByFilename = new Map<
+        string,
+        Array<(typeof selectedDocuments)[number]["expectedKind"]>
+      >();
+      for (const document of selectedDocuments) {
+        const expectedKinds = expectedKindsByFilename.get(document.file.name) ?? [];
+        expectedKinds.push(document.expectedKind);
+        expectedKindsByFilename.set(document.file.name, expectedKinds);
+      }
       setCaseId(createdCase.case_id);
       setBatchId(batch.batch_id);
       setCaseLabel(createdCase.label);
       setBatchStatus({
         batch_id: batch.batch_id,
         state: "queued",
-        jobs: batch.jobs.map((job) => ({
-          job_id: job.job_id,
-          filename: job.filename,
-          state: "QUEUED",
-        })),
+        jobs: batch.jobs.map((job) => {
+          const expectedKinds = expectedKindsByFilename.get(job.filename);
+          return {
+            job_id: job.job_id,
+            filename: job.filename,
+            kind: job.kind,
+            expected_kind: expectedKinds?.shift(),
+            duplicate: job.duplicate,
+            state: "QUEUED",
+          };
+        }),
       });
       setPhase("processing");
     } catch (cause) {
@@ -149,18 +195,35 @@ function PaytjekFlow() {
       try {
         const status = await getBatchStatus(caseId, batchId, controller.signal);
         if (controller.signal.aborted) return;
-        setBatchStatus(status);
+        setBatchStatus((current) => ({
+          ...status,
+          jobs: status.jobs.map((job) => {
+            const existing = current?.jobs.find((candidate) => candidate.job_id === job.job_id);
+            return {
+              ...job,
+              kind: existing?.kind,
+              expected_kind: existing?.expected_kind,
+              duplicate: existing?.duplicate,
+            };
+          }),
+        }));
 
         if (status.state.toLowerCase() === "complete") {
-          const index = await listReports(caseId, controller.signal);
-          const ready = index.reports.filter((entry) => !entry.stale);
+          const [index, detail] = await Promise.all([
+            listReports(caseId, controller.signal),
+            getCaseDetail(caseId, controller.signal),
+          ]);
+          const ready = readyReports(index.reports);
           const first = ready[0];
           if (first) {
-            const payload = await getReport(caseId, first, controller.signal);
+            const result = await getReport(caseId, first, controller.signal);
             if (controller.signal.aborted) return;
+            setCaseLabel(detail.label);
+            setDocuments(detail.documents);
             setReportEntries(ready);
             setSelectedReportKey(reportKey(first));
-            setReport(payload);
+            setReport(result.report);
+            setReportSource(result.source);
             setPhase("report");
             return;
           }
@@ -192,7 +255,9 @@ function PaytjekFlow() {
     setReportLoading(true);
     setError(null);
     try {
-      setReport(await getReport(caseId, entry));
+      const result = await getReport(caseId, entry);
+      setReport(result.report);
+      setReportSource(result.source);
       setSelectedReportKey(nextKey);
     } catch (cause) {
       setError(message(cause));
@@ -210,6 +275,8 @@ function PaytjekFlow() {
     setCaseLabel("");
     setBatchStatus(null);
     setReport(null);
+    setReportSource(null);
+    setDocuments([]);
     setReportEntries([]);
     setSelectedReportKey("");
   }
@@ -218,16 +285,19 @@ function PaytjekFlow() {
     return <ProcessingCase error={error} label={caseLabel} onCancel={reset} status={batchStatus} />;
   }
 
-  if (phase === "report" && report) {
+  if (phase === "report" && report && reportSource) {
     return (
       <CaseScreen
+        caseId={caseId}
         caseLabel={caseLabel}
+        documents={documents}
         error={error}
         loading={reportLoading}
         onNewCase={reset}
         onSelectReport={selectReport}
         report={report}
         reportEntries={reportEntries}
+        reportSource={reportSource}
         selectedReportKey={selectedReportKey}
       />
     );
@@ -237,22 +307,28 @@ function PaytjekFlow() {
 }
 
 function CaseScreen({
+  caseId,
   caseLabel,
+  documents,
   error,
   loading,
   onNewCase,
   onSelectReport,
   report,
   reportEntries,
+  reportSource,
   selectedReportKey,
 }: {
+  caseId: string;
   caseLabel: string;
+  documents: DocumentSummary[];
   error: string | null;
   loading: boolean;
   onNewCase: () => void;
   onSelectReport: (key: string) => Promise<void>;
   report: Report;
   reportEntries: ReportIndexEntry[];
+  reportSource: ReportSource;
   selectedReportKey: string;
 }) {
   const [mode, setMode] = useState<Mode>("hurtig");
@@ -299,6 +375,11 @@ function CaseScreen({
             </span>
           </div>
           <div className="ml-auto flex flex-wrap items-center gap-2">
+            {isDemoApi() ? (
+              <span className="rounded-full border border-forbehold/40 bg-forbehold-soft px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-forbehold">
+                Testmiljø
+              </span>
+            ) : null}
             {reportEntries.length > 1 ? (
               <select
                 aria-label="Vælg lønperiode"
@@ -424,6 +505,8 @@ function CaseScreen({
             )}
           </section>
         ) : null}
+
+        <SourceProof caseId={caseId} documents={documents} source={reportSource} />
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div>

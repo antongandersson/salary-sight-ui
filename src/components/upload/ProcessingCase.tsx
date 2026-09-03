@@ -27,6 +27,15 @@ function stateLabel(state: string): string {
   return labels[state] ?? state.toLowerCase().replaceAll("_", " ");
 }
 
+function kindLabel(kind: string | undefined): string {
+  const labels: Record<string, string> = {
+    payslip: "Lønseddel",
+    contract: "Kontrakt",
+    unknown: "Ukendt dokument",
+  };
+  return kind ? (labels[kind.toLowerCase()] ?? kind) : "Klassificeres";
+}
+
 export function ProcessingCase({
   label,
   status,
@@ -64,15 +73,34 @@ export function ProcessingCase({
           ) : (
             jobs.map((job) => (
               <div
-                className="flex items-center gap-3 rounded-md border border-border bg-card p-3"
+                className="flex flex-wrap items-center gap-3 rounded-md border border-border bg-card p-3"
                 key={job.job_id}
               >
                 {jobIcon(job.state)}
                 <FileText className="size-4 text-muted-foreground" aria-hidden="true" />
-                <span className="min-w-0 flex-1 truncate text-[13px]">{job.filename}</span>
+                <span className="min-w-0 flex-1 truncate text-[13px] sm:basis-48">
+                  {job.filename}
+                </span>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                    job.kind === "unknown"
+                      ? "bg-forbehold-soft text-forbehold"
+                      : "bg-muted text-foreground"
+                  }`}
+                >
+                  Genkendt som: {kindLabel(job.kind)}
+                </span>
                 <span className="text-[11px] font-semibold text-muted-foreground">
                   {stateLabel(job.state)}
                 </span>
+                {job.expected_kind &&
+                job.kind &&
+                job.kind !== "unknown" &&
+                job.kind !== job.expected_kind ? (
+                  <p className="basis-full pl-14 text-[11px] text-mismatch">
+                    Dokumenttypen matcher ikke det valgte uploadfelt.
+                  </p>
+                ) : null}
               </div>
             ))
           )}

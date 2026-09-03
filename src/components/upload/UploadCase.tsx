@@ -1,11 +1,11 @@
 import { useRef, useState, type ChangeEvent, type DragEvent, type FormEvent } from "react";
-import { FileText, ShieldCheck, UploadCloud, X } from "lucide-react";
+import { BriefcaseBusiness, FileText, ShieldCheck, UploadCloud, X } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { AgreementFamily } from "@/lib/paytjek-api";
+import { isDemoApi, type AgreementFamily } from "@/lib/paytjek-api";
 
 const MAX_FILES = 30;
 const MAX_FILE_BYTES = 15 * 1024 * 1024;
@@ -18,18 +18,151 @@ function formatSize(bytes: number): string {
   return new Intl.NumberFormat("da-DK", { maximumFractionDigits: 1 }).format(bytes / 1024 / 1024);
 }
 
-function validateFiles(files: readonly File[]): string | null {
-  if (files.length > MAX_FILES) return "Du kan højst uploade 30 PDF-filer ad gangen.";
-  const invalid = files.find((file) => !file.name.toLowerCase().endsWith(".pdf"));
-  if (invalid) return `${invalid.name} er ikke en PDF-fil.`;
-  const tooLarge = files.find((file) => file.size > MAX_FILE_BYTES);
-  return tooLarge ? `${tooLarge.name} er større end 15 MB.` : null;
+function validatePdf(file: File): string | null {
+  if (!file.name.toLowerCase().endsWith(".pdf")) return `${file.name} er ikke en PDF-fil.`;
+  return file.size > MAX_FILE_BYTES ? `${file.name} er større end 15 MB.` : null;
+}
+
+type DocumentPickerProps = {
+  acceptMultiple: boolean;
+  busy: boolean;
+  description: string;
+  files: File[];
+  icon: typeof FileText;
+  id: string;
+  label: string;
+  onFiles: (files: File[]) => void;
+  optional?: boolean;
+};
+
+function DocumentPicker({
+  acceptMultiple,
+  busy,
+  description,
+  files,
+  icon: Icon,
+  id,
+  label,
+  onFiles,
+  optional = false,
+}: DocumentPickerProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [dragging, setDragging] = useState(false);
+
+  function receive(incoming: readonly File[]) {
+    if (acceptMultiple) {
+      const known = new Set(files.map(fileKey));
+      onFiles([...files, ...incoming.filter((file) => !known.has(fileKey(file)))]);
+      return;
+    }
+    onFiles(incoming[0] ? [incoming[0]] : []);
+  }
+
+  function handleInput(event: ChangeEvent<HTMLInputElement>) {
+    receive(Array.from(event.target.files ?? []));
+    event.target.value = "";
+  }
+
+  function handleDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setDragging(false);
+    receive(Array.from(event.dataTransfer.files));
+  }
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-4">
+      <div className="flex items-start gap-3">
+        <span className="rounded-md bg-muted p-2">
+          <Icon className="size-5 text-accent" aria-hidden="true" />
+        </span>
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Label className="text-[14px] font-semibold" htmlFor={id}>
+              {label}
+            </Label>
+            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              {optional ? "Valgfri" : "Påkrævet"}
+            </span>
+          </div>
+          <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">{description}</p>
+        </div>
+      </div>
+
+      <div
+        className={`mt-4 rounded-md border border-dashed px-4 py-5 text-center transition-colors ${
+          dragging ? "border-accent bg-mismatch-soft/40" : "border-border bg-muted/20"
+        }`}
+        onDragEnter={(event) => {
+          event.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={handleDrop}
+      >
+        <UploadCloud className="mx-auto size-6 text-muted-foreground" aria-hidden="true" />
+        <p className="mt-2 text-[12px] text-muted-foreground">
+          Træk {acceptMultiple ? "PDF-filer" : "en PDF-fil"} hertil
+        </p>
+        <Button
+          className="mt-3"
+          disabled={busy}
+          onClick={() => inputRef.current?.click()}
+          size="sm"
+          type="button"
+          variant="outline"
+        >
+          {acceptMultiple ? "Vælg lønsedler" : "Vælg kontrakt"}
+        </Button>
+        <input
+          accept="application/pdf,.pdf"
+          className="sr-only"
+          disabled={busy}
+          id={id}
+          multiple={acceptMultiple}
+          onChange={handleInput}
+          ref={inputRef}
+          type="file"
+        />
+      </div>
+
+      {files.length > 0 ? (
+        <div aria-label={`Valgte filer til ${label.toLowerCase()}`} className="mt-3 space-y-2">
+          {files.map((file) => (
+            <div
+              className="flex items-center gap-2 rounded-md bg-muted/45 px-3 py-2"
+              key={fileKey(file)}
+            >
+              <FileText className="size-4 shrink-0 text-accent" aria-hidden="true" />
+              <span className="min-w-0 flex-1 truncate text-[12px] text-foreground">
+                {file.name}
+              </span>
+              <span className="num text-[10px] text-muted-foreground">
+                {formatSize(file.size)} MB
+              </span>
+              <Button
+                aria-label={`Fjern ${file.name}`}
+                disabled={busy}
+                onClick={() => onFiles(files.filter((item) => item !== file))}
+                size="icon"
+                type="button"
+                variant="ghost"
+              >
+                <X aria-hidden="true" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 export type UploadSubmission = {
   label: string;
   agreementFamily: AgreementFamily | null;
-  files: File[];
+  payslips: File[];
+  contract: File | null;
 };
 
 export function UploadCase({
@@ -41,43 +174,41 @@ export function UploadCase({
   error: string | null;
   onSubmit: (submission: UploadSubmission) => Promise<void>;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
   const [label, setLabel] = useState("");
   const [agreementFamily, setAgreementFamily] = useState<AgreementFamily | "auto">("auto");
-  const [files, setFiles] = useState<File[]>([]);
+  const [payslips, setPayslips] = useState<File[]>([]);
+  const [contractFiles, setContractFiles] = useState<File[]>([]);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [dragging, setDragging] = useState(false);
 
-  function addFiles(incoming: readonly File[]) {
-    const known = new Set(files.map(fileKey));
-    const combined = [...files, ...incoming.filter((file) => !known.has(fileKey(file)))];
-    const nextError = validateFiles(combined);
+  function validateDocuments(nextPayslips: readonly File[], nextContract: readonly File[]) {
+    const allFiles = [...nextPayslips, ...nextContract];
+    if (allFiles.length > MAX_FILES) return "Du kan højst uploade 30 PDF-filer ad gangen.";
+    return allFiles.map(validatePdf).find((result) => result !== null) ?? null;
+  }
+
+  function updatePayslips(next: File[]) {
+    const nextError = validateDocuments(next, contractFiles);
     setValidationError(nextError);
-    if (nextError === null) setFiles(combined);
+    if (nextError === null) setPayslips(next);
   }
 
-  function handleFileInput(event: ChangeEvent<HTMLInputElement>) {
-    addFiles(Array.from(event.target.files ?? []));
-    event.target.value = "";
-  }
-
-  function handleDrop(event: DragEvent<HTMLDivElement>) {
-    event.preventDefault();
-    setDragging(false);
-    addFiles(Array.from(event.dataTransfer.files));
+  function updateContract(next: File[]) {
+    const nextError = validateDocuments(payslips, next);
+    setValidationError(nextError);
+    if (nextError === null) setContractFiles(next);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const nextError = validateFiles(files);
     if (!label.trim()) {
       setValidationError("Giv sagen et navn eller medlemsnummer.");
       return;
     }
-    if (files.length === 0) {
-      setValidationError("Tilføj mindst én lønseddel eller kontrakt som PDF.");
+    if (payslips.length === 0) {
+      setValidationError("Tilføj mindst én lønseddel som PDF.");
       return;
     }
+    const nextError = validateDocuments(payslips, contractFiles);
     if (nextError !== null) {
       setValidationError(nextError);
       return;
@@ -86,7 +217,8 @@ export function UploadCase({
     await onSubmit({
       label: label.trim(),
       agreementFamily: agreementFamily === "auto" ? null : agreementFamily,
-      files,
+      payslips,
+      contract: contractFiles[0] ?? null,
     });
   }
 
@@ -96,18 +228,23 @@ export function UploadCase({
         <div className="mx-auto flex max-w-[1180px] items-baseline gap-3 px-6 py-4">
           <span className="text-sm font-bold tracking-tight text-accent">PAYTJEK</span>
           <span className="text-sm font-semibold text-foreground">Ny lønseddelkontrol</span>
+          {isDemoApi() ? (
+            <span className="ml-auto rounded-full border border-forbehold/40 bg-forbehold-soft px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-forbehold">
+              Testmiljø
+            </span>
+          ) : null}
         </div>
       </header>
 
-      <main className="mx-auto grid max-w-[1180px] gap-8 px-6 py-10 lg:grid-cols-[minmax(0,720px)_1fr]">
+      <main className="mx-auto grid max-w-[1180px] gap-8 px-6 py-10 lg:grid-cols-[minmax(0,760px)_1fr]">
         <section className="paper rounded-xl p-6 sm:p-8">
           <p className="label-caps">Ny sag</p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground">
-            Upload lønsedler og kontrakt
+            Kontrollér dine lønsedler
           </h1>
           <p className="mt-3 max-w-2xl text-[14px] leading-relaxed text-muted-foreground">
-            PayTjek sender PDF-filerne samlet til middleware, som genkender dokumenttypen og
-            opretter en kontrolrapport for hver lønperiode.
+            Opret sagen, vælg lønsedlerne og tilføj eventuelt ansættelseskontrakten. PayTjek viser
+            bagefter præcis, hvordan hvert dokument blev genkendt.
           </p>
 
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -141,74 +278,33 @@ export function UploadCase({
               </div>
             </div>
 
-            <div
-              className={`rounded-lg border-2 border-dashed px-6 py-10 text-center transition-colors ${
-                dragging ? "border-accent bg-mismatch-soft/40" : "border-border bg-muted/30"
-              }`}
-              onDragEnter={(event) => {
-                event.preventDefault();
-                setDragging(true);
-              }}
-              onDragLeave={() => setDragging(false)}
-              onDragOver={(event) => event.preventDefault()}
-              onDrop={handleDrop}
-            >
-              <UploadCloud className="mx-auto size-9 text-accent" aria-hidden="true" />
-              <p className="mt-3 text-[15px] font-semibold text-foreground">
-                Træk PDF-filer hertil
-              </p>
-              <p className="mt-1 text-[12px] text-muted-foreground">
-                Lønsedler og ansættelseskontrakt · højst 30 filer · 15 MB pr. fil
-              </p>
-              <Button
-                className="mt-4"
-                disabled={busy}
-                onClick={() => inputRef.current?.click()}
-                type="button"
-                variant="outline"
-              >
-                Vælg filer
-              </Button>
-              <input
-                accept="application/pdf,.pdf"
-                className="sr-only"
-                disabled={busy}
-                id="documents"
-                multiple
-                onChange={handleFileInput}
-                ref={inputRef}
-                type="file"
+            <div className="grid gap-4 sm:grid-cols-2">
+              <DocumentPicker
+                acceptMultiple
+                busy={busy}
+                description="Upload én eller flere lønsedler. Der dannes en rapport for hver genkendt lønperiode."
+                files={payslips}
+                icon={FileText}
+                id="payslips"
+                label="Lønsedler"
+                onFiles={updatePayslips}
+              />
+              <DocumentPicker
+                acceptMultiple={false}
+                busy={busy}
+                description="Bruges til ansættelsesvilkår og datagrundlag. PayTjek skal bekræfte dokumenttypen."
+                files={contractFiles}
+                icon={BriefcaseBusiness}
+                id="contract"
+                label="Ansættelseskontrakt"
+                onFiles={updateContract}
+                optional
               />
             </div>
 
-            {files.length > 0 ? (
-              <div aria-label="Valgte dokumenter" className="space-y-2">
-                {files.map((file) => (
-                  <div
-                    className="flex items-center gap-3 rounded-md border border-border bg-card px-3 py-2"
-                    key={fileKey(file)}
-                  >
-                    <FileText className="size-4 shrink-0 text-accent" aria-hidden="true" />
-                    <span className="min-w-0 flex-1 truncate text-[13px] text-foreground">
-                      {file.name}
-                    </span>
-                    <span className="num text-[11px] text-muted-foreground">
-                      {formatSize(file.size)} MB
-                    </span>
-                    <Button
-                      aria-label={`Fjern ${file.name}`}
-                      disabled={busy}
-                      onClick={() => setFiles((current) => current.filter((item) => item !== file))}
-                      size="icon"
-                      type="button"
-                      variant="ghost"
-                    >
-                      <X aria-hidden="true" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            ) : null}
+            <p className="text-[11px] text-muted-foreground">
+              PDF · højst 30 dokumenter samlet · højst 15 MB pr. dokument
+            </p>
 
             {validationError || error ? (
               <Alert variant="destructive">
@@ -226,23 +322,25 @@ export function UploadCase({
           <div className="paper rounded-lg p-5">
             <ShieldCheck className="size-5 text-ok" aria-hidden="true" />
             <h2 className="mt-3 text-[15px] font-semibold text-foreground">
-              Ét samlet kontrolforløb
+              Du kan følge datagrundlaget
             </h2>
             <ol className="mt-4 space-y-4 text-[13px] text-muted-foreground">
               <li>
-                <strong className="text-foreground">1.</strong> Upload lønsedler og kontrakt
+                <strong className="text-foreground">1.</strong> Dokumenterne uploades til din sag
               </li>
               <li>
-                <strong className="text-foreground">2.</strong> Middleware læser og kontrollerer
+                <strong className="text-foreground">2.</strong> PayTjek viser den genkendte
+                dokumenttype
               </li>
               <li>
-                <strong className="text-foreground">3.</strong> Resultatet åbner i sagsskærmen
+                <strong className="text-foreground">3.</strong> Rapporten mærkes med kilde og
+                version
               </li>
             </ol>
           </div>
           <p className="px-1 text-[11px] leading-relaxed text-muted-foreground">
-            Ingen eksempelrapport indlæses. Sagsskærmen vises kun med data fra de dokumenter, du
-            sender til PayTjek.
+            Der indlæses ingen eksempelrapport. Resultatet åbner først, når middleware har dannet en
+            rapport til denne sag.
           </p>
         </aside>
       </main>
