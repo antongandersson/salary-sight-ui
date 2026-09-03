@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { PayslipFacsimile } from "@/components/report/PayslipFacsimile";
 import { ReportChecks, type CheckFilter } from "@/components/report/ReportChecks";
+import { ReportOverview } from "@/components/report/ReportOverview";
 import { SideRail } from "@/components/report/SideRail";
 import { SlipTable } from "@/components/report/SlipTable";
 import { SourceProof } from "@/components/report/SourceProof";
@@ -24,7 +25,7 @@ import {
   type ReportIndexEntry,
   type ReportSource,
 } from "@/lib/paytjek-api";
-import { kr, moneyChecks, periodLabel, TERMINALS, type Report, type Terminal } from "@/lib/report";
+import { periodLabel, type Report, type Terminal } from "@/lib/report";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -42,6 +43,7 @@ export const Route = createFileRoute("/")({
 
 type Mode = "hurtig" | "revision";
 type Phase = "upload" | "processing" | "report";
+type ReportTab = "overblik" | "kontroller" | "seddel" | "dokumentdata";
 
 const TERMINAL_ORDER: Terminal[] = [
   "MISMATCH",
@@ -367,29 +369,23 @@ function CaseScreen({
   selectedReportKey: string;
 }) {
   const [mode, setMode] = useState<Mode>("hurtig");
-  const [filter, setFilter] = useState<CheckFilter>("OPMÆRKSOMHED");
-  const [tab, setTab] = useState<"kontroller" | "seddel" | "dokumentdata">("kontroller");
+  const [filter, setFilter] = useState<CheckFilter>("ALLE");
+  const [tab, setTab] = useState<ReportTab>("overblik");
   const [focus, setFocus] = useState<string | null>(null);
 
   const checks = report.checks;
-  const money = useMemo(() => moneyChecks(checks), [checks]);
-  const undecidedFindings = useMemo(
-    () => checks.filter((check) => check.substance === "finding"),
-    [checks],
-  );
-  const rowsTotal = report.counters.rows_total ?? checks.length;
   const counts = report.counters.row_list_by_terminal ?? report.counters.by_terminal;
   const focused = focus ? checks.find((check) => check.check_id === focus) : null;
-  const unresolved = rowsTotal - (counts.OK ?? 0);
   const attentionCount = checks.filter((check) => check.terminal !== "OK").length;
 
   function showCheck(checkId: string) {
-    const selected = checks.find((check) => check.check_id === checkId);
     setFocus(checkId);
     setTab("kontroller");
-    setFilter(selected?.terminal === "OK" ? "OK" : "OPMÆRKSOMHED");
+    setFilter("ALLE");
     requestAnimationFrame(() =>
-      document.getElementById(checkId)?.scrollIntoView({ block: "center" }),
+      requestAnimationFrame(() =>
+        document.getElementById(checkId)?.scrollIntoView({ block: "center" }),
+      ),
     );
   }
 
@@ -429,23 +425,6 @@ function CaseScreen({
                 ))}
               </select>
             ) : null}
-            <div className="flex items-center gap-1 rounded-md border border-border bg-muted p-0.5">
-              {(["hurtig", "revision"] as Mode[]).map((nextMode) => (
-                <button
-                  aria-pressed={mode === nextMode}
-                  className={`rounded-[5px] px-3 py-1.5 text-[12px] font-semibold transition-colors ${
-                    mode === nextMode
-                      ? "bg-card text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  key={nextMode}
-                  onClick={() => setMode(nextMode)}
-                  type="button"
-                >
-                  {nextMode === "hurtig" ? "Hurtig triage" : "Revisionsvisning"}
-                </button>
-              ))}
-            </div>
             <Button onClick={onNewCase} size="sm" type="button" variant="outline">
               Ny sag
             </Button>
@@ -462,177 +441,101 @@ function CaseScreen({
             {error}
           </p>
         ) : null}
-        <section className="paper rounded-xl p-5">
-          <div className="flex flex-wrap items-start justify-between gap-6">
-            <div>
-              <p className="label-caps">Kontante krav i denne periode</p>
-              <p className="num mt-1 text-4xl font-bold tracking-tight text-mismatch">
-                {money.length} <span className="text-xl font-semibold">kravposter</span>
-              </p>
-              <p className="mt-2 max-w-md text-[13px] leading-relaxed text-muted-foreground">
-                Beløbene vises pr. afvigelse nedenfor. PayTjek lægger dem ikke sammen til et nyt
-                tal, som middleware ikke selv har leveret.
-              </p>
-            </div>
-            <dl className="flex flex-wrap gap-x-6 gap-y-3">
-              {TERMINAL_ORDER.filter((terminal) => counts[terminal]).map((terminal) => (
-                <div className="flex flex-col" key={terminal}>
-                  <dt className="order-2 mt-0.5 text-[11px] font-medium text-muted-foreground">
-                    {TERMINALS[terminal].short}
-                  </dt>
-                  <dd className="num order-1 text-2xl font-semibold text-foreground">
-                    {counts[terminal]}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </div>
+        <div className="paper flex flex-wrap items-center gap-2 rounded-lg px-3 py-2">
+          {(["overblik", "kontroller", "seddel", "dokumentdata"] as ReportTab[]).map((nextTab) => (
+            <button
+              aria-pressed={tab === nextTab}
+              className={`rounded-md px-3 py-1.5 text-[13px] font-semibold transition-colors ${
+                tab === nextTab
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+              key={nextTab}
+              onClick={() => {
+                setTab(nextTab);
+                if (nextTab === "kontroller") setFilter("ALLE");
+              }}
+              type="button"
+            >
+              {nextTab === "overblik"
+                ? "Overblik"
+                : nextTab === "kontroller"
+                  ? "Alle kontroller"
+                  : nextTab === "seddel"
+                    ? "Lønseddel"
+                    : "Dokumentdata"}
+            </button>
+          ))}
 
-          <div className="mt-5 border-t border-border pt-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="label-caps">Det, der bærer beløbet</p>
-              <p className="text-[11px] text-muted-foreground">
-                {Math.max(0, unresolved - money.length)} øvrige ikke-afgjorte rækker
-              </p>
-            </div>
-            {money.length > 0 ? (
-              <ul className="mt-2 divide-y divide-border rounded-lg border border-border">
-                {money.map((check) => (
-                  <li key={check.check_id}>
-                    <button
-                      className="flex w-full items-center justify-between gap-4 px-3 py-2.5 text-left hover:bg-muted/45"
-                      onClick={() => showCheck(check.check_id)}
-                      type="button"
-                    >
-                      <span className="min-w-0">
-                        <span className="block truncate text-[13px] font-semibold text-foreground">
-                          {check.title}
-                        </span>
-                        <span className="num mt-0.5 block text-[10px] text-muted-foreground">
-                          {check.check_class} · {check.check_id}
-                        </span>
-                      </span>
-                      <span className="num shrink-0 text-[14px] font-semibold text-mismatch">
-                        {kr(check.kroner?.kr)} kr
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-2 text-[13px] text-muted-foreground">
-                Ingen kontante kravposter i perioden.
-              </p>
-            )}
-          </div>
-        </section>
-
-        {report.counters.substance_by_terminal && undecidedFindings.length > 0 ? (
-          <details className="paper mt-4 rounded-lg border-l-[3px] border-l-forbehold px-4 py-3">
-            <summary className="cursor-pointer text-[12px] font-semibold text-foreground">
-              {undecidedFindings.length} ikke-afgjorte kontroller har et konkret fund
-            </summary>
-            <ul className="mt-3 space-y-2 border-t border-border pt-3">
-              {undecidedFindings.map((check) => (
-                <li key={check.check_id}>
+          {tab === "kontroller" ? (
+            <div className="ml-auto flex flex-wrap items-center gap-1.5">
+              <div className="mr-1 flex items-center gap-1 rounded-md border border-border bg-muted p-0.5">
+                {(["hurtig", "revision"] as Mode[]).map((nextMode) => (
                   <button
-                    className="text-left text-[13px] font-semibold text-foreground underline-offset-4 hover:text-accent hover:underline"
-                    onClick={() => showCheck(check.check_id)}
+                    aria-pressed={mode === nextMode}
+                    className={`rounded-[5px] px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                      mode === nextMode
+                        ? "bg-card text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    key={nextMode}
+                    onClick={() => setMode(nextMode)}
                     type="button"
                   >
-                    {check.check_class} · {TERMINALS[check.terminal].short} — {check.title}
+                    {nextMode === "hurtig" ? "Kort" : "Med dokumentation"}
                   </button>
-                </li>
-              ))}
-            </ul>
-          </details>
-        ) : null}
-
-        <SourceProof
-          caseContext={caseContext}
-          caseId={caseId}
-          contextFilename={contextFilename}
-          contextRevision={contextRevision}
-          documents={documents}
-          source={reportSource}
-        />
-
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <div>
-            <div className="flex flex-wrap items-center gap-2 border-b border-border pb-3">
-              {(["kontroller", "seddel", "dokumentdata"] as const).map((nextTab) => (
+                ))}
+              </div>
+              <button
+                aria-pressed={filter === "ALLE"}
+                className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
+                  filter === "ALLE"
+                    ? "border-foreground/40 bg-muted text-foreground"
+                    : "border-border text-muted-foreground"
+                }`}
+                onClick={() => setFilter("ALLE")}
+                type="button"
+              >
+                Alle {checks.length}
+              </button>
+              <button
+                aria-pressed={filter === "OPMÆRKSOMHED"}
+                className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
+                  filter === "OPMÆRKSOMHED"
+                    ? "border-foreground/40 bg-muted text-foreground"
+                    : "border-border text-muted-foreground"
+                }`}
+                onClick={() => setFilter("OPMÆRKSOMHED")}
+                type="button"
+              >
+                Kræver opmærksomhed {attentionCount}
+              </button>
+              {TERMINAL_ORDER.filter((terminal) => counts[terminal]).map((terminal) => (
                 <button
-                  aria-pressed={tab === nextTab}
-                  className={`rounded-md px-3 py-1.5 text-[13px] font-semibold transition-colors ${
-                    tab === nextTab
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  key={nextTab}
-                  onClick={() => setTab(nextTab)}
+                  aria-pressed={filter === terminal}
+                  key={terminal}
+                  onClick={() => setFilter(terminal)}
                   type="button"
                 >
-                  {nextTab === "kontroller"
-                    ? "Kontroller"
-                    : nextTab === "seddel"
-                      ? "Lønsedlen linje for linje"
-                      : "Dokumentdata"}
+                  <span className={filter === terminal ? "opacity-100" : "opacity-60"}>
+                    <StatusPill terminal={terminal} />
+                  </span>
                 </button>
               ))}
-              {tab === "kontroller" ? (
-                <div className="ml-auto flex flex-wrap gap-1.5">
-                  <button
-                    aria-pressed={filter === "OPMÆRKSOMHED"}
-                    className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
-                      filter === "OPMÆRKSOMHED"
-                        ? "border-foreground/40 bg-muted text-foreground"
-                        : "border-border text-muted-foreground"
-                    }`}
-                    onClick={() => setFilter("OPMÆRKSOMHED")}
-                    type="button"
-                  >
-                    Opmærksomhed {attentionCount}
-                  </button>
-                  <button
-                    aria-pressed={filter === "ALLE"}
-                    className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
-                      filter === "ALLE"
-                        ? "border-foreground/40 bg-muted text-foreground"
-                        : "border-border text-muted-foreground"
-                    }`}
-                    onClick={() => setFilter("ALLE")}
-                    type="button"
-                  >
-                    Alle {checks.length}
-                  </button>
-                  {TERMINAL_ORDER.filter((terminal) => counts[terminal]).map((terminal) => (
-                    <button
-                      aria-pressed={filter === terminal}
-                      key={terminal}
-                      onClick={() => setFilter(terminal)}
-                      type="button"
-                    >
-                      <span className={filter === terminal ? "opacity-100" : "opacity-60"}>
-                        <StatusPill terminal={terminal} />
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              ) : null}
             </div>
+          ) : null}
+        </div>
 
-            {tab === "kontroller" ? (
-              <div className="mt-4">
-                <ReportChecks filter={filter} focus={focus} mode={mode} report={report} />
-              </div>
+        <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <div>
+            {tab === "overblik" ? (
+              <ReportOverview onSelect={showCheck} report={report} />
+            ) : tab === "kontroller" ? (
+              <ReportChecks filter={filter} focus={focus} mode={mode} report={report} />
             ) : tab === "seddel" ? (
-              <div className="mt-4">
-                <SlipTable onSelect={showCheck} report={report} />
-              </div>
+              <SlipTable onSelect={showCheck} report={report} />
             ) : (
-              <div className="mt-4">
-                <PayslipFacsimile onSelect={showCheck} report={report} />
-              </div>
+              <PayslipFacsimile onSelect={showCheck} report={report} />
             )}
 
             {focused ? (
@@ -644,6 +547,15 @@ function CaseScreen({
 
           <SideRail report={report} />
         </div>
+
+        <SourceProof
+          caseContext={caseContext}
+          caseId={caseId}
+          contextFilename={contextFilename}
+          contextRevision={contextRevision}
+          documents={documents}
+          source={reportSource}
+        />
       </main>
     </div>
   );

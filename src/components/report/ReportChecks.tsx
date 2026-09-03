@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
 import { CheckCard } from "@/components/report/CheckCard";
-import { kr, type Check, type Report, type SlipLine, type Terminal } from "@/lib/report";
+import { kr, TERMINALS, type Check, type Report, type SlipLine, type Terminal } from "@/lib/report";
 
 const SECTION_ORDER = ["coverage", "slip_level", "cross_slip"] as const;
 const SECTION_TITLES: Record<string, string> = {
@@ -144,8 +144,21 @@ export function ReportChecks({
     );
   }
 
+  const filterLabel =
+    filter === "ALLE"
+      ? "Komplet autoritativ visning"
+      : filter === "OPMÆRKSOMHED"
+        ? "Visningsfilter: kræver opmærksomhed"
+        : `Visningsfilter: ${TERMINALS[filter].short}`;
+
   return (
     <div className="space-y-7">
+      <p className="rounded-md border border-accent/20 bg-accent/5 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
+        <strong className="font-semibold text-foreground">{filterLabel}.</strong> Kontroller og
+        rækkefølge kommer direkte fra middleware-rapporten; et filter ændrer kun, hvad der er
+        synligt.
+      </p>
+
       {groups.lines.length > 0 ? (
         <section>
           <h2 className="label-caps mb-2">Lønlinjer med kontroller · {groups.lines.length}</h2>
