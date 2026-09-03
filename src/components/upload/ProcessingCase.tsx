@@ -1,4 +1,4 @@
-import { CheckCircle2, FileText, LoaderCircle, TriangleAlert } from "lucide-react";
+import { CheckCircle2, FileJson2, FileText, LoaderCircle, TriangleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -41,11 +41,13 @@ export function ProcessingCase({
   status,
   error,
   onCancel,
+  contextFilename,
 }: {
   label: string;
   status: BatchStatus | null;
   error: string | null;
   onCancel: () => void;
+  contextFilename: string | null;
 }) {
   const jobs = status?.jobs ?? [];
   const completed = jobs.filter((job) => TERMINAL_STATES.has(job.state)).length;
@@ -65,6 +67,14 @@ export function ProcessingCase({
         <Progress className="mt-6" value={progress} />
 
         <div className="mt-6 space-y-2" role="status" aria-live="polite">
+          {contextFilename ? (
+            <div className="flex items-center gap-3 rounded-md border border-ok/25 bg-ok-soft/45 p-3">
+              <CheckCircle2 className="size-4 text-ok" aria-hidden="true" />
+              <FileJson2 className="size-4 text-muted-foreground" aria-hidden="true" />
+              <span className="min-w-0 flex-1 truncate text-[13px]">{contextFilename}</span>
+              <span className="text-[11px] font-semibold text-ok">Member context registreret</span>
+            </div>
+          ) : null}
           {jobs.length === 0 ? (
             <div className="flex items-center gap-3 rounded-md border border-border p-3">
               <LoaderCircle className="size-4 animate-spin text-accent" aria-hidden="true" />

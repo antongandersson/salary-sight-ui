@@ -1,4 +1,4 @@
-import { CheckCircle2, FileText, Fingerprint, TriangleAlert } from "lucide-react";
+import { CheckCircle2, FileJson2, FileText, Fingerprint, TriangleAlert } from "lucide-react";
 
 import type { DocumentSummary, ReportSource } from "@/lib/paytjek-api";
 
@@ -22,15 +22,23 @@ function formatDateTime(value: string | null): string {
 }
 
 export function SourceProof({
+  caseContext,
   caseId,
+  contextFilename,
+  contextRevision,
   documents,
   source,
 }: {
+  caseContext: Record<string, unknown>;
   caseId: string;
+  contextFilename: string | null;
+  contextRevision: number | null;
   documents: DocumentSummary[];
   source: ReportSource;
 }) {
   const contract = documents.find((document) => document.kind.toLowerCase() === "contract");
+  const contextEntries = Object.keys(caseContext).length;
+  const hasContext = contextEntries > 0;
 
   return (
     <section className="paper mt-4 rounded-lg p-4" aria-labelledby="source-proof-title">
@@ -56,6 +64,25 @@ export function SourceProof({
       </div>
 
       <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {hasContext ? (
+          <div className="rounded-md border border-ok/25 bg-ok-soft/35 p-3">
+            <div className="flex items-center gap-2">
+              <FileJson2 className="size-4 shrink-0 text-ok" aria-hidden="true" />
+              <span className="truncate text-[12px] font-semibold text-foreground">
+                {contextFilename ?? (contract ? "Udledt sagskontekst" : "Member context")}
+              </span>
+            </div>
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              <strong className="text-foreground">{contextEntries}</strong> kontekstfelter knyttet
+              til sagen
+            </p>
+            <p className="num mt-1 text-[10px] text-muted-foreground">
+              {contextRevision === null
+                ? "Gemte sagsoplysninger"
+                : `Context revision ${contextRevision}`}
+            </p>
+          </div>
+        ) : null}
         {documents.length > 0 ? (
           documents.map((document) => (
             <div
@@ -81,10 +108,11 @@ export function SourceProof({
         )}
       </div>
 
-      {!contract ? (
+      {!contract && !hasContext ? (
         <p className="mt-3 flex items-center gap-2 text-[11px] text-muted-foreground">
           <TriangleAlert className="size-3.5 text-forbehold" aria-hidden="true" />
-          Der er ingen kontrakt registreret på sagen. Rapporten kan derfor mangle kontraktvilkår.
+          Der er hverken kontrakt eller member context på sagen. Rapporten kan derfor mangle
+          ansættelsesvilkår.
         </p>
       ) : null}
 

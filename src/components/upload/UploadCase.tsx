@@ -1,5 +1,5 @@
 import { useRef, useState, type ChangeEvent, type DragEvent, type FormEvent } from "react";
-import { BriefcaseBusiness, FileText, ShieldCheck, UploadCloud, X } from "lucide-react";
+import { BriefcaseBusiness, FileJson2, FileText, ShieldCheck, UploadCloud, X } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { isDemoApi, type AgreementFamily } from "@/lib/paytjek-api";
 
 const MAX_FILES = 30;
 const MAX_FILE_BYTES = 15 * 1024 * 1024;
+const MAX_CONTEXT_BYTES = 1024 * 1024;
 
 function fileKey(file: File): string {
   return `${file.name}:${file.size}:${file.lastModified}`;
@@ -21,6 +22,39 @@ function formatSize(bytes: number): string {
 function validatePdf(file: File): string | null {
   if (!file.name.toLowerCase().endsWith(".pdf")) return `${file.name} er ikke en PDF-fil.`;
   return file.size > MAX_FILE_BYTES ? `${file.name} er større end 15 MB.` : null;
+}
+
+export type MemberContextUpload = {
+  file: File;
+  payload: Record<string, unknown>;
+};
+
+async function readMemberContext(file: File): Promise<MemberContextUpload> {
+  if (!file.name.toLowerCase().endsWith(".json")) {
+    throw new Error(`${file.name} er ikke en JSON-fil.`);
+  }
+  if (file.size > MAX_CONTEXT_BYTES) {
+    throw new Error(`${file.name} er større end 1 MB.`);
+  }
+
+  let value: unknown;
+  try {
+    value = JSON.parse(await file.text()) as unknown;
+  } catch {
+    throw new Error(`${file.name} indeholder ikke gyldig JSON.`);
+  }
+  if (value === null || Array.isArray(value) || typeof value !== "object") {
+    throw new Error("Member context skal være ét JSON-objekt.");
+  }
+
+  const payload = value as Record<string, unknown>;
+  if (payload["schema_version"] === undefined) {
+    throw new Error("Member context mangler schema_version.");
+  }
+  if (typeof payload["member_ref"] !== "string" || payload["member_ref"].trim() === "") {
+    throw new Error("Member context mangler member_ref.");
+  }
+  return { file, payload };
 }
 
 type DocumentPickerProps = {
@@ -158,11 +192,129 @@ function DocumentPicker({
   );
 }
 
+function MemberContextPicker({
+  busy,
+  context,
+  onContext,
+  onError,
+}: {
+  busy: boolean;
+  context: MemberContextUpload | null;
+  onContext: (context: MemberContextUpload | null) => void;
+  onError: (message: string | null) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [dragging, setDragging] = useState(false);
+
+  async function receive(files: readonly File[]) {
+    const file = files[0];
+    if (!file) return;
+    try {
+      onContext(await readMemberContext(file));
+      onError(null);
+    } catch (cause) {
+      onError(cause instanceof Error ? cause.message : "Member context kunne ikke læses.");
+    }
+  }
+
+  function handleInput(event: ChangeEvent<HTMLInputElement>) {
+    void receive(Array.from(event.target.files ?? []));
+    event.target.value = "";
+  }
+
+  function handleDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setDragging(false);
+    void receive(Array.from(event.dataTransfer.files));
+  }
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-4">
+      <div className="flex items-start gap-3">
+        <span className="rounded-md bg-muted p-2">
+          <FileJson2 className="size-5 text-accent" aria-hidden="true" />
+        </span>
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Label className="text-[14px] font-semibold" htmlFor="member-context">
+              Member context
+            </Label>
+            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Alternativ
+            </span>
+          </div>
+          <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
+            Upload den kontrakt-afledte JSON-fil, når kontrakten allerede er blevet behandlet.
+          </p>
+        </div>
+      </div>
+
+      <div
+        className={`mt-4 rounded-md border border-dashed px-4 py-5 text-center transition-colors ${
+          dragging ? "border-accent bg-mismatch-soft/40" : "border-border bg-muted/20"
+        }`}
+        onDragEnter={(event) => {
+          event.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={handleDrop}
+      >
+        <UploadCloud className="mx-auto size-6 text-muted-foreground" aria-hidden="true" />
+        <p className="mt-2 text-[12px] text-muted-foreground">Træk en JSON-fil hertil</p>
+        <Button
+          className="mt-3"
+          disabled={busy}
+          onClick={() => inputRef.current?.click()}
+          size="sm"
+          type="button"
+          variant="outline"
+        >
+          Vælg member context
+        </Button>
+        <input
+          accept="application/json,.json"
+          className="sr-only"
+          disabled={busy}
+          id="member-context"
+          onChange={handleInput}
+          ref={inputRef}
+          type="file"
+        />
+      </div>
+
+      {context ? (
+        <div className="mt-3 flex items-center gap-2 rounded-md bg-muted/45 px-3 py-2">
+          <FileJson2 className="size-4 shrink-0 text-accent" aria-hidden="true" />
+          <span className="min-w-0 flex-1 truncate text-[12px] text-foreground">
+            {context.file.name}
+          </span>
+          <span className="num text-[10px] text-muted-foreground">
+            {String(context.payload["member_ref"])}
+          </span>
+          <Button
+            aria-label={`Fjern ${context.file.name}`}
+            disabled={busy}
+            onClick={() => onContext(null)}
+            size="icon"
+            type="button"
+            variant="ghost"
+          >
+            <X aria-hidden="true" />
+          </Button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export type UploadSubmission = {
   label: string;
   agreementFamily: AgreementFamily | null;
   payslips: File[];
   contract: File | null;
+  memberContext: MemberContextUpload | null;
 };
 
 export function UploadCase({
@@ -178,6 +330,7 @@ export function UploadCase({
   const [agreementFamily, setAgreementFamily] = useState<AgreementFamily | "auto">("auto");
   const [payslips, setPayslips] = useState<File[]>([]);
   const [contractFiles, setContractFiles] = useState<File[]>([]);
+  const [memberContext, setMemberContext] = useState<MemberContextUpload | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   function validateDocuments(nextPayslips: readonly File[], nextContract: readonly File[]) {
@@ -208,6 +361,10 @@ export function UploadCase({
       setValidationError("Tilføj mindst én lønseddel som PDF.");
       return;
     }
+    if (contractFiles.length > 0 && memberContext) {
+      setValidationError("Vælg enten kontrakt-PDF eller member context — ikke begge dele.");
+      return;
+    }
     const nextError = validateDocuments(payslips, contractFiles);
     if (nextError !== null) {
       setValidationError(nextError);
@@ -219,6 +376,7 @@ export function UploadCase({
       agreementFamily: agreementFamily === "auto" ? null : agreementFamily,
       payslips,
       contract: contractFiles[0] ?? null,
+      memberContext,
     });
   }
 
@@ -278,17 +436,25 @@ export function UploadCase({
               </div>
             </div>
 
+            <DocumentPicker
+              acceptMultiple
+              busy={busy}
+              description="Upload én eller flere lønsedler. Der dannes en rapport for hver genkendt lønperiode."
+              files={payslips}
+              icon={FileText}
+              id="payslips"
+              label="Lønsedler"
+              onFiles={updatePayslips}
+            />
+
+            <div>
+              <p className="label-caps">Ansættelsesgrundlag</p>
+              <p className="mt-1 text-[12px] text-muted-foreground">
+                Vælg kontrakt-PDF eller en allerede dannet member-context-fil.
+              </p>
+            </div>
+
             <div className="grid gap-4 sm:grid-cols-2">
-              <DocumentPicker
-                acceptMultiple
-                busy={busy}
-                description="Upload én eller flere lønsedler. Der dannes en rapport for hver genkendt lønperiode."
-                files={payslips}
-                icon={FileText}
-                id="payslips"
-                label="Lønsedler"
-                onFiles={updatePayslips}
-              />
               <DocumentPicker
                 acceptMultiple={false}
                 busy={busy}
@@ -300,10 +466,16 @@ export function UploadCase({
                 onFiles={updateContract}
                 optional
               />
+              <MemberContextPicker
+                busy={busy}
+                context={memberContext}
+                onContext={setMemberContext}
+                onError={setValidationError}
+              />
             </div>
 
             <p className="text-[11px] text-muted-foreground">
-              PDF · højst 30 dokumenter samlet · højst 15 MB pr. dokument
+              PDF · højst 30 dokumenter samlet · 15 MB pr. dokument · member context højst 1 MB
             </p>
 
             {validationError || error ? (

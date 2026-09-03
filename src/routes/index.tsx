@@ -18,6 +18,7 @@ import {
   getReport,
   isDemoApi,
   listReports,
+  putCaseContext,
   uploadBatch,
   type BatchStatus,
   type DocumentSummary,
@@ -32,7 +33,8 @@ export const Route = createFileRoute("/")({
       { title: "PayTjek — upload og lønseddelkontrol" },
       {
         name: "description",
-        content: "Upload lønsedler og kontrakt, og se middleware-resultatet i PayTjeks sagsskærm.",
+        content:
+          "Upload lønsedler med kontrakt eller member context, og se middleware-resultatet i PayTjeks sagsskærm.",
       },
     ],
   }),
@@ -85,6 +87,9 @@ function PaytjekFlow() {
   const [report, setReport] = useState<Report | null>(null);
   const [reportSource, setReportSource] = useState<ReportSource | null>(null);
   const [documents, setDocuments] = useState<DocumentSummary[]>([]);
+  const [caseContext, setCaseContext] = useState<Record<string, unknown>>({});
+  const [contextFilename, setContextFilename] = useState<string | null>(null);
+  const [contextRevision, setContextRevision] = useState<number | null>(null);
   const [reportEntries, setReportEntries] = useState<ReportIndexEntry[]>([]);
   const [selectedReportKey, setSelectedReportKey] = useState("");
   const [reportLoading, setReportLoading] = useState(false);
@@ -119,6 +124,7 @@ function PaytjekFlow() {
         setCaseId(resumeCaseId);
         setCaseLabel(detail.label);
         setDocuments(detail.documents);
+        setCaseContext(detail.context);
         setReportEntries(ready);
         setSelectedReportKey(reportKey(selected));
         setReport(result.report);
@@ -140,6 +146,15 @@ function PaytjekFlow() {
     setError(null);
     try {
       const createdCase = await createCase(submission.label, submission.agreementFamily);
+      if (submission.memberContext) {
+        const contextResult = await putCaseContext(
+          createdCase.case_id,
+          submission.memberContext.payload,
+        );
+        setCaseContext(contextResult.context);
+        setContextFilename(submission.memberContext.file.name);
+        setContextRevision(contextResult.revision);
+      }
       const selectedDocuments = [
         ...submission.payslips.map((file) => ({ file, expectedKind: "payslip" as const })),
         ...(submission.contract
@@ -220,6 +235,7 @@ function PaytjekFlow() {
             if (controller.signal.aborted) return;
             setCaseLabel(detail.label);
             setDocuments(detail.documents);
+            setCaseContext(detail.context);
             setReportEntries(ready);
             setSelectedReportKey(reportKey(first));
             setReport(result.report);
@@ -277,12 +293,23 @@ function PaytjekFlow() {
     setReport(null);
     setReportSource(null);
     setDocuments([]);
+    setCaseContext({});
+    setContextFilename(null);
+    setContextRevision(null);
     setReportEntries([]);
     setSelectedReportKey("");
   }
 
   if (phase === "processing") {
-    return <ProcessingCase error={error} label={caseLabel} onCancel={reset} status={batchStatus} />;
+    return (
+      <ProcessingCase
+        contextFilename={contextFilename}
+        error={error}
+        label={caseLabel}
+        onCancel={reset}
+        status={batchStatus}
+      />
+    );
   }
 
   if (phase === "report" && report && reportSource) {
@@ -290,6 +317,9 @@ function PaytjekFlow() {
       <CaseScreen
         caseId={caseId}
         caseLabel={caseLabel}
+        caseContext={caseContext}
+        contextFilename={contextFilename}
+        contextRevision={contextRevision}
         documents={documents}
         error={error}
         loading={reportLoading}
@@ -309,6 +339,9 @@ function PaytjekFlow() {
 function CaseScreen({
   caseId,
   caseLabel,
+  caseContext,
+  contextFilename,
+  contextRevision,
   documents,
   error,
   loading,
@@ -321,6 +354,9 @@ function CaseScreen({
 }: {
   caseId: string;
   caseLabel: string;
+  caseContext: Record<string, unknown>;
+  contextFilename: string | null;
+  contextRevision: number | null;
   documents: DocumentSummary[];
   error: string | null;
   loading: boolean;
@@ -506,7 +542,14 @@ function CaseScreen({
           </section>
         ) : null}
 
-        <SourceProof caseId={caseId} documents={documents} source={reportSource} />
+        <SourceProof
+          caseContext={caseContext}
+          caseId={caseId}
+          contextFilename={contextFilename}
+          contextRevision={contextRevision}
+          documents={documents}
+          source={reportSource}
+        />
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div>

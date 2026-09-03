@@ -82,6 +82,14 @@ export type CaseDetail = {
   reports: ReportIndexEntry[];
 };
 
+export type PutContextResponse = {
+  case_id: string;
+  revision: number;
+  context: Record<string, unknown>;
+  reaudit_enqueued: number;
+  usercontext_v1: Record<string, unknown>;
+};
+
 export type ReportSource = {
   generation: number;
   inputsDigest: string;
@@ -179,6 +187,19 @@ export async function uploadBatch(
       };
     }),
   };
+}
+
+export async function putCaseContext(
+  caseId: string,
+  context: Record<string, unknown>,
+): Promise<PutContextResponse> {
+  return json<PutContextResponse>(
+    await fetch(`${baseUrl()}/api/v1/cases/${encodeURIComponent(caseId)}/context`, {
+      method: "PUT",
+      headers: { accept: "application/json", "content-type": "application/json" },
+      body: JSON.stringify(context),
+    }),
+  );
 }
 
 export function getBatchStatus(
