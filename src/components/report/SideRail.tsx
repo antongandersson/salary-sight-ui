@@ -76,22 +76,6 @@ export function SideRail({ report }: { report: Report }) {
 
   return (
     <aside className="space-y-4">
-      {questions.length > 0 ? (
-        <Panel title="Spørgsmål til medlemmet" meta={`${questions.length} rejst`}>
-          <ul className="space-y-2.5">
-            {questions.map((q) => (
-              <li key={q.key} className="border-l-2 border-needs/50 pl-2.5">
-                <p className="text-[13px] leading-snug text-foreground">{q.question}</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">
-                  {q.label} · udløst af {q.raised_by.length} regel
-                  {q.raised_by.length === 1 ? "" : "r"}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </Panel>
-      ) : null}
-
       {report.missing_inputs.length > 0 ? (
         <Panel title="Mangler bilag eller tal" meta={`${report.missing_inputs.length}`}>
           <ul className="space-y-2.5">
@@ -106,6 +90,23 @@ export function SideRail({ report }: { report: Report }) {
             ))}
           </ul>
         </Panel>
+      ) : null}
+
+      {questions.length > 0 ? (
+        <Disclosure title="Mulige afklaringsspørgsmål" meta={`${questions.length} generelle`}>
+          <p className="mb-3 text-[11px] leading-relaxed text-muted-foreground">
+            Screeningsspørgsmålene er ikke nødvendigvis nødvendige i denne sag og indgår ikke som
+            opgaver i arbejdsplanen.
+          </p>
+          <ul className="space-y-2.5">
+            {questions.map((q) => (
+              <li key={q.key} className="border-l-2 border-border pl-2.5">
+                <p className="text-[13px] leading-snug text-foreground">{q.question}</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">{q.label}</p>
+              </li>
+            ))}
+          </ul>
+        </Disclosure>
       ) : null}
 
       {questions.length === 0 && report.missing_inputs.length === 0 ? (

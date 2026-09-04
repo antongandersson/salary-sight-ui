@@ -1,11 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-import { PayslipFacsimile } from "@/components/report/PayslipFacsimile";
+import { PayslipView } from "@/components/report/PayslipView";
 import { ReportChecks, type CheckFilter } from "@/components/report/ReportChecks";
 import { ReportOverview } from "@/components/report/ReportOverview";
 import { SideRail } from "@/components/report/SideRail";
-import { SlipTable } from "@/components/report/SlipTable";
 import { SourceProof } from "@/components/report/SourceProof";
 import { StatusPill } from "@/components/report/StatusPill";
 import { ProcessingCase } from "@/components/upload/ProcessingCase";
@@ -43,7 +42,7 @@ export const Route = createFileRoute("/")({
 
 type Mode = "hurtig" | "revision";
 type Phase = "upload" | "processing" | "report";
-type ReportTab = "overblik" | "kontroller" | "seddel" | "dokumentdata";
+type ReportTab = "overblik" | "kontroller" | "seddel" | "datagrundlag";
 
 const TERMINAL_ORDER: Terminal[] = [
   "MISMATCH",
@@ -400,9 +399,6 @@ function CaseScreen({
           <div className="num flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-muted-foreground">
             <span>{caseLabel}</span>
             <span>Periode {periodLabel(report.slip.period)}</span>
-            <span>
-              {report.lines.length} lønlinjer · {report.counters.checks_total} kontroller
-            </span>
           </div>
           <div className="ml-auto flex flex-wrap items-center gap-2">
             {isDemoApi() ? (
@@ -442,7 +438,7 @@ function CaseScreen({
           </p>
         ) : null}
         <div className="paper flex flex-wrap items-center gap-2 rounded-lg px-3 py-2">
-          {(["overblik", "kontroller", "seddel", "dokumentdata"] as ReportTab[]).map((nextTab) => (
+          {(["overblik", "kontroller", "seddel", "datagrundlag"] as ReportTab[]).map((nextTab) => (
             <button
               aria-pressed={tab === nextTab}
               className={`rounded-md px-3 py-1.5 text-[13px] font-semibold transition-colors ${
@@ -463,7 +459,7 @@ function CaseScreen({
                   ? "Alle kontroller"
                   : nextTab === "seddel"
                     ? "Lønseddel"
-                    : "Dokumentdata"}
+                    : "Datagrundlag"}
             </button>
           ))}
 
@@ -526,36 +522,41 @@ function CaseScreen({
           ) : null}
         </div>
 
-        <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <div>
-            {tab === "overblik" ? (
-              <ReportOverview onSelect={showCheck} report={report} />
-            ) : tab === "kontroller" ? (
-              <ReportChecks filter={filter} focus={focus} mode={mode} report={report} />
-            ) : tab === "seddel" ? (
-              <SlipTable onSelect={showCheck} report={report} />
-            ) : (
-              <PayslipFacsimile onSelect={showCheck} report={report} />
-            )}
-
-            {focused ? (
-              <p className="num mt-4 text-[11px] text-muted-foreground">
-                Valgt fra lønsedlen: {focused.check_id}
-              </p>
-            ) : null}
+        {tab === "overblik" ? (
+          <div className="mx-auto mt-4 max-w-5xl">
+            <ReportOverview onSelect={showCheck} report={report} />
           </div>
+        ) : tab === "datagrundlag" ? (
+          <div className="mx-auto mt-4 max-w-5xl">
+            <SourceProof
+              caseContext={caseContext}
+              caseId={caseId}
+              contextFilename={contextFilename}
+              contextRevision={contextRevision}
+              defaultOpen
+              documents={documents}
+              source={reportSource}
+            />
+          </div>
+        ) : (
+          <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+            <div>
+              {tab === "kontroller" ? (
+                <ReportChecks filter={filter} focus={focus} mode={mode} report={report} />
+              ) : (
+                <PayslipView onSelect={showCheck} report={report} />
+              )}
 
-          <SideRail report={report} />
-        </div>
+              {focused ? (
+                <p className="num mt-4 text-[11px] text-muted-foreground">
+                  Valgt fra lønsedlen: {focused.check_id}
+                </p>
+              ) : null}
+            </div>
 
-        <SourceProof
-          caseContext={caseContext}
-          caseId={caseId}
-          contextFilename={contextFilename}
-          contextRevision={contextRevision}
-          documents={documents}
-          source={reportSource}
-        />
+            <SideRail report={report} />
+          </div>
+        )}
       </main>
     </div>
   );

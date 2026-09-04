@@ -26,6 +26,7 @@ export function SourceProof({
   caseId,
   contextFilename,
   contextRevision,
+  defaultOpen = false,
   documents,
   source,
 }: {
@@ -33,6 +34,7 @@ export function SourceProof({
   caseId: string;
   contextFilename: string | null;
   contextRevision: number | null;
+  defaultOpen?: boolean;
   documents: DocumentSummary[];
   source: ReportSource;
 }) {
@@ -41,7 +43,7 @@ export function SourceProof({
   const hasContext = contextEntries > 0;
 
   return (
-    <details className="paper group mt-4 rounded-lg">
+    <details className={`paper group rounded-lg ${defaultOpen ? "" : "mt-4"}`} open={defaultOpen}>
       <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
         <div>
           <p className="label-caps">Sporbarhed</p>
