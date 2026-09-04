@@ -24,6 +24,7 @@ export type Check = {
   check_class: string;
   title: string;
   terminal: Terminal;
+  visibility?: "internal" | "user_facing";
   section: string;
   surface: string;
   substance?: "finding" | "generic" | null;
@@ -141,6 +142,16 @@ export function kr(value: number | null | undefined, decimals = 2): string {
 
 export function moneyChecks(checks: Check[]): Check[] {
   return checks.filter((check) => (check.kroner?.kr ?? 0) > 0);
+}
+
+export function hasVisibilityPolicy(report: Report): boolean {
+  return report.checks.some((check) => check.visibility !== undefined);
+}
+
+export function checksForUi(report: Report): Check[] {
+  return hasVisibilityPolicy(report)
+    ? report.checks.filter((check) => check.visibility === "user_facing")
+    : report.checks;
 }
 
 export function periodLabel(period: string): string {

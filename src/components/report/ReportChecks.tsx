@@ -1,168 +1,108 @@
 import { useMemo } from "react";
 
 import { CheckCard } from "@/components/report/CheckCard";
-import { kr, TERMINALS, type Check, type Report, type SlipLine, type Terminal } from "@/lib/report";
-
-const SECTION_ORDER = ["coverage", "slip_level", "cross_slip"] as const;
-const SECTION_TITLES: Record<string, string> = {
-  coverage: "Dækning, grundlag og formalia",
-  slip_level: "Sedlens egne totaler (brutto → netto)",
-  cross_slip: "På tværs af sedler (saldi)",
-};
+import { StatusPill } from "@/components/report/StatusPill";
+import {
+  checksForUi,
+  CLASS_LABELS,
+  hasVisibilityPolicy,
+  type Check,
+  type Report,
+  type SlipLine,
+  type Terminal,
+} from "@/lib/report";
 
 type Mode = "hurtig" | "revision";
 export type CheckFilter = Terminal | "ALLE" | "OPMÆRKSOMHED";
 
-function value(value: number | null | undefined): string {
-  return value == null ? "—" : kr(value);
+function pad(position: number): string {
+  return String(position).padStart(3, "0");
 }
 
-function LineHeader({ compact, line }: { compact: boolean; line: SlipLine }) {
-  if (compact) {
-    return (
-      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border bg-muted/45 px-4 py-3">
-        <div className="min-w-0 flex-1">
-          <p className="label-caps">Lønlinje {line.index}</p>
-          <p className="mt-1 text-[13px] font-semibold text-foreground">
-            {line.description ?? "Uden beskrivelse"}
-          </p>
-          <p className="num mt-0.5 text-[10px] text-muted-foreground">
-            {line.concept ?? "ukendt begreb"} · {line.lane}
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="label-caps">Beløb</p>
-          <p className="num mt-1 text-[12px] font-semibold">
-            {line.amount_unread ? "—" : `${line.sign === "-" ? "−" : ""}${value(line.amount)}`}
-          </p>
-        </div>
-      </header>
-    );
-  }
-
-  return (
-    <header className="grid gap-3 border-b border-border bg-muted/45 px-4 py-3 lg:grid-cols-[3rem_minmax(14rem,1fr)_7rem_7rem_8rem_8rem]">
-      <div>
-        <p className="label-caps">Linje</p>
-        <p className="num mt-1 text-[12px] font-semibold">{line.index}</p>
-      </div>
-      <div className="min-w-0">
-        <p className="label-caps">Beskrivelse</p>
-        <p
-          className="mt-1 truncate text-[13px] font-semibold text-foreground"
-          title={line.description ?? ""}
-        >
-          {line.description ?? "Uden beskrivelse"}
-        </p>
-        <p className="num mt-0.5 text-[10px] text-muted-foreground">
-          {line.concept ?? "ukendt begreb"} · {line.lane}
-        </p>
-      </div>
-      <div>
-        <p className="label-caps">Antal</p>
-        <p className="num mt-1 text-[12px]">{value(line.quantity)}</p>
-      </div>
-      <div>
-        <p className="label-caps">Sats</p>
-        <p className="num mt-1 text-[12px]">{value(line.rate)}</p>
-      </div>
-      <div>
-        <p className="label-caps">Grundlag</p>
-        <p className="num mt-1 text-[12px]">{value(line.basis)}</p>
-      </div>
-      <div className="lg:text-right">
-        <p className="label-caps">Beløb</p>
-        <p className="num mt-1 text-[12px] font-semibold">
-          {line.amount_unread ? "—" : `${line.sign === "-" ? "−" : ""}${value(line.amount)}`}
-        </p>
-      </div>
-    </header>
-  );
+function lineLabel(line: SlipLine | undefined): string {
+  if (!line) return "Kontrol på rapportniveau";
+  return `${line.description ?? line.concept ?? "Lønlinje"} · linje ${line.index}`;
 }
 
-function LineGroup({
-  checks,
-  compact,
-  focus,
+function ControlRow({
+  active,
+  check,
   line,
   mode,
+  onSelect,
+  position,
 }: {
-  checks: Check[];
-  compact: boolean;
-  focus: string | null;
-  line: SlipLine;
+  active: boolean;
+  check: Check;
+  line: SlipLine | undefined;
   mode: Mode;
+  onSelect: () => void;
+  position: number;
 }) {
   return (
-    <article className="paper overflow-hidden rounded-lg [contain-intrinsic-size:auto_24rem] [content-visibility:auto]">
-      <LineHeader compact={compact} line={line} />
-      {line.amount_unread ? (
-        <p className="border-b border-border px-4 py-3 text-[12px] leading-relaxed text-muted-foreground">
-          Beløbsfeltet gav ingen værdi; det er ikke det samme som 0,00 kr.
-          {line.admitted_status ? ` Platformens registrering: ${line.admitted_status}` : ""}
-          {line.admitted_reason ? ` · ${line.admitted_reason}` : ""}
-        </p>
+    <li className="border-b border-border last:border-0">
+      <button
+        aria-expanded={active}
+        className={`grid w-full grid-cols-[2.5rem_minmax(0,1fr)] gap-2.5 px-4 py-3 text-left transition-colors ${
+          active ? "bg-accent/8" : "hover:bg-muted/40"
+        }`}
+        id={check.check_id}
+        onClick={onSelect}
+        type="button"
+      >
+        <span className="num pt-0.5 text-[11px] text-muted-foreground">{pad(position)}</span>
+        <span className="min-w-0">
+          <span className="flex items-start justify-between gap-3">
+            <strong className="text-[13px] font-semibold leading-snug text-foreground">
+              {check.title}
+            </strong>
+            <StatusPill terminal={check.terminal} />
+          </span>
+          <span className="mt-1 block text-[11px] text-muted-foreground">
+            {CLASS_LABELS[check.check_class] ?? check.section} · {lineLabel(line)}
+          </span>
+        </span>
+      </button>
+      {active ? (
+        <div className="border-t border-accent/15 bg-accent/[0.035]">
+          <CheckCard check={check} compact embedded mode={mode} />
+        </div>
       ) : null}
-      <div className="divide-y divide-border">
-        {checks.map((check) => (
-          <div
-            className={focus === check.check_id ? "relative z-10 ring-2 ring-inset ring-ring" : ""}
-            id={check.check_id}
-            key={check.check_id}
-          >
-            <CheckCard check={check} embedded mode={mode} />
-          </div>
-        ))}
-      </div>
-    </article>
+    </li>
   );
 }
 
 export function ReportChecks({
-  compact = false,
   filter,
   focus,
   mode,
+  onSelect,
   report,
 }: {
-  compact?: boolean;
   filter: CheckFilter;
   focus: string | null;
   mode: Mode;
+  onSelect: (checkId: string) => void;
   report: Report;
 }) {
-  const groups = useMemo(() => {
-    const eligible = report.checks.filter(
+  const { eligible, lineByCheckId, positionByCheckId } = useMemo(() => {
+    const uiChecks = checksForUi(report);
+    const filtered = uiChecks.filter(
       (check) =>
         filter === "ALLE" ||
         (filter === "OPMÆRKSOMHED" ? check.terminal !== "OK" : check.terminal === filter),
     );
-    const byId = new Map(eligible.map((check) => [check.check_id, check]));
-    const rendered = new Set<string>();
-
-    const lines = report.lines.flatMap((line) => {
-      const checks = line.checks.flatMap((checkId) => {
-        const check = byId.get(checkId);
-        if (!check) return [];
-        rendered.add(checkId);
-        return [check];
-      });
-      return checks.length > 0 ? [{ line, checks }] : [];
-    });
-
-    const sections = SECTION_ORDER.flatMap((section) => {
-      const checks = eligible.filter(
-        (check) => check.section === section && !rendered.has(check.check_id),
-      );
-      for (const check of checks) rendered.add(check.check_id);
-      return checks.length > 0 ? [{ key: section, title: SECTION_TITLES[section], checks }] : [];
-    });
-
-    const leftovers = eligible.filter((check) => !rendered.has(check.check_id));
-    return { lines, sections, leftovers };
+    const positions = new Map(report.checks.map((check, index) => [check.check_id, index + 1]));
+    const lines = new Map<string, SlipLine>();
+    for (const line of report.lines) {
+      for (const checkId of line.checks) {
+        if (!lines.has(checkId)) lines.set(checkId, line);
+      }
+    }
+    return { eligible: filtered, lineByCheckId: lines, positionByCheckId: positions };
   }, [filter, report]);
 
-  if (groups.lines.length === 0 && groups.sections.length === 0 && groups.leftovers.length === 0) {
+  if (eligible.length === 0) {
     return (
       <p className="paper rounded-lg p-5 text-[13px] text-muted-foreground">
         Ingen kontroller matcher det valgte filter.
@@ -170,78 +110,45 @@ export function ReportChecks({
     );
   }
 
-  const filterLabel =
-    filter === "ALLE"
-      ? "Komplet autoritativ visning"
-      : filter === "OPMÆRKSOMHED"
-        ? "Visningsfilter: kræver opmærksomhed"
-        : `Visningsfilter: ${TERMINALS[filter].short}`;
+  const selected = eligible.find((check) => check.check_id === focus) ?? eligible[0]!;
 
   return (
-    <div className="space-y-7">
-      <p className="rounded-md border border-accent/20 bg-accent/5 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
-        <strong className="font-semibold text-foreground">{filterLabel}.</strong> Kontroller og
-        rækkefølge kommer direkte fra middleware-rapporten; et filter ændrer kun, hvad der er
-        synligt.
-      </p>
-
-      {groups.lines.length > 0 ? (
-        <section>
-          <h2 className="label-caps mb-2">Lønlinjer med kontroller · {groups.lines.length}</h2>
-          <div className="space-y-4">
-            {groups.lines.map(({ line, checks }) => (
-              <LineGroup
-                checks={checks}
-                compact={compact}
-                focus={focus}
-                key={line.index}
-                line={line}
-                mode={mode}
-              />
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      {groups.sections.map((group) => (
-        <section key={group.key}>
-          <h2 className="label-caps mb-2">
-            {group.title} · {group.checks.length}
+    <section className="paper overflow-hidden rounded-xl" aria-labelledby="controls-title">
+      <header className="flex items-start justify-between gap-4 border-b border-border px-4 py-3">
+        <div>
+          <h2 className="text-[14px] font-semibold text-foreground" id="controls-title">
+            Alle kontroller
           </h2>
-          <div className="paper divide-y divide-border overflow-hidden rounded-lg">
-            {group.checks.map((check) => (
-              <div
-                className={
-                  focus === check.check_id ? "relative z-10 ring-2 ring-inset ring-ring" : ""
-                }
-                id={check.check_id}
-                key={check.check_id}
-              >
-                <CheckCard check={check} embedded mode={mode} />
-              </div>
-            ))}
-          </div>
-        </section>
-      ))}
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
+            Autoritativ middleware-rækkefølge
+          </p>
+        </div>
+        <span className="num rounded-full bg-muted px-2.5 py-1 text-[11px] text-muted-foreground">
+          {eligible.length}
+        </span>
+      </header>
 
-      {groups.leftovers.length > 0 ? (
-        <section>
-          <h2 className="label-caps mb-2">Øvrige kontroller · {groups.leftovers.length}</h2>
-          <div className="paper divide-y divide-border overflow-hidden rounded-lg">
-            {groups.leftovers.map((check) => (
-              <div
-                className={
-                  focus === check.check_id ? "relative z-10 ring-2 ring-inset ring-ring" : ""
-                }
-                id={check.check_id}
-                key={check.check_id}
-              >
-                <CheckCard check={check} embedded mode={mode} />
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : null}
-    </div>
+      <ol className="max-h-[calc(100vh-15rem)] overflow-y-auto overscroll-contain">
+        {eligible.map((check) => (
+          <ControlRow
+            active={selected.check_id === check.check_id}
+            check={check}
+            key={check.check_id}
+            line={lineByCheckId.get(check.check_id)}
+            mode={mode}
+            onSelect={() => onSelect(check.check_id)}
+            position={positionByCheckId.get(check.check_id) ?? 0}
+          />
+        ))}
+      </ol>
+
+      <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-border bg-muted/30 px-4 py-2.5 text-[10px] text-muted-foreground">
+        <span>
+          Viser {eligible.length} af {checksForUi(report).length}
+          {hasVisibilityPolicy(report) ? " kontroller markeret til UI" : " kontroller"}
+        </span>
+        <span>Ingen omsortering</span>
+      </footer>
+    </section>
   );
 }

@@ -6,7 +6,6 @@ import { ReportChecks, type CheckFilter } from "@/components/report/ReportChecks
 import { ReportOverview } from "@/components/report/ReportOverview";
 import { SideRail } from "@/components/report/SideRail";
 import { SourceProof } from "@/components/report/SourceProof";
-import { StatusPill } from "@/components/report/StatusPill";
 import { ProcessingCase } from "@/components/upload/ProcessingCase";
 import { UploadCase, type UploadSubmission } from "@/components/upload/UploadCase";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,7 @@ import {
   type ReportIndexEntry,
   type ReportSource,
 } from "@/lib/paytjek-api";
-import { periodLabel, type Report, type Terminal } from "@/lib/report";
+import { checksForUi, periodLabel, TERMINALS, type Report, type Terminal } from "@/lib/report";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -418,10 +417,18 @@ function CaseScreen({
   const [tab, setTab] = useState<ReportTab>("overblik");
   const [focus, setFocus] = useState<string | null>(null);
 
-  const checks = report.checks;
-  const counts = report.counters.row_list_by_terminal ?? report.counters.by_terminal;
+  const checks = checksForUi(report);
+  const counts = checks.reduce<Partial<Record<Terminal, number>>>((result, check) => {
+    result[check.terminal] = (result[check.terminal] ?? 0) + 1;
+    return result;
+  }, {});
   const focused = focus ? checks.find((check) => check.check_id === focus) : null;
+  const activeCheckId = focused?.check_id ?? checks[0]?.check_id ?? null;
   const attentionCount = checks.filter((check) => check.terminal !== "OK").length;
+  const reportsByPeriod = new Map<string, number>();
+  for (const entry of reportEntries) {
+    reportsByPeriod.set(entry.period, (reportsByPeriod.get(entry.period) ?? 0) + 1);
+  }
 
   async function showCheck(checkId: string, nextReportKey = selectedReportKey) {
     if (nextReportKey !== selectedReportKey) await onSelectReport(nextReportKey);
@@ -468,6 +475,9 @@ function CaseScreen({
                 {reportEntries.map((entry) => (
                   <option key={reportKey(entry)} value={reportKey(entry)}>
                     {periodLabel(entry.period)}
+                    {(reportsByPeriod.get(entry.period) ?? 0) > 1
+                      ? ` · ${entry.slip_key.slice(0, 6)}`
+                      : ""}
                   </option>
                 ))}
               </select>
@@ -507,7 +517,7 @@ function CaseScreen({
               {nextTab === "overblik"
                 ? "Overblik"
                 : nextTab === "kontroller"
-                  ? "Alle kontroller"
+                  ? `Alle kontroller ${checks.length}`
                   : nextTab === "seddel"
                     ? "Lønseddel"
                     : "Datagrundlag"}
@@ -515,8 +525,8 @@ function CaseScreen({
           ))}
 
           {tab === "kontroller" ? (
-            <div className="ml-auto flex flex-wrap items-center gap-1.5">
-              <div className="mr-1 flex items-center gap-1 rounded-md border border-border bg-muted p-0.5">
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1 rounded-md border border-border bg-muted p-0.5">
                 {(["hurtig", "revision"] as Mode[]).map((nextMode) => (
                   <button
                     aria-pressed={mode === nextMode}
@@ -533,48 +543,26 @@ function CaseScreen({
                   </button>
                 ))}
               </div>
-              <button
-                aria-pressed={filter === "ALLE"}
-                className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
-                  filter === "ALLE"
-                    ? "border-foreground/40 bg-muted text-foreground"
-                    : "border-border text-muted-foreground"
-                }`}
-                onClick={() => setFilter("ALLE")}
-                type="button"
+              <select
+                aria-label="Filtrer kontroller"
+                className="h-8 rounded-md border border-input bg-card px-2 text-[11px] font-semibold text-foreground"
+                onChange={(event) => setFilter(event.target.value as CheckFilter)}
+                value={filter}
               >
-                Alle {checks.length}
-              </button>
-              <button
-                aria-pressed={filter === "OPMÆRKSOMHED"}
-                className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
-                  filter === "OPMÆRKSOMHED"
-                    ? "border-foreground/40 bg-muted text-foreground"
-                    : "border-border text-muted-foreground"
-                }`}
-                onClick={() => setFilter("OPMÆRKSOMHED")}
-                type="button"
-              >
-                Kræver opmærksomhed {attentionCount}
-              </button>
-              {TERMINAL_ORDER.filter((terminal) => counts[terminal]).map((terminal) => (
-                <button
-                  aria-pressed={filter === terminal}
-                  key={terminal}
-                  onClick={() => setFilter(terminal)}
-                  type="button"
-                >
-                  <span className={filter === terminal ? "opacity-100" : "opacity-60"}>
-                    <StatusPill terminal={terminal} />
-                  </span>
-                </button>
-              ))}
+                <option value="ALLE">Alle kontroller ({checks.length})</option>
+                <option value="OPMÆRKSOMHED">Kræver opmærksomhed ({attentionCount})</option>
+                {TERMINAL_ORDER.filter((terminal) => counts[terminal]).map((terminal) => (
+                  <option key={terminal} value={terminal}>
+                    {TERMINALS[terminal].short} ({counts[terminal]})
+                  </option>
+                ))}
+              </select>
             </div>
           ) : null}
         </div>
 
         {tab === "overblik" ? (
-          <div className="mx-auto mt-4 max-w-5xl">
+          <div className="mt-5">
             <ReportOverview
               currentReportKey={selectedReportKey}
               onOpenReport={(nextReportKey) => void openReport(nextReportKey)}
@@ -595,11 +583,35 @@ function CaseScreen({
             />
           </div>
         ) : tab === "kontroller" ? (
-          <div className="mt-4 grid items-start gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(420px,.85fr)]">
-            <div className="xl:sticky xl:top-24">
-              <PayslipView onSelect={(checkId) => void showCheck(checkId)} report={report} />
+          <div className="mt-5">
+            <header className="mb-5">
+              <p className="label-caps text-accent">Dokumentet først</p>
+              <h1 className="mt-1 text-xl font-semibold tracking-tight text-foreground">
+                Alle kontroller på den lønseddel, de vedrører
+              </h1>
+              <p className="mt-1.5 max-w-3xl text-[13px] leading-relaxed text-muted-foreground">
+                Vælg en kontrol i listen eller en lønlinje i dokumentet. Den aktive kontrol peger
+                direkte på lønlinjen, mens middleware-rækkefølgen forbliver uændret.
+              </p>
+            </header>
+            <div className="grid items-start gap-5 lg:grid-cols-[minmax(520px,1.25fr)_minmax(340px,.75fr)]">
+              <div className="lg:sticky lg:top-24">
+                <PayslipView
+                  contained
+                  onSelect={(checkId) => void showCheck(checkId)}
+                  report={report}
+                  selectedCheckId={activeCheckId}
+                  showTechnicalDetails={false}
+                />
+              </div>
+              <ReportChecks
+                filter={filter}
+                focus={activeCheckId}
+                mode={mode}
+                onSelect={(checkId) => void showCheck(checkId)}
+                report={report}
+              />
             </div>
-            <ReportChecks compact filter={filter} focus={focus} mode={mode} report={report} />
           </div>
         ) : (
           <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
