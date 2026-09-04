@@ -43,6 +43,12 @@ export const Route = createFileRoute("/")({
 type Mode = "hurtig" | "revision";
 type Phase = "upload" | "processing" | "report";
 type ReportTab = "overblik" | "kontroller" | "seddel" | "datagrundlag";
+type LoadedReport = {
+  entry: ReportIndexEntry;
+  key: string;
+  report: Report;
+  source: ReportSource;
+};
 
 const TERMINAL_ORDER: Terminal[] = [
   "MISMATCH",
@@ -76,6 +82,24 @@ function readyReports(entries: readonly ReportIndexEntry[]): ReportIndexEntry[] 
     );
 }
 
+async function loadReports(
+  caseId: string,
+  entries: readonly ReportIndexEntry[],
+  signal?: AbortSignal,
+): Promise<LoadedReport[]> {
+  return Promise.all(
+    entries.map(async (entry) => {
+      const result = await getReport(caseId, entry, signal);
+      return {
+        entry,
+        key: reportKey(entry),
+        report: result.report,
+        source: result.source,
+      };
+    }),
+  );
+}
+
 function PaytjekFlow() {
   const [phase, setPhase] = useState<Phase>("upload");
   const [busy, setBusy] = useState(false);
@@ -91,6 +115,7 @@ function PaytjekFlow() {
   const [contextFilename, setContextFilename] = useState<string | null>(null);
   const [contextRevision, setContextRevision] = useState<number | null>(null);
   const [reportEntries, setReportEntries] = useState<ReportIndexEntry[]>([]);
+  const [loadedReports, setLoadedReports] = useState<LoadedReport[]>([]);
   const [selectedReportKey, setSelectedReportKey] = useState("");
   const [reportLoading, setReportLoading] = useState(false);
 
@@ -119,16 +144,19 @@ function PaytjekFlow() {
           ) ?? ready[0];
         if (!selected) throw new Error("Sagen har endnu ingen færdig rapport.");
 
-        const result = await getReport(resumeCaseId, selected, controller.signal);
+        const reports = await loadReports(resumeCaseId, ready, controller.signal);
+        const selectedReport = reports.find((candidate) => candidate.key === reportKey(selected));
+        if (!selectedReport) throw new Error("Den valgte rapport kunne ikke hentes.");
         if (controller.signal.aborted) return;
         setCaseId(resumeCaseId);
         setCaseLabel(detail.label);
         setDocuments(detail.documents);
         setCaseContext(detail.context);
         setReportEntries(ready);
-        setSelectedReportKey(reportKey(selected));
-        setReport(result.report);
-        setReportSource(result.source);
+        setLoadedReports(reports);
+        setSelectedReportKey(selectedReport.key);
+        setReport(selectedReport.report);
+        setReportSource(selectedReport.source);
         setPhase("report");
       })
       .catch((cause: unknown) => {
@@ -231,15 +259,18 @@ function PaytjekFlow() {
           const ready = readyReports(index.reports);
           const first = ready[0];
           if (first) {
-            const result = await getReport(caseId, first, controller.signal);
+            const reports = await loadReports(caseId, ready, controller.signal);
+            const selectedReport = reports.find((candidate) => candidate.key === reportKey(first));
+            if (!selectedReport) throw new Error("Den valgte rapport kunne ikke hentes.");
             if (controller.signal.aborted) return;
             setCaseLabel(detail.label);
             setDocuments(detail.documents);
             setCaseContext(detail.context);
             setReportEntries(ready);
-            setSelectedReportKey(reportKey(first));
-            setReport(result.report);
-            setReportSource(result.source);
+            setLoadedReports(reports);
+            setSelectedReportKey(selectedReport.key);
+            setReport(selectedReport.report);
+            setReportSource(selectedReport.source);
             setPhase("report");
             return;
           }
@@ -268,10 +299,21 @@ function PaytjekFlow() {
   async function selectReport(nextKey: string) {
     const entry = reportEntries.find((candidate) => reportKey(candidate) === nextKey);
     if (!entry) return;
+    const loaded = loadedReports.find((candidate) => candidate.key === nextKey);
+    if (loaded) {
+      setReport(loaded.report);
+      setReportSource(loaded.source);
+      setSelectedReportKey(nextKey);
+      return;
+    }
     setReportLoading(true);
     setError(null);
     try {
       const result = await getReport(caseId, entry);
+      setLoadedReports((current) => [
+        ...current,
+        { entry, key: nextKey, report: result.report, source: result.source },
+      ]);
       setReport(result.report);
       setReportSource(result.source);
       setSelectedReportKey(nextKey);
@@ -297,6 +339,7 @@ function PaytjekFlow() {
     setContextFilename(null);
     setContextRevision(null);
     setReportEntries([]);
+    setLoadedReports([]);
     setSelectedReportKey("");
   }
 
@@ -327,6 +370,7 @@ function PaytjekFlow() {
         onSelectReport={selectReport}
         report={report}
         reportEntries={reportEntries}
+        reports={loadedReports}
         reportSource={reportSource}
         selectedReportKey={selectedReportKey}
       />
@@ -349,6 +393,7 @@ function CaseScreen({
   onSelectReport,
   report,
   reportEntries,
+  reports,
   reportSource,
   selectedReportKey,
 }: {
@@ -364,6 +409,7 @@ function CaseScreen({
   onSelectReport: (key: string) => Promise<void>;
   report: Report;
   reportEntries: ReportIndexEntry[];
+  reports: LoadedReport[];
   reportSource: ReportSource;
   selectedReportKey: string;
 }) {
@@ -377,7 +423,8 @@ function CaseScreen({
   const focused = focus ? checks.find((check) => check.check_id === focus) : null;
   const attentionCount = checks.filter((check) => check.terminal !== "OK").length;
 
-  function showCheck(checkId: string) {
+  async function showCheck(checkId: string, nextReportKey = selectedReportKey) {
+    if (nextReportKey !== selectedReportKey) await onSelectReport(nextReportKey);
     setFocus(checkId);
     setTab("kontroller");
     setFilter("ALLE");
@@ -386,6 +433,10 @@ function CaseScreen({
         document.getElementById(checkId)?.scrollIntoView({ block: "center" }),
       ),
     );
+  }
+
+  async function openReport(nextReportKey: string) {
+    if (nextReportKey !== selectedReportKey) await onSelectReport(nextReportKey);
   }
 
   return (
@@ -524,7 +575,12 @@ function CaseScreen({
 
         {tab === "overblik" ? (
           <div className="mx-auto mt-4 max-w-5xl">
-            <ReportOverview onSelect={showCheck} report={report} />
+            <ReportOverview
+              currentReportKey={selectedReportKey}
+              onOpenReport={(nextReportKey) => void openReport(nextReportKey)}
+              onSelect={(nextReportKey, checkId) => void showCheck(checkId, nextReportKey)}
+              reports={reports.map((item) => ({ key: item.key, report: item.report }))}
+            />
           </div>
         ) : tab === "datagrundlag" ? (
           <div className="mx-auto mt-4 max-w-5xl">
@@ -538,14 +594,17 @@ function CaseScreen({
               source={reportSource}
             />
           </div>
+        ) : tab === "kontroller" ? (
+          <div className="mt-4 grid items-start gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(420px,.85fr)]">
+            <div className="xl:sticky xl:top-24">
+              <PayslipView onSelect={(checkId) => void showCheck(checkId)} report={report} />
+            </div>
+            <ReportChecks compact filter={filter} focus={focus} mode={mode} report={report} />
+          </div>
         ) : (
           <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
             <div>
-              {tab === "kontroller" ? (
-                <ReportChecks filter={filter} focus={focus} mode={mode} report={report} />
-              ) : (
-                <PayslipView onSelect={showCheck} report={report} />
-              )}
+              <PayslipView onSelect={(checkId) => void showCheck(checkId)} report={report} />
 
               {focused ? (
                 <p className="num mt-4 text-[11px] text-muted-foreground">

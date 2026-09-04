@@ -17,7 +17,29 @@ function value(value: number | null | undefined): string {
   return value == null ? "—" : kr(value);
 }
 
-function LineHeader({ line }: { line: SlipLine }) {
+function LineHeader({ compact, line }: { compact: boolean; line: SlipLine }) {
+  if (compact) {
+    return (
+      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border bg-muted/45 px-4 py-3">
+        <div className="min-w-0 flex-1">
+          <p className="label-caps">Lønlinje {line.index}</p>
+          <p className="mt-1 text-[13px] font-semibold text-foreground">
+            {line.description ?? "Uden beskrivelse"}
+          </p>
+          <p className="num mt-0.5 text-[10px] text-muted-foreground">
+            {line.concept ?? "ukendt begreb"} · {line.lane}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="label-caps">Beløb</p>
+          <p className="num mt-1 text-[12px] font-semibold">
+            {line.amount_unread ? "—" : `${line.sign === "-" ? "−" : ""}${value(line.amount)}`}
+          </p>
+        </div>
+      </header>
+    );
+  }
+
   return (
     <header className="grid gap-3 border-b border-border bg-muted/45 px-4 py-3 lg:grid-cols-[3rem_minmax(14rem,1fr)_7rem_7rem_8rem_8rem]">
       <div>
@@ -60,18 +82,20 @@ function LineHeader({ line }: { line: SlipLine }) {
 
 function LineGroup({
   checks,
+  compact,
   focus,
   line,
   mode,
 }: {
   checks: Check[];
+  compact: boolean;
   focus: string | null;
   line: SlipLine;
   mode: Mode;
 }) {
   return (
     <article className="paper overflow-hidden rounded-lg [contain-intrinsic-size:auto_24rem] [content-visibility:auto]">
-      <LineHeader line={line} />
+      <LineHeader compact={compact} line={line} />
       {line.amount_unread ? (
         <p className="border-b border-border px-4 py-3 text-[12px] leading-relaxed text-muted-foreground">
           Beløbsfeltet gav ingen værdi; det er ikke det samme som 0,00 kr.
@@ -95,11 +119,13 @@ function LineGroup({
 }
 
 export function ReportChecks({
+  compact = false,
   filter,
   focus,
   mode,
   report,
 }: {
+  compact?: boolean;
   filter: CheckFilter;
   focus: string | null;
   mode: Mode;
@@ -164,7 +190,14 @@ export function ReportChecks({
           <h2 className="label-caps mb-2">Lønlinjer med kontroller · {groups.lines.length}</h2>
           <div className="space-y-4">
             {groups.lines.map(({ line, checks }) => (
-              <LineGroup checks={checks} focus={focus} key={line.index} line={line} mode={mode} />
+              <LineGroup
+                checks={checks}
+                compact={compact}
+                focus={focus}
+                key={line.index}
+                line={line}
+                mode={mode}
+              />
             ))}
           </div>
         </section>
