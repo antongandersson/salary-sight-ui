@@ -1,209 +1,314 @@
-# PayTjek UI — handoff
+# PayTjek frontend — implementeringshandoff
 
-Senest opdateret: 6. september 2026.
+Senest opdateret: 9. september 2026
 
-## Start her
+## Kort fortalt
 
-Alt aktuelt arbejde ligger i denne isolerede projektmappe:
+Frontend er nu formet som et internt arbejdsredskab for Dansk Metals lønkonsulenter. Den vigtigste
+ændring er et kompakt lønseddelarbejdsbord, hvor konsulenten vælger en lønperiode, klikker på en
+lønpost og straks ser middleware-rapportens status og regnestykke i en rude ved siden af. Det fulde
+bevisark åbnes først, når konsulenten beder om dokumentationen.
+
+Sagsoversigten og **Grundlag & kilder** er samtidig gjort væsentligt mere kompakte og følger det
+samme visuelle princip som den godkendte mock-up: overblik først, detaljer ved klik.
+
+Frontend beregner fortsat ikke løn. PayTjek-middleware er den autoritative kilde til beløb,
+kontrolstatus, regnestykker, fund, spørgsmål og brevgrundlag.
+
+## Projekt og Git
 
 ```text
-/Users/leifandersson/Projects/salary-sight-ui-codex
+Projekt: /Users/leifandersson/Projects/salary-sight-ui-codex
+Branch:  codex/middleware-integration
+HEAD:    e678dac docs: add project handoff
+Remote:  https://github.com/antongandersson/salary-sight-ui.git
 ```
 
-Aktuel Git-status:
+De seneste frontendændringer er ikke committet. Arbejdstræet indeholder både den aktuelle
+rapportetape og tidligere middleware-/uploadændringer. Gennemgå derfor diffen og stage kun de
+tilsigtede filer før commit.
 
-- Branch: `codex/middleware-integration`
-- Seneste kodecommit: `24345f2 feat: align report workspace with document-first mockup`
-- Arbejdstræet var rent før dette handoff-dokument blev tilføjet.
-- Branchen har ingen konfigureret upstream. Kontrollér destinationen før et eventuelt push.
-- Remote `origin`: `https://github.com/antongandersson/salary-sight-ui.git`
+Projektet er koblet til Lovable. Publiceret historik må ikke force-pushes, rebaseres, amend'es eller
+squashes, hvis ændringen allerede er pushed. Almindelige nye commits kan synkroniseres tilbage til
+Lovable.
 
-Fortsæt i denne mappe og på denne branch. Brug ikke den tidligere arbejdsmappe
-`/Users/leifandersson/Documents/Codex/2026-09-02/har-x20/paytjek-render-codex`; den er ikke den
-autoritative Codex-kopi.
+## Bindende produktprincipper
 
-## Produktmål og bindende principper
+1. PayTjek-middleware er den eneste autoritative kilde til lønresultatet.
+2. Frontend må ikke genberegne, rette, supplere eller gætte et resultat.
+3. Frontend må gerne formatere og organisere returnerede data, men ikke skabe nye faglige
+   konklusioner.
+4. Alle beløb, statusser, regnestykker, kildehenvisninger og fund skal kunne spores til API-output.
+5. Et manglende felt skal vises som manglende. Det må ikke erstattes af en sandsynlig værdi.
+6. Der må ikke indsættes hardcodede eksempelresultater i den rigtige datavej.
+7. Konsulentens lokale arbejdsmarkeringer må ikke fremstilles som gemt i sagssystemet.
+8. Demo-middleware og testdokumenter må ikke forveksles med et produktionsmiljø.
 
-Frontend er arbejdsfladen for en lønkonsulent, som uploader en eller flere lønsedler og valgfrit
-en ansættelseskontrakt eller en eksisterende member-context JSON-fil. PayTjek middleware behandler
-dokumenterne og returnerer rapporterne, som UI'et gør forståelige og navigerbare.
+## Bruger- og dataflow
 
-Følgende må ikke ændres uden udtrykkelig beslutning fra produktejeren:
+```mermaid
+flowchart LR
+    A[Opret sag] --> B[Upload lønsedler]
+    A --> C[Kontrakt eller member context]
+    B --> D[PayTjek-middleware]
+    C --> D
+    D --> E[Rapportindeks og case-sheet]
+    E --> F[Sagsoversigt]
+    E --> G[Lønseddelarbejdsbord]
+    G --> H[Vælg lønpost]
+    H --> I[Status og regnestykke]
+    I --> J[Bevisark med kilder]
+    E --> K[Register, spørgsmål og brev]
+```
 
-1. Middleware-API'ets output er den eneste autoritative kilde til resultatet.
-2. Frontend må ikke genberegne, rette, supplere eller gætte på rule-engine-resultater.
-3. Der må ikke ligge hardcodede eksempelresultater i den rigtige datavej.
-4. UI'et må gerne filtrere efter middleware-feltet `visibility`, men må ikke opfinde sin egen
-   synlighedspolitik.
-5. `Alle kontroller` skal bevare rækkefølgen fra `report.checks`. Visuelle filtre må skjule
-   kontroller, men aldrig omsortere dem.
-6. `Overblik` er et pædagogisk lag over rapporterne. Det må ikke ændre den autoritative rapport.
-7. Sporbarhed skal kunne føres tilbage til den konkrete sag, rapportgeneration, dataversion,
-   uploadede dokumenter og filaftryk.
-8. Vi har ikke adgang til middleware-backendens kode og skal ikke forsøge at bygge eller rette den.
-   Kun API-kontrakten og det returnerede output er i scope.
+UI'et uploader dokumenterne, følger behandlingsstatus og præsenterer resultatet. Alle faglige
+udfald i højre side af diagrammet kommer fra middleware.
 
-## Det er implementeret
+## Hvad der er implementeret
 
-### Rigtig middleware-integration
+### 1. Middleware-integration og upload
 
-Den oprindelige statiske eksempelrapport er fjernet. Frontend bruger nu demo-middleware som
-standard og kan peges på et andet miljø med `VITE_PAYTJEK_API_BASE_URL`.
+Den statiske eksempelrapport er fjernet fra den rigtige datavej. Frontend bruger demo-middleware
+som standard og kan peges mod et andet miljø med `VITE_PAYTJEK_API_BASE_URL`.
 
-Implementeret flow:
+Flowet kan:
 
-1. Opret sag.
-2. Upload eventuel member context til sagen.
-3. Upload lønsedler og eventuel kontrakt som dokumentbatch.
-4. Følg batchens rigtige status.
-5. Hent rapportindeks og sagsdetaljer.
-6. Hent alle færdige rapporter og vælg korrekt kombination af `period` og `slip_key`.
-7. Vis rapport, dokumenter, context og provenance.
+- oprette en sag;
+- gemme member context og eventuel fødselsdato på sagen;
+- uploade flere lønsedler som batch;
+- uploade kontrakten via middlewarets dedikerede kontrakt-endpoint;
+- følge både lønseddelbatch og kontraktjob;
+- vise middlewarets dokumentklassifikation;
+- hente rapportindeks, sagsdetaljer, case-sheet og brevgrundlag;
+- hente den valgte lønperiode on demand;
+- vælge en præcis rapport med kombinationen `period + slip_key`;
+- håndtere revisioner og erstattede lønsedler uden at slå dem sammen.
 
-De anvendte endpoints findes samlet i `src/lib/paytjek-api.ts`:
+API-kaldene ligger i `src/lib/paytjek-api.ts`.
 
-- `POST /api/v1/cases`
-- `PUT /api/v1/cases/{case_id}/context`
-- `POST /api/v1/cases/{case_id}/batches`
-- `GET /api/v1/cases/{case_id}/batches/{batch_id}`
-- `GET /api/v1/cases/{case_id}/reports`
-- `GET /api/v1/cases/{case_id}`
-- `GET /api/v1/cases/{case_id}/reports/{period}?slip_key=...`
+### 2. Rapportens seks arbejdsflader
 
-### Upload
+#### Sagsoversigt
 
-- Én eller flere lønsedler som PDF.
-- Valgfri kontrakt-PDF eller member-context JSON — aldrig begge samtidigt.
-- Maksimum 30 PDF-filer i samme indsendelse.
-- Maksimum 15 MB pr. PDF.
-- Maksimum 1 MB for member context.
-- Member context valideres som et JSON-objekt med `schema_version` og en ikke-tom `member_ref`.
-- Middleware-dokumentklassifikation vises under behandlingen, inklusive uoverensstemmelse mellem
-  valgt uploadfelt og genkendt dokumenttype.
+`ReportOverview.tsx` gengiver middlewarets case-sheet i en kompakt visning:
 
-### Rapportens informationsarkitektur
+- tre adskilte nøgletal for afgjorte afvigelser, mulige krav og kontrolpunkter;
+- højst fire dokumenterede fund på forsiden;
+- højst fire typer næste materiale;
+- klik på et dokumenteret fund åbner den præcise lønseddel og det præcise bevisark.
 
-Rapportskærmen har fire faner:
+Den tidligere tidslinje, den lange forklaring og det ekstra grundlagspanel er fjernet. Begrundelsen
+er, at sagsoversigten skal kunne skannes hurtigt og ikke konkurrere med selve lønseddelarbejdet.
+De tre opgørelser lægges ikke sammen i frontend.
 
-- **Overblik**: kronologisk sag fra ældste til nyeste rapport. En periode vælges i tidslinjen, og
-  dens lønseddel vises ved siden af på større skærme.
-- **Alle kontroller**: dokument-først layout med lønseddel til venstre og en kompakt,
-  interaktiv kontrolliste til højre. Kun den aktive kontrol foldes ud.
-- **Lønseddel**: læsevenlig linjevisning plus valgfrie tekniske felter i et fold-ud-panel.
-- **Datagrundlag**: kun dokumenter og sporbarhed; lønlinjerne gentages ikke her.
+#### Lønsedler
 
-Kontroller og lønlinjer er koblet via `lines[].checks[]`. Klik på en kontrol fremhæver den
-tilhørende lønlinje; klik på en lønlinje åbner dens første synlige kontrol.
+`PayslipWorkspace.tsx` er det nye primære arbejdsrum. Layoutet er det samme for alle perioder:
 
-### `visibility`
+1. Venstre: perioderail med statusfarve, revisioner og erstattede sedler.
+2. Midten: kompakte lønposter fra den valgte rapport.
+3. Højre: kontroller og middleware-regnestykke for den valgte lønpost.
 
-Rapporttypen understøtter nu:
+Når en lønpost vælges:
+
+- alle kontroller, som middleware har knyttet til posten, bliver tilgængelige;
+- både `OK`, `MISMATCH`, `FORBEHOLD`, `NEEDS_INPUT`, `REFUSED` og `KONTROLPUNKT` understøttes;
+- den mest alvorlige kontrol vælges først, så en afvigelse ikke skjules bag en tidligere OK-kontrol;
+- kontrollernes indbyrdes API-rækkefølge bevares i vælgeren;
+- højre rude viser kun status, titel og det returnerede regnestykke;
+- **Åbn bevisark** viser forklaring, input, kilder, citater og øvrig dokumentation.
+
+En ny `PayslipWorkspace` monteres, når `slip_key` ændres. Det nulstiller den lokale linjeudvælgelse
+og sikrer samme starttilstand i alle lønperioder.
+
+Lønpostens lille hjælpetekst viser kun API-felterne `quantity`, `rate` og `basis` formateret. Den
+udregner ikke selv resultatet. Selve regnestykket i højre rude kommer fra
+`check.computation.arithmetic` eller `check.kroner.arithmetic`.
+
+#### Bevisark
+
+`EvidenceSheet.tsx` åbner som en sideflade og viser den valgte autoritative kontrol:
+
+- terminal/status;
+- middlewareforklaring;
+- middleware-regnestykke;
+- hvert input og dets angivne kilde;
+- citater og kildehenvisninger;
+- manglende materiale;
+- kontrol-id og lønseddelnøgle.
+
+Bevisarket er bevidst et andet detaljeringsniveau end lønseddelarbejdsbordet. Det gør det muligt at
+arbejde hurtigt på lønpostniveau uden at miste dokumentationen.
+
+#### Register
+
+`ReportRegister.tsx` viser alle lønsedler i en arbejdsliste med fund, mulige krav, inputbehov,
+revisioner og erstattede sedler. Optællingerne kommer fra case-sheet. Registeret beregner ingen
+beløb.
+
+#### Spørgsmål til medlem
+
+`MemberQuestions.tsx` grupperer `needs_input` efter `ask_target`. Den samme oplysning vises én gang,
+selv om den påvirker flere perioder.
+
+Afkrydsningerne er kun lokal UI-tilstand. De gemmes eller sendes ikke, fordi der ikke findes en
+aftalt sagssystemkontrakt til handlingen.
+
+#### Arbejdsgiverbrev
+
+`EmployerLetter.tsx` viser det låste brevgrundlag fra `GET .../case-sheet/brev`. Frontend danner
+ikke selv krav, summer eller brevtekst. Redigering, afsendelse og historik kræver et separat
+arbejdslag og en API-kontrakt.
+
+#### Grundlag & kilder
+
+`SourceProof.tsx` er ændret fra et langt kortkatalog til en kompakt to-kolonnevisning:
+
+- venstre kolonne viser de sagsoplysninger, rapporten er afgjort på;
+- højre kolonne viser regelkilder, sagskontekst og de vigtigste dokumenter;
+- resten af dokumenterne er foldet sammen;
+- footer viser sag, rapportgeneration, dannelsestid og input-digest.
+
+Alle viste værdier og kilder kommer fra case-sheet, sagsdetaljer eller rapportens provenance.
+
+## Vigtige tekniske beslutninger
+
+### Alle linjekontroller vises i konsulentarbejdsrummet
+
+Rapporten kan markere kontroller med:
 
 ```ts
 visibility?: "internal" | "user_facing"
 ```
 
-Politikken ligger i `src/lib/report.ts`:
+`checksForUi(report)` bevarer den oprindelige visibility-politik til brugerrettede oversigter og
+legacy-komponenter. Det nye lønseddelarbejdsbord bruger derimod `allReportChecks(report)` og
+`checksForLine(report, line)`.
 
-- Hvis mindst én kontrol i rapporten har `visibility`, vises kun kontroller med
-  `visibility: "user_facing"`.
-- Hvis ingen kontroller har feltet, behandles rapporten som legacy-output, og alle kontroller
-  vises. Det gør gamle rapporter læsbare, men de er ikke bevis for den nye visibility-kontrakt.
-- Kontrolnumrene beregnes fortsat ud fra deres oprindelige position i `report.checks`, så filtre
-  ikke ændrer den autoritative placering.
+Det er en bevidst beslutning, fordi værktøjet er internt for lønkonsulenter, og fordi de skal kunne
+åbne beregningen på eksempelvis ATP, AM-bidrag og andre OK-kontroller. Hvis kun `user_facing` blev
+vist, ville flere almindelige lønposter ikke have en synlig kontrol.
 
-Den senest modtagne eksempel-JSON indeholdt 38 kontroller: 34 `internal` og 4 `user_facing`.
-Frontend-helperen blev kontrolleret mod filen og returnerede præcis disse fire UI-kontroller:
+`allReportChecks` deduplikerer `report.checks` og `report.refusals` efter `check_id`.
+`checksForLine` kobler både via `check.line_index` og `line.checks[]` og bevarer rapportens
+kontrolrækkefølge.
 
-- `K3-contract-unstated`
-- `K4-IND25-elevlon-aar2-L000`
-- `K7-E3-capacity`
-- `K2-askat-sats`
+### Visuel prioritering er ikke en lønberegning
 
-Eksempelfilen ligger uden for repository her:
+Statusrækkefølgen bruges kun til at vælge farve og den første synlige kontrol på en lønpost:
 
 ```text
-/Users/leifandersson/.codex/attachments/00a4bcf1-7273-4289-8c99-8248280b3f7f/pasted-text.txt
+MISMATCH → NEEDS_INPUT → FORBEHOLD → REFUSED → KONTROLPUNKT → OK
 ```
+
+Det ændrer ikke middleware-resultatet og beregner ingen penge. Brugeren kan stadig vælge samtlige
+kontroller på posten.
+
+### Progressive disclosure
+
+Mock-up'ens princip er fastholdt på tværs af skærmene:
+
+- sagsoversigt: kun beslutningsrelevant overblik;
+- lønpost: status og regnestykke;
+- bevisark: fuld forklaring og kilder;
+- grundlag: få vigtigste kilder først, resten foldet sammen.
+
+Formålet er at reducere læsetid uden at fjerne sporbarhed.
 
 ## Centrale filer
 
-- `src/routes/index.tsx` — hele upload-, polling-, genåbnings- og rapportflowet.
-- `src/lib/paytjek-api.ts` — den eneste klient mod middleware.
-- `src/lib/report.ts` — typer og præsentationshelpers, herunder visibility-politikken.
-- `src/components/upload/UploadCase.tsx` — upload og klientvalidering.
-- `src/components/upload/ProcessingCase.tsx` — batchstatus og dokumentklassifikation.
-- `src/components/report/ReportOverview.tsx` — kronologisk sagsvisning.
-- `src/components/report/ReportChecks.tsx` — autoritativ kontrolliste og visuelle filtre.
-- `src/components/report/PayslipFacsimile.tsx` — dokumentlignende visning af udlæste lønlinjer.
-- `src/components/report/PayslipView.tsx` — lønseddel og teknisk fold-ud-visning.
-- `src/components/report/SourceProof.tsx` — dokumenter, context, rapportgeneration og filaftryk.
-- `README.md` — kort lokal start og produktionsforbehold.
+| Fil | Ansvar |
+| --- | --- |
+| `src/routes/index.tsx` | Upload, polling, genåbning, lazy rapporthentning og fanenavigation |
+| `src/lib/paytjek-api.ts` | Klient og typer til middleware-endpoints |
+| `src/lib/report.ts` | Rapporttyper, statusmetadata og kontrol↔lønlinje-helpers |
+| `src/lib/case-sheet.ts` | Typer for middlewarets case-sheet |
+| `src/lib/report-index.ts` | Sortering og opslag med `period + slip_key` |
+| `src/components/report/PayslipWorkspace.tsx` | Tre-panel arbejdsbord for perioder, lønposter og beregning |
+| `src/components/report/PeriodRail.tsx` | Perioder, revisioner og case-sheet-status |
+| `src/components/report/EvidenceSheet.tsx` | Fuld dokumentation for én kontrol |
+| `src/components/report/ReportOverview.tsx` | Kompakt case-sheet-baseret sagsoversigt |
+| `src/components/report/SourceProof.tsx` | Grundlag, regelkilder, dokumenter og provenance |
+| `src/components/report/ReportRegister.tsx` | Register over alle rapporter i sagen |
+| `src/components/report/MemberQuestions.tsx` | Grupperede inputbehov |
+| `src/components/report/EmployerLetter.tsx` | Låst brevgrundlag fra middleware |
+| `src/components/upload/UploadCase.tsx` | Uploadfelter og klientvalidering |
+| `src/components/upload/ProcessingCase.tsx` | Behandlingsstatus og dokumentklassifikation |
 
-## Kendte problemer og åbne beslutninger
+`PayslipFacsimile.tsx`, `PayslipView.tsx` og `ReportChecks.tsx` findes fortsat, men bruges ikke af
+det nye primære lønseddelarbejdsbord. Fjern dem først, når det er bekræftet, at ingen anden route
+eller planlagt visning skal genbruge dem.
 
-### 1. Den rigtige scrubbed lønseddel vises ikke endnu
+## Det skal næste person være opmærksom på
 
-Den nuværende `PayslipFacsimile` er en HTML-visning bygget udelukkende af middleware-rapportens
-`lines`. Det er ikke den oprindelige scrubbed PDF eller et billede af dens side.
+### 1. Kun transaktionslinjer vises som lønposter
 
-Den modtagne `page-metadata.json` beskriver siden, men giver ikke i sig selv de faktiske PDF-bytes
-eller et sikkert aktiv, browseren kan vise. For at vise den rigtige scrubbed lønseddel skal et
-fremtidigt middleware-output give frontend en autoriseret PDF-/billedressource eller et eksplicit
-endpoint til dokumentvisning. Frontend må ikke gætte en intern filplacering.
+Hvis rapporten har `kind: "transaction"`, viser arbejdsbordet disse linjer og udelader
+`PARSE_DROPPED`. Balance-/saldo-linjer vises ikke i den kompakte liste endnu. For legacy-rapporter
+uden `kind` bruges en fallback baseret på beløb, antal, sats eller tilknyttede kontroller.
 
-Referencefil:
+Afklar om konsulenterne også skal kunne vælge saldi som ferie, fritvalg og pension direkte i samme
+arbejdsbord.
 
-```text
-/Users/leifandersson/Downloads/Februar 2026 scrubbet lønseddel.pdf/pages/page-1/page-metadata.json
-```
+### 2. Kontroller på rapportniveau mangler en særskilt indgang
 
-### 2. Live-verifikation af `visibility` mangler på en ny sag
+Lønseddelarbejdsbordet gør alle kontroller på en lønpost tilgængelige, men kontroller uden
+linjetilknytning har endnu ikke en særskilt række som eksempelvis **Hele lønsedlen**. De kan stadig
+optræde via sagsoversigt og andre case-sheet-flader, men bør få en eksplicit indgang, hvis
+konsulenten skal gennemgå alle rapportniveaukontroller periode for periode.
 
-En ældre live-rapport havde 52 kontroller uden `visibility`. Den nye JSON-kontrakt er verificeret
-lokalt, men bør også verificeres end-to-end ved at oprette en ny sag efter middlewareændringen.
-Gamle rapporter får ikke automatisk de nye felter.
+### 3. Den originale scrubbed PDF vises ikke
 
-### 3. Gemte demo-sager er ikke permanente
+Lønposterne er HTML bygget af rapportens `lines`. Frontend har ikke et autoriseret PDF-/billedaktiv
+fra middleware og må ikke gætte en intern filplacering. En rigtig dokumentvisning kræver et sikkert
+middleware-endpoint eller en signeret aktiv-URL.
 
-Den senest anvendte URL gav `CASE_NOT_FOUND` for sag
-`f942a0a2-e711-4c90-aa8a-4f04e7c5e7e5`. UI'et faldt derfor korrekt tilbage til uploadsiden med
-fejlbeskeden. Opret en ny sag eller brug et gyldigt case-id ved næste visuelle test.
+### 4. Case-sheet og den valgte rapport har hver sin provenance
 
-### 4. UI/UX er bedre, men ikke færdig
+Sagsoversigten bygger på case-sheet-generationen. **Grundlag & kilder** viser case-sheetets grundlag
+men rapportprovenance for den aktuelt valgte lønperiode. Bevar denne forskel tydelig, hvis
+proveniensvisningen udvides.
 
-Den nuværende retning følger de godkendte ideer om en kronologisk sagsfortælling og layout B for
-`Alle kontroller`. Produktopfattelsen ved seneste gennemgang var stadig, at siden var for rodet og
-ikke ramte mockupperne præcist nok. Næste ændringer bør reducere visuel støj uden at ændre,
-opsummere på ny eller omsortere middleware-data.
+### 5. Arbejdsstatus er ikke persistent
 
-### 5. Ingen automatiserede tests endnu
+Spørgsmålsafkrydsning, eventuelle fremtidige noter og brevredigering må ikke præsenteres som gemt,
+før sagssystemet har et endpoint og en afklaret revisionsmodel.
 
-Der findes ikke en testkommando i `package.json`. Der er kun build, lint og manuel browsertest.
-Visibility-helperen og rapportens interaktioner bør dækkes med fixtures, før produktionslancering.
+### 6. Produktion er ikke afklaret
 
-### 6. Produktionsforhold er ikke afklaret
+- Standard-URL'en peger på demo-middleware.
+- Autentificering og rettighedsstyring er ikke implementeret i denne frontend.
+- Sikker adgang til lønsedler og kontrakter er ikke afklaret.
+- API-fejl kan stadig få en mere målrettet brugerpræsentation.
+- Brug kun scrubbed testmateriale i demo-miljøet.
 
-- Standard-URL'en er demo-middleware og må ikke være produktionsfallback.
-- Adgangskontrol og autentificering er ikke implementeret her.
-- Sikker opbevaring og fremvisning af lønsedler/kontrakter er ikke afklaret.
-- API-fejl vises relativt råt og kan få en mere pædagogisk præsentation.
-- Lovable/GitHub-synkronisering betyder, at publiceret historik ikke må force-pushes, rebaseres
-  eller omskrives.
+### 7. Arbejdstræet er beskidt
 
-## Problemer vi løb ind i
+Der er ikke lavet commit eller push af den aktuelle etape. Undgå at overskrive eller nulstille
+ændringerne. Kør `git diff` og lav et normalt nyt commit, når scope er godkendt.
 
-- Det første forsøg tog udgangspunkt i en forkert render-mappe og endte med hardcodede data og et
-  UI, som ikke svarede til det rigtige Lovable-projekt. Arbejdet blev flyttet til en isoleret kopi
-  af `antongandersson/salary-sight-ui`, og eksempelrapporten blev fjernet.
-- En anden agent arbejdede samtidig i den oprindelige mappe. Derfor blev denne Codex-kopi
-  isoleret i `/Users/leifandersson/Projects/salary-sight-ui-codex`.
-- Lokal kørsel fra den tidligere Documents/Codex-mappe gav både Bun-fejl om lavt antal åbne filer
-  og Node-fejlen `EPERM: process.cwd`. Arbejd fra den isolerede Projects-mappe og fra et nyt
-  terminalvindue. Hvis Bun igen melder om 256 file descriptors, kan grænsen i den konkrete shell
-  hæves med `ulimit -n 65536` før install/start.
-- Flere tidlige forsøg på at gøre overblikket til en actionplan skabte mere støj. Den guidede
-  rapportvisning blev derfor eksplicit rullet tilbage i commit `0b1402e`.
+## Verifikation
+
+Kørt på den aktuelle arbejdskopi 9. september 2026:
+
+- `bunx tsc --noEmit` — bestået.
+- `bun test` — 9 tests bestået.
+- `bun run build` — bestået.
+- `bun run lint` — 0 fejl; 6 eksisterende Fast Refresh-advarsler i generiske shadcn UI-filer.
+- `git diff --check` — bestået.
+
+DM-C1 er visuelt gennemgået i browseren:
+
+- kompakt sagsoversigt;
+- lønseddelarbejdsbord i juni og maj 2026;
+- valg mellem flere kontroller på samme lønpost;
+- automatisk prioritering af mismatch;
+- ATP-lønpost med en intern OK-kontrol og middleware-regnestykke;
+- fuldt bevisark;
+- kompakt **Grundlag & kilder**.
+
+Testene dækker visibility/legacy-adfærd, alle linjekontroller, kontrolrækkefølge, kontrol↔linje,
+rapportindeks, dublerede perioder og præcis navigation med `period + slip_key`.
 
 ## Lokal start
 
@@ -211,54 +316,46 @@ Visibility-helperen og rapportens interaktioner bør dækkes med fixtures, før 
 cd /Users/leifandersson/Projects/salary-sight-ui-codex
 git switch codex/middleware-integration
 bun install
-bun run dev -- --host 127.0.0.1 --port 5183
+bun run dev -- --host 127.0.0.1 --port 5184
 ```
 
-Åbn derefter `http://127.0.0.1:5183/` og opret en ny testsag. Demo-miljøet må kun få
-testdokumenter.
-
-En eksisterende gyldig rapport kan åbnes med:
+Hvis port 5184 er optaget, vælger Vite automatisk den næste ledige port. Ved dette handoff kører den
+lokale server på:
 
 ```text
-http://127.0.0.1:5183/?case_id=<uuid>&period=<YYYY-MM>&slip_key=<nøgle>
+http://127.0.0.1:5185/
 ```
 
-## Verifikation ved handoff
-
-Kørt 6. september 2026 på commit `24345f2` før tilføjelsen af dette dokument:
-
-- `bun run build` — bestået.
-- `bun run lint` — bestået med 0 fejl og 6 eksisterende `react-refresh`-advarsler i generiske
-  shadcn UI-filer.
-- Arbejdstræ — rent før `HANDOFF.md` blev tilføjet.
-
-## Anbefalet næste etape
-
-1. Start lokalt og opret en helt ny demo-sag for at verificere det aktuelle middleware-output.
-2. Kontrollér i browseren, at en rapport med `visibility` kun viser `user_facing`, mens rækkefølge
-   og kontrolnumre stadig matcher `report.checks`.
-3. Sammenhold `Overblik` og `Alle kontroller` visuelt med de tidligere godkendte mockupper og
-   forenkle hierarkiet uden at ændre datafortællingen.
-4. Få afklaret den konkrete API-kontrakt for sikker visning af den scrubbed PDF. Implementér først
-   dokumentvisningen, når middleware-outputtet giver et autoritativt aktiv eller endpoint.
-5. Tilføj fixtures og automatiserede tests for legacy/visibility, flerperiodiske sager,
-   dublerede perioder med forskellige `slip_key` og kontrol↔lønlinje-navigation.
-6. Før produktion: konfigurér produktions-API, autentificering, dokumentadgang, fejlpræsentation og
-   en eksplicit no-demo-fallback.
-
-## Commitforløb på arbejdsbranchen
+DM-C1 kan åbnes med:
 
 ```text
-3cd5014 feat: connect Lovable UI to PayTjek middleware
-9a469ee fix: render checks in authoritative report order
-baf1aee feat: add production-ready upload provenance flow
-2bce26b feat: support member context json input
-d643550 refactor: clarify report information hierarchy
-7a8e7f0 feat: add read-only report overview
-ea46361 feat: add guided report review
-0b1402e Revert "feat: add guided report review"
-5280d05 feat: turn report overview into case action plan
-fe6741e feat: add authoritative chronological case view
-24345f2 feat: align report workspace with document-first mockup
+http://127.0.0.1:5185/?case_id=0cb6cd5c-9df4-4eef-a06b-2c8322adb949&period=2026-06
 ```
 
+Den kørende proces er kun en lokal udviklingsserver og overlever ikke nødvendigvis lukning eller
+genstart af Codex/terminalsessionen.
+
+## Anbefalet næste rækkefølge
+
+1. Brugertest lønseddelarbejdsbordet med 2–3 lønkonsulenter: kan de finde en afvigelse, kontrollere
+   regnestykket og åbne bevisarket uden forklaring?
+2. Tilføj en kompakt indgang til kontroller på rapportniveau, fx **Hele lønsedlen**.
+3. Afklar om balance-/saldolinjer skal kunne vælges sammen med transaktionslinjerne.
+4. Aftal middlewarekontrakten for sikker visning af den scrubbed original-PDF.
+5. Aftal sagssystemets kontrakt for spørgsmål, svar, noter, brevredigering og historik.
+6. Tilføj komponenttests for faneskift, lønpostvalg, kontrollervalg, bevisark og periodeskift.
+7. Før produktion: konfigurér produktions-API, autentificering, dokumentrettigheder og en eksplicit
+   no-demo-fallback.
+
+## Definition of done for næste UI-etape
+
+En ændring er først færdig, når:
+
+- den virker på mindst to forskellige lønperioder;
+- alle viste faglige oplysninger kan spores til middleware-output;
+- frontend ikke foretager nye lønberegninger;
+- både OK og afvigende kontroller kan åbnes fra lønposten;
+- bevisarket stadig viser kilder og input;
+- typekontrol, tests, lint og build er kørt;
+- den er visuelt kontrolleret med DM-C1;
+- handoffet er opdateret, hvis dataflow eller produktgrænser ændres.

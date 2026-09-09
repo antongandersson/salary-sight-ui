@@ -17,6 +17,18 @@ export type Kroner = {
     source?: string;
   }> | null;
   factors?: ComputationInput[] | null;
+  alternatives?: Record<string, unknown> | null;
+  expected?: number | null;
+  printed?: number | null;
+  summed?: boolean | null;
+};
+
+export type CheckFinding = {
+  kind: string;
+  value: number | null;
+  unit: string | null;
+  conditional_amount: number | null;
+  alternatives: string[] | null;
 };
 
 export type Check = {
@@ -34,6 +46,7 @@ export type Check = {
   line_index?: number | null;
   authored?: boolean;
   closable_by_document?: boolean;
+  finding?: CheckFinding | null;
   computation?: {
     arithmetic?: string | null;
     inputs?: ComputationInput[];
@@ -42,9 +55,13 @@ export type Check = {
   kroner?: Kroner | null;
   missing?: {
     artifact?: string;
+    ask_target?: "member" | "unstated" | string;
     kind?: string;
     unlocks?: string;
     closable_by_document?: boolean;
+    form?: string;
+    who?: string;
+    promise?: string;
   } | null;
 };
 
@@ -59,6 +76,10 @@ export type SlipLine = {
   lane: string;
   line_type: string;
   sign?: string | null;
+  kind?: "transaction" | "balance" | string;
+  role?: string | null;
+  anchor?: string | null;
+  tags?: string[];
   checks: string[];
   amount_unread?: boolean;
   admitted_status?: string | null;
@@ -152,6 +173,35 @@ export function checksForUi(report: Report): Check[] {
   return hasVisibilityPolicy(report)
     ? report.checks.filter((check) => check.visibility === "user_facing")
     : report.checks;
+}
+
+export function allReportChecks(report: Report): Check[] {
+  const checks = new Map(report.checks.map((check) => [check.check_id, check]));
+  for (const refusal of report.refusals) {
+    if (!checks.has(refusal.check_id)) checks.set(refusal.check_id, refusal);
+  }
+  return [...checks.values()];
+}
+
+export function checksForLine(report: Report, line: SlipLine): Check[] {
+  const lineCheckIds = new Set(line.checks);
+  return allReportChecks(report).filter(
+    (check) => check.line_index === line.index || lineCheckIds.has(check.check_id),
+  );
+}
+
+export function lineForCheck(report: Report, checkId: string): SlipLine | null {
+  const check = allReportChecks(report).find((candidate) => candidate.check_id === checkId);
+  return (
+    report.lines.find(
+      (line) => line.checks.includes(checkId) || line.index === check?.line_index,
+    ) ?? null
+  );
+}
+
+export function checkPosition(report: Report, checkId: string): number | null {
+  const index = report.checks.findIndex((check) => check.check_id === checkId);
+  return index === -1 ? null : index + 1;
 }
 
 export function periodLabel(period: string): string {

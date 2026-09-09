@@ -1,4 +1,11 @@
-import { CheckCircle2, FileJson2, FileText, LoaderCircle, TriangleAlert } from "lucide-react";
+import {
+  CalendarDays,
+  CheckCircle2,
+  FileJson2,
+  FileText,
+  LoaderCircle,
+  TriangleAlert,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -42,12 +49,14 @@ export function ProcessingCase({
   error,
   onCancel,
   contextFilename,
+  birthDate,
 }: {
   label: string;
   status: BatchStatus | null;
   error: string | null;
   onCancel: () => void;
   contextFilename: string | null;
+  birthDate: string | null;
 }) {
   const jobs = status?.jobs ?? [];
   const completed = jobs.filter((job) => TERMINAL_STATES.has(job.state)).length;
@@ -73,6 +82,14 @@ export function ProcessingCase({
               <FileJson2 className="size-4 text-muted-foreground" aria-hidden="true" />
               <span className="min-w-0 flex-1 truncate text-[13px]">{contextFilename}</span>
               <span className="text-[11px] font-semibold text-ok">Member context registreret</span>
+            </div>
+          ) : null}
+          {birthDate ? (
+            <div className="flex items-center gap-3 rounded-md border border-ok/25 bg-ok-soft/45 p-3">
+              <CheckCircle2 className="size-4 text-ok" aria-hidden="true" />
+              <CalendarDays className="size-4 text-muted-foreground" aria-hidden="true" />
+              <span className="min-w-0 flex-1 text-[13px]">Fødselsdato</span>
+              <span className="text-[11px] font-semibold text-ok">Registreret på sagen</span>
             </div>
           ) : null}
           {jobs.length === 0 ? (

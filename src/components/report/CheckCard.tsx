@@ -185,7 +185,7 @@ export function CheckCard({
           onClick={() => setOpen((v) => !v)}
           className="mt-3 text-[12px] font-semibold text-accent underline-offset-4 hover:underline"
         >
-          {open ? "Skjul bevis" : "Vis bevis"}
+          {open ? "Skjul dokumentation" : "Vis fuld dokumentation"}
         </button>
       ) : null}
     </article>

@@ -1,6 +1,13 @@
 import { FileText } from "lucide-react";
 
-import { checksForUi, kr, periodLabel, type Report } from "@/lib/report";
+import {
+  checkPosition,
+  checksForLine,
+  kr,
+  lineForCheck,
+  periodLabel,
+  type Report,
+} from "@/lib/report";
 
 const dotClass = {
   MISMATCH: "bg-mismatch",
@@ -22,27 +29,24 @@ export function PayslipFacsimile({
   report: Report;
   selectedCheckId?: string | null;
 }) {
-  const uiChecks = checksForUi(report);
-  const checksById = new Map(uiChecks.map((check) => [check.check_id, check]));
-  const selectedPosition = selectedCheckId
-    ? report.checks.findIndex((check) => check.check_id === selectedCheckId) + 1
-    : 0;
-  const selectedLine = selectedCheckId
-    ? report.lines.find((line) => line.checks.includes(selectedCheckId))
-    : undefined;
+  const selectedPosition = selectedCheckId ? checkPosition(report, selectedCheckId) : null;
+  const selectedLine = selectedCheckId ? lineForCheck(report, selectedCheckId) : null;
 
   return (
     <section className="paper overflow-hidden rounded-xl" aria-labelledby="payslip-title">
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border px-5 py-4">
         <div>
-          <p className="label-caps text-accent">Dokumentet først</p>
+          <p className="label-caps text-accent">Lønsedlens linjer</p>
           <h2 className="mt-1 text-[15px] font-semibold text-foreground" id="payslip-title">
             Lønseddel · {periodLabel(report.slip.period)}
           </h2>
-          <p className="num mt-1 text-[11px] text-muted-foreground">
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Direkte fra rule-engine/API-outputtet
+          </p>
+          <p className="num mt-0.5 text-[10px] text-muted-foreground">
             {selectedLine
-              ? `Kontrol ${String(selectedPosition).padStart(3, "0")} peger på linje ${selectedLine.index}`
-              : `${report.slip.slip_key} · udlæste lønlinjer`}
+              ? `Kontrol ${String(selectedPosition ?? "—").padStart(3, "0")} peger på linje ${selectedLine.index}`
+              : report.slip.slip_key}
           </p>
         </div>
         <span className="flex items-center gap-2 rounded-full bg-muted px-2.5 py-1 text-[10px] text-muted-foreground">
@@ -70,10 +74,7 @@ export function PayslipFacsimile({
             </thead>
             <tbody>
               {report.lines.map((line) => {
-                const checks = line.checks.flatMap((id) => {
-                  const check = checksById.get(id);
-                  return check ? [check] : [];
-                });
+                const checks = checksForLine(report, line);
                 const hasMismatch = checks.some((check) => check.terminal === "MISMATCH");
                 const selected = selectedCheckId ? line.checks.includes(selectedCheckId) : false;
                 return (
@@ -137,8 +138,8 @@ export function PayslipFacsimile({
       </div>
 
       <p className="border-t border-border bg-muted/30 px-5 py-3 text-[11px] leading-relaxed text-muted-foreground">
-        Viser middleware-rapportens udlæste lønlinjer. Klik på en linje eller kontrolmarkør for at
-        åbne den tilhørende autoritative kontrol.
+        Lønlinjerne kommer direkte fra rule-engine/API-outputtet. Klik på en linje eller
+        kontrolmarkør for at åbne den tilhørende autoritative kontrol.
       </p>
     </section>
   );

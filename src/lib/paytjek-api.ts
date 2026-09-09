@@ -1,3 +1,4 @@
+import type { CaseSheet } from "@/lib/case-sheet";
 import type { Report } from "@/lib/report";
 
 const DEFAULT_API_BASE_URL =
@@ -48,6 +49,32 @@ type RawCreateBatchResponse = {
   }>;
 };
 
+export type ContractUploadResponse = {
+  batch_id: string;
+  job_id: string;
+  document_id: string;
+  filename: string;
+  kind: "contract";
+  duplicate?: boolean | null;
+};
+
+type RawContractUploadResponse = Omit<ContractUploadResponse, "kind"> & {
+  kind?: string;
+};
+
+export type JobStatusResponse = {
+  job_id: string;
+  case_id: string;
+  kind: DocumentKind;
+  state: string;
+  stage_timestamps: Record<string, string | null>;
+  period?: string | null;
+  report_ref?: string | null;
+  error?: Record<string, unknown> | null;
+};
+
+type RawJobStatusResponse = Omit<JobStatusResponse, "kind"> & { kind: string };
+
 export type ReportIndexEntry = {
   period: string;
   slip_key: string;
@@ -57,10 +84,63 @@ export type ReportIndexEntry = {
   stale: boolean;
   report_url: string;
   html_url: string;
+  is_revision?: boolean;
+  revises_slip_key?: string | null;
 };
 
-type ReportIndexResponse = {
+export type ReportIndexResponse = {
+  case_sheet?: {
+    url: string;
+    html_url?: string;
+    generation?: number;
+    inputs_digest?: string;
+    rendered_at?: string | null;
+    stale: boolean;
+  };
   reports: ReportIndexEntry[];
+};
+
+export type LetterBasisFinding = {
+  axis?: string;
+  check_family?: string;
+  family?: string;
+  first_month: string;
+  last_month: string;
+  limitation_flag?: boolean;
+  months: Array<{
+    computation?: string | null;
+    kr: number | null;
+    line?: string | null;
+    period: string;
+    row_arithmetic?: string | null;
+  }>;
+  months_count: number;
+  pattern?: string;
+  quotes?: string[];
+  settlement_status?: string;
+  source_location?: string;
+  title: string;
+  total_kr: number | null;
+};
+
+export type LetterBasis = {
+  agreements: string[];
+  case: string;
+  findings: LetterBasisFinding[];
+  limitation_rule?: { text?: string; years?: number | null };
+  provenance?: {
+    built_from?: string;
+    llm_in_render_path?: boolean;
+    renderer?: string;
+  };
+  schema: string;
+  session_id?: string;
+  totals?: {
+    axes?: Record<string, { findings: number; label: string; total_kr: number | null }>;
+    count?: number;
+    money_rule?: string;
+    total_kr?: number | null;
+  };
 };
 
 export type DocumentSummary = {
@@ -101,6 +181,18 @@ export type ReportSource = {
 export type ReportResult = {
   report: Report;
   source: ReportSource;
+};
+
+export type CaseSheetSource = {
+  generation: number | null;
+  inputsDigest: string | null;
+  renderedAt: string | null;
+  stale: boolean;
+};
+
+export type CaseSheetResult = {
+  caseSheet: CaseSheet;
+  source: CaseSheetSource;
 };
 
 export class PaytjekApiError extends Error {
@@ -144,6 +236,11 @@ async function get<T>(path: string, signal?: AbortSignal): Promise<T> {
   );
 }
 
+function documentKind(value: string): DocumentKind {
+  const normalized = value.toLowerCase();
+  return normalized === "payslip" || normalized === "contract" ? normalized : "unknown";
+}
+
 export async function createCase(
   label: string,
   agreementFamily: AgreementFamily | null,
@@ -176,17 +273,22 @@ export async function uploadBatch(
   );
   return {
     batch_id: result.batch_id,
-    jobs: result.jobs.map((job) => {
-      const normalizedKind = job.kind.toLowerCase();
-      return {
-        ...job,
-        kind:
-          normalizedKind === "payslip" || normalizedKind === "contract"
-            ? normalizedKind
-            : "unknown",
-      };
-    }),
+    jobs: result.jobs.map((job) => ({ ...job, kind: documentKind(job.kind) })),
   };
+}
+
+export async function uploadContract(caseId: string, file: File): Promise<ContractUploadResponse> {
+  const body = new FormData();
+  body.append("file", file, file.name);
+
+  const result = await json<RawContractUploadResponse>(
+    await fetch(`${baseUrl()}/api/v1/cases/${encodeURIComponent(caseId)}/contract`, {
+      method: "POST",
+      headers: { accept: "application/json" },
+      body,
+    }),
+  );
+  return { ...result, kind: "contract" };
 }
 
 export async function putCaseContext(
@@ -202,6 +304,16 @@ export async function putCaseContext(
   );
 }
 
+export async function putBirthDate(caseId: string, birthDate: string): Promise<PutContextResponse> {
+  return json<PutContextResponse>(
+    await fetch(`${baseUrl()}/api/v1/cases/${encodeURIComponent(caseId)}/birth-date`, {
+      method: "PUT",
+      headers: { accept: "application/json", "content-type": "application/json" },
+      body: JSON.stringify({ birth_date: birthDate }),
+    }),
+  );
+}
+
 export function getBatchStatus(
   caseId: string,
   batchId: string,
@@ -213,12 +325,50 @@ export function getBatchStatus(
   );
 }
 
+export async function getJobStatus(
+  jobId: string,
+  signal?: AbortSignal,
+): Promise<JobStatusResponse> {
+  const result = await get<RawJobStatusResponse>(
+    `/api/v1/jobs/${encodeURIComponent(jobId)}`,
+    signal,
+  );
+  return { ...result, kind: documentKind(result.kind) };
+}
+
 export function listReports(caseId: string, signal?: AbortSignal): Promise<ReportIndexResponse> {
   return get<ReportIndexResponse>(`/api/v1/cases/${encodeURIComponent(caseId)}/reports`, signal);
 }
 
 export function getCaseDetail(caseId: string, signal?: AbortSignal): Promise<CaseDetail> {
   return get<CaseDetail>(`/api/v1/cases/${encodeURIComponent(caseId)}`, signal);
+}
+
+export async function getCaseSheet(caseId: string, signal?: AbortSignal): Promise<CaseSheetResult> {
+  const response = await fetch(
+    `${baseUrl()}/api/v1/cases/${encodeURIComponent(caseId)}/case-sheet`,
+    {
+      headers: { accept: "application/json" },
+      signal: signal ?? null,
+    },
+  );
+  const caseSheet = await json<CaseSheet>(response);
+  const generationValue = response.headers.get("x-report-generation");
+  const generation = generationValue === null ? Number.NaN : Number(generationValue);
+
+  return {
+    caseSheet,
+    source: {
+      generation: Number.isFinite(generation) ? generation : null,
+      inputsDigest: response.headers.get("x-report-inputs-digest"),
+      renderedAt: response.headers.get("x-report-rendered-at"),
+      stale: response.headers.get("x-report-stale") === "true",
+    },
+  };
+}
+
+export function getLetterBasis(caseId: string, signal?: AbortSignal): Promise<LetterBasis> {
+  return get<LetterBasis>(`/api/v1/cases/${encodeURIComponent(caseId)}/case-sheet/brev`, signal);
 }
 
 export async function getReport(

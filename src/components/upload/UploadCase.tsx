@@ -10,6 +10,7 @@ import { isDemoApi, type AgreementFamily } from "@/lib/paytjek-api";
 const MAX_FILES = 30;
 const MAX_FILE_BYTES = 15 * 1024 * 1024;
 const MAX_CONTEXT_BYTES = 1024 * 1024;
+const COMPLETE_ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 function fileKey(file: File): string {
   return `${file.name}:${file.size}:${file.lastModified}`;
@@ -312,6 +313,7 @@ function MemberContextPicker({
 export type UploadSubmission = {
   label: string;
   agreementFamily: AgreementFamily | null;
+  birthDate: string | null;
   payslips: File[];
   contract: File | null;
   memberContext: MemberContextUpload | null;
@@ -328,6 +330,7 @@ export function UploadCase({
 }) {
   const [label, setLabel] = useState("");
   const [agreementFamily, setAgreementFamily] = useState<AgreementFamily | "auto">("auto");
+  const [birthDate, setBirthDate] = useState("");
   const [payslips, setPayslips] = useState<File[]>([]);
   const [contractFiles, setContractFiles] = useState<File[]>([]);
   const [memberContext, setMemberContext] = useState<MemberContextUpload | null>(null);
@@ -361,6 +364,10 @@ export function UploadCase({
       setValidationError("Tilføj mindst én lønseddel som PDF.");
       return;
     }
+    if (birthDate !== "" && !COMPLETE_ISO_DATE.test(birthDate)) {
+      setValidationError("Fødselsdato skal være en fuld dato.");
+      return;
+    }
     if (contractFiles.length > 0 && memberContext) {
       setValidationError("Vælg enten kontrakt-PDF eller member context — ikke begge dele.");
       return;
@@ -374,6 +381,7 @@ export function UploadCase({
     await onSubmit({
       label: label.trim(),
       agreementFamily: agreementFamily === "auto" ? null : agreementFamily,
+      birthDate: birthDate || null,
       payslips,
       contract: contractFiles[0] ?? null,
       memberContext,
@@ -406,7 +414,7 @@ export function UploadCase({
           </p>
 
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <div className="grid gap-5 sm:grid-cols-2">
+            <div className="grid gap-5 sm:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="case-label">Sag eller medlemsnummer</Label>
                 <Input
@@ -433,6 +441,25 @@ export function UploadCase({
                   <option value="IND25">Industriens Overenskomst 2025–2028</option>
                   <option value="IND23">Industriens Overenskomst 2023–2025</option>
                 </select>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <Label htmlFor="birth-date">Fødselsdato</Label>
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Valgfri
+                  </span>
+                </div>
+                <Input
+                  autoComplete="bday"
+                  disabled={busy}
+                  id="birth-date"
+                  onChange={(event) => setBirthDate(event.target.value)}
+                  type="date"
+                  value={birthDate}
+                />
+                <p className="text-[11px] leading-relaxed text-muted-foreground">
+                  Registreres direkte på sagen som en fuld dato.
+                </p>
               </div>
             </div>
 

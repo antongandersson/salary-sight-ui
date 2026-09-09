@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 
-import { CheckCard } from "@/components/report/CheckCard";
 import { StatusPill } from "@/components/report/StatusPill";
 import {
   checksForUi,
@@ -42,7 +41,7 @@ function ControlRow({
   return (
     <li className="border-b border-border last:border-0">
       <button
-        aria-expanded={active}
+        aria-pressed={active}
         className={`grid w-full grid-cols-[2.5rem_minmax(0,1fr)] gap-2.5 px-4 py-3 text-left transition-colors ${
           active ? "bg-accent/8" : "hover:bg-muted/40"
         }`}
@@ -61,13 +60,24 @@ function ControlRow({
           <span className="mt-1 block text-[11px] text-muted-foreground">
             {CLASS_LABELS[check.check_class] ?? check.section} · {lineLabel(line)}
           </span>
+          <span className="num mt-1 block text-[10px] text-muted-foreground">{check.check_id}</span>
+          {check.note ? (
+            <span
+              className={`mt-2 block text-[11px] leading-relaxed text-muted-foreground ${
+                mode === "hurtig" ? "line-clamp-2" : ""
+              }`}
+            >
+              {check.note}
+            </span>
+          ) : null}
+          {check.computation?.arithmetic ? (
+            <span className="num mt-2 block whitespace-pre-line rounded-md border border-border bg-muted/40 p-2.5 text-[10px] leading-relaxed text-foreground">
+              {check.computation.arithmetic}
+            </span>
+          ) : null}
+          <span className="mt-2 block text-[10px] font-semibold text-accent">Åbn bevisark →</span>
         </span>
       </button>
-      {active ? (
-        <div className="border-t border-accent/15 bg-accent/[0.035]">
-          <CheckCard check={check} compact embedded mode={mode} />
-        </div>
-      ) : null}
     </li>
   );
 }
@@ -85,7 +95,7 @@ export function ReportChecks({
   onSelect: (checkId: string) => void;
   report: Report;
 }) {
-  const { eligible, lineByCheckId, positionByCheckId } = useMemo(() => {
+  const { eligible, lineByCheckId, positionByCheckId, uiCheckCount } = useMemo(() => {
     const uiChecks = checksForUi(report);
     const filtered = uiChecks.filter(
       (check) =>
@@ -99,7 +109,12 @@ export function ReportChecks({
         if (!lines.has(checkId)) lines.set(checkId, line);
       }
     }
-    return { eligible: filtered, lineByCheckId: lines, positionByCheckId: positions };
+    return {
+      eligible: filtered,
+      lineByCheckId: lines,
+      positionByCheckId: positions,
+      uiCheckCount: uiChecks.length,
+    };
   }, [filter, report]);
 
   if (eligible.length === 0) {
@@ -117,10 +132,10 @@ export function ReportChecks({
       <header className="flex items-start justify-between gap-4 border-b border-border px-4 py-3">
         <div>
           <h2 className="text-[14px] font-semibold text-foreground" id="controls-title">
-            Alle kontroller
+            {hasVisibilityPolicy(report) ? "Alle brugerrettede kontroller" : "Alle kontroller"}
           </h2>
           <p className="mt-0.5 text-[11px] text-muted-foreground">
-            Autoritativ middleware-rækkefølge
+            Oprindelig rækkefølge fra API-rapporten
           </p>
         </div>
         <span className="num rounded-full bg-muted px-2.5 py-1 text-[11px] text-muted-foreground">
@@ -144,10 +159,15 @@ export function ReportChecks({
 
       <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-border bg-muted/30 px-4 py-2.5 text-[10px] text-muted-foreground">
         <span>
-          Viser {eligible.length} af {checksForUi(report).length}
-          {hasVisibilityPolicy(report) ? " kontroller markeret til UI" : " kontroller"}
+          Viser {eligible.length} af {uiCheckCount} i det valgte filter · {uiCheckCount} af{" "}
+          {report.checks.length} kontroller fra API
         </span>
-        <span>Ingen omsortering</span>
+        <span>
+          {hasVisibilityPolicy(report)
+            ? "Kun kontroller markeret til brugerfladen af API'et"
+            : "Ældre rapport uden visibility-felt"}
+          {" · "}ingen omsortering
+        </span>
       </footer>
     </section>
   );
