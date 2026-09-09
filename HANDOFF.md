@@ -1,6 +1,23 @@
 # PayTjek frontend — implementeringshandoff
 
-Senest opdateret: 9. september 2026
+Senest opdateret: 9. september 2026 (revideret samme dag: datakomplethed + gennemgangs-flow)
+
+## Tillæg 9. september 2026 — datakomplethed og gennemgang
+
+Efterfølgende etape (branch `claude/understand-repo-04223d`) har ændret følgende:
+
+- **Intet API-data skæres væk.** Sagsoversigtens 4-styks-loft på fund/materiale er fjernet;
+  arbejdsbordet viser nu også saldolinjer (sektionen **Saldi**) og PARSE_DROPPED i foldbar liste;
+  kontroller uden linjetilknytning har fået indgangen **Hele lønsedlen**; alle regelkilder vises i
+  **Grundlag & kilder**.
+- **Ny fane: Gennemgang.** Alle måneds-referencer fra case-sheetets fund og mulige krav i én
+  arbejdsliste (`src/lib/review-queue.ts`, `ReviewQueue.tsx`) med lokal gennemgået-markering
+  (ikke persisteret) og Forrige/Næste-navigation i bevisarket.
+- **Mulige krav er klikbare** på sagsoversigten, og fund/krav har måneds-chips til hver berørt
+  periode (ikke kun første måned).
+- **Stale-fallback.** Er alle rapporter i indekset markeret stale, vises de alligevel med badgen
+  **Forældet generation** (samme for stale case-sheet) i stedet for en uåbnelig sag. Set i praksis:
+  demo-middleware bumpede generation midt på dagen, hvorefter DM-C1 ellers ikke kunne åbnes.
 
 ## Kort fortalt
 
