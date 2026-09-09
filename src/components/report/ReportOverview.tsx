@@ -112,8 +112,8 @@ export function ReportOverview({
     );
   }
 
-  const visibleFindings = caseSheet.findings.slice(0, 4);
-  const visibleInputs = caseSheet.needs_input.slice(0, 4);
+  const visibleFindings = caseSheet.findings;
+  const visibleInputs = caseSheet.needs_input;
 
   return (
     <div className="space-y-5">
@@ -182,7 +182,10 @@ export function ReportOverview({
                       {index + 1}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <strong className="block truncate text-[11px] font-semibold text-foreground">
+                      <strong
+                        className="block truncate text-[11px] font-semibold text-foreground"
+                        title={finding.title}
+                      >
                         {finding.title}
                       </strong>
                       <span className="mt-0.5 block text-[10px] text-muted-foreground">

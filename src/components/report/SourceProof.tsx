@@ -153,7 +153,7 @@ export function SourceProof({
             Kilder og dokumenter
           </h2>
           <div className="mt-3 divide-y divide-border border-y border-border">
-            {ruleSources.slice(0, 3).map((item) => (
+            {ruleSources.map((item) => (
               <div className="flex items-start gap-3 py-3" key={item.id}>
                 <Scale className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden="true" />
                 <div className="min-w-0">

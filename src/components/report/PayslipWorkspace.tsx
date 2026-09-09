@@ -26,15 +26,25 @@ const STATUS_BAR: Record<Terminal, string> = {
   OK: "bg-ok",
 };
 
-function displayedLines(report: Report): SlipLine[] {
-  const transactionLines = report.lines.filter(
-    (line) => line.kind === "transaction" && line.lane !== "PARSE_DROPPED",
-  );
-  if (transactionLines.length > 0) return transactionLines;
-  return report.lines.filter(
-    (line) =>
-      line.lane !== "PARSE_DROPPED" &&
-      (line.amount != null || line.quantity != null || line.rate != null || line.checks.length > 0),
+export function partitionLines(report: Report): {
+  transactions: SlipLine[];
+  balances: SlipLine[];
+  dropped: SlipLine[];
+} {
+  const visible = report.lines.filter((line) => line.lane !== "PARSE_DROPPED");
+  const dropped = report.lines.filter((line) => line.lane === "PARSE_DROPPED");
+  const hasKind = visible.some((line) => line.kind === "transaction");
+  return {
+    transactions: hasKind ? visible.filter((line) => line.kind === "transaction") : visible,
+    balances: hasKind ? visible.filter((line) => line.kind !== "transaction") : [],
+    dropped,
+  };
+}
+
+export function slipLevelChecks(report: Report): Check[] {
+  const lineAttached = new Set(report.lines.flatMap((line) => line.checks));
+  return allReportChecks(report).filter(
+    (check) => check.line_index == null && !lineAttached.has(check.check_id),
   );
 }
 
@@ -94,19 +104,67 @@ export function PayslipWorkspace({
   report: Report;
   selectedReportKey: string;
 }) {
-  const lines = displayedLines(report);
+  const { transactions, balances, dropped } = partitionLines(report);
+  const lines = [...transactions, ...balances];
+  const reportChecks = slipLevelChecks(report);
   const firstLine =
     lines.find((line) => checksForLine(report, line).length > 0) ?? lines[0] ?? null;
-  const [selectedLineIndex, setSelectedLineIndex] = useState<number | null>(
-    firstLine?.index ?? null,
+  const [selection, setSelection] = useState<number | "slip" | null>(
+    firstLine?.index ?? (reportChecks.length > 0 ? "slip" : null),
   );
   const [requestedCheckId, setRequestedCheckId] = useState<string | null>(null);
-  const selectedLine = lines.find((line) => line.index === selectedLineIndex) ?? firstLine ?? null;
-  const lineChecks = selectedLine ? checksForLine(report, selectedLine) : [];
+  const selectedLine =
+    selection === "slip" ? null : (lines.find((line) => line.index === selection) ?? firstLine);
+  const lineChecks =
+    selection === "slip" ? reportChecks : selectedLine ? checksForLine(report, selectedLine) : [];
   const selectedCheck =
     lineChecks.find((check) => check.check_id === requestedCheckId) ?? strongestCheck(lineChecks);
   const allChecks = allReportChecks(report);
   const attentionCount = allChecks.filter((check) => check.terminal !== "OK").length;
+  const slipTerminal = strongestTerminal(reportChecks);
+
+  function renderLine(line: SlipLine) {
+    const checks = checksForLine(report, line);
+    const terminal = strongestTerminal(checks);
+    const selected = selection !== "slip" && line.index === selectedLine?.index;
+    const hint = inputHint(line);
+    return (
+      <button
+        aria-pressed={selected}
+        className={`group grid w-full grid-cols-[4px_minmax(0,1fr)_auto_auto] items-center gap-3 border-b border-border px-3 py-3 text-left transition-colors ${
+          selected ? "bg-accent/8" : "hover:bg-muted/35"
+        }`}
+        key={line.index}
+        onClick={() => {
+          setSelection(line.index);
+          setRequestedCheckId(null);
+        }}
+        type="button"
+      >
+        <span
+          className={`h-8 w-1 rounded-full ${terminal ? STATUS_BAR[terminal] : "bg-border"}`}
+          aria-hidden="true"
+        />
+        <span className="min-w-0">
+          <strong className="block truncate text-[12px] font-semibold text-foreground">
+            {line.description ?? line.concept ?? `Lønlinje ${line.index}`}
+          </strong>
+          {hint ? (
+            <span className="num mt-0.5 block truncate text-[10px] text-muted-foreground">
+              {hint}
+            </span>
+          ) : null}
+        </span>
+        <span className="num whitespace-nowrap text-[12px] font-semibold text-foreground">
+          {line.amount == null ? "—" : `${kr(line.amount)} kr`}
+        </span>
+        <ChevronRight
+          className={`size-4 ${selected ? "text-accent" : "text-muted-foreground/50"}`}
+          aria-hidden="true"
+        />
+      </button>
+    );
+  }
 
   return (
     <section className="paper overflow-hidden rounded-xl" aria-label="Lønseddelarbejdsbord">
@@ -152,50 +210,70 @@ export function PayslipWorkspace({
             <span className="num text-[10px] text-muted-foreground">{lines.length} poster</span>
           </div>
 
-          {lines.length > 0 ? (
+          {lines.length > 0 || reportChecks.length > 0 ? (
             <div className="max-h-[680px] overflow-y-auto" style={{ contentVisibility: "auto" }}>
-              {lines.map((line) => {
-                const checks = checksForLine(report, line);
-                const terminal = strongestTerminal(checks);
-                const selected = line.index === selectedLine?.index;
-                const hint = inputHint(line);
-                return (
-                  <button
-                    aria-pressed={selected}
-                    className={`group grid w-full grid-cols-[4px_minmax(0,1fr)_auto_auto] items-center gap-3 border-b border-border px-3 py-3 text-left transition-colors ${
-                      selected ? "bg-accent/8" : "hover:bg-muted/35"
-                    }`}
-                    key={line.index}
-                    onClick={() => {
-                      setSelectedLineIndex(line.index);
-                      setRequestedCheckId(null);
-                    }}
-                    type="button"
-                  >
-                    <span
-                      className={`h-8 w-1 rounded-full ${terminal ? STATUS_BAR[terminal] : "bg-border"}`}
-                      aria-hidden="true"
-                    />
-                    <span className="min-w-0">
-                      <strong className="block truncate text-[12px] font-semibold text-foreground">
-                        {line.description ?? line.concept ?? `Lønlinje ${line.index}`}
-                      </strong>
-                      {hint ? (
-                        <span className="num mt-0.5 block truncate text-[10px] text-muted-foreground">
-                          {hint}
+              {reportChecks.length > 0 ? (
+                <button
+                  aria-pressed={selection === "slip"}
+                  className={`group grid w-full grid-cols-[4px_minmax(0,1fr)_auto_auto] items-center gap-3 border-b border-border px-3 py-3 text-left transition-colors ${
+                    selection === "slip" ? "bg-accent/8" : "hover:bg-muted/35"
+                  }`}
+                  onClick={() => {
+                    setSelection("slip");
+                    setRequestedCheckId(null);
+                  }}
+                  type="button"
+                >
+                  <span
+                    className={`h-8 w-1 rounded-full ${slipTerminal ? STATUS_BAR[slipTerminal] : "bg-border"}`}
+                    aria-hidden="true"
+                  />
+                  <span className="min-w-0">
+                    <strong className="block truncate text-[12px] font-semibold text-foreground">
+                      Hele lønsedlen
+                    </strong>
+                    <span className="mt-0.5 block truncate text-[10px] text-muted-foreground">
+                      {reportChecks.length} kontroller uden lønpost
+                    </span>
+                  </span>
+                  <span aria-hidden="true" />
+                  <ChevronRight
+                    className={`size-4 ${selection === "slip" ? "text-accent" : "text-muted-foreground/50"}`}
+                    aria-hidden="true"
+                  />
+                </button>
+              ) : null}
+              {transactions.map(renderLine)}
+              {balances.length > 0 ? (
+                <>
+                  <p className="border-b border-border bg-muted/25 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Saldi
+                  </p>
+                  {balances.map(renderLine)}
+                </>
+              ) : null}
+              {dropped.length > 0 ? (
+                <details className="border-b border-border text-[10px] text-muted-foreground">
+                  <summary className="cursor-pointer px-3 py-2 font-semibold">
+                    {dropped.length} linjer udeladt af parser (PARSE_DROPPED)
+                  </summary>
+                  <ul>
+                    {dropped.map((line) => (
+                      <li
+                        className="flex items-center justify-between gap-3 px-3 py-1.5"
+                        key={line.index}
+                      >
+                        <span className="truncate">
+                          {line.description ?? line.concept ?? `Lønlinje ${line.index}`}
                         </span>
-                      ) : null}
-                    </span>
-                    <span className="num whitespace-nowrap text-[12px] font-semibold text-foreground">
-                      {line.amount == null ? "—" : `${kr(line.amount)} kr`}
-                    </span>
-                    <ChevronRight
-                      className={`size-4 ${selected ? "text-accent" : "text-muted-foreground/50"}`}
-                      aria-hidden="true"
-                    />
-                  </button>
-                );
-              })}
+                        <span className="num shrink-0">
+                          {line.amount == null ? "—" : `${kr(line.amount)} kr`}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              ) : null}
             </div>
           ) : (
             <p className="px-4 py-8 text-[12px] text-muted-foreground">
@@ -211,11 +289,13 @@ export function PayslipWorkspace({
           <div className="border-b border-border px-4 py-3">
             <h2 className="text-[12px] font-semibold text-foreground">Beregning</h2>
             <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
-              {selectedLine?.description ?? "Vælg en lønpost"}
+              {selection === "slip"
+                ? "Hele lønsedlen"
+                : (selectedLine?.description ?? "Vælg en lønpost")}
             </p>
           </div>
 
-          {selectedLine && lineChecks.length > 0 ? (
+          {lineChecks.length > 0 ? (
             <div className="p-4">
               {lineChecks.length > 1 ? (
                 <div
