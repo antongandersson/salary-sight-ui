@@ -87,6 +87,17 @@ function calculation(check: Check): string | null {
   return check.computation?.arithmetic ?? check.kroner?.arithmetic ?? null;
 }
 
+function slipSummary(checks: Check[]): string {
+  const mismatches = checks.filter((check) => check.terminal === "MISMATCH").length;
+  const needs = checks.filter((check) => check.terminal === "NEEDS_INPUT").length;
+  const rest = checks.length - mismatches - needs;
+  const parts: string[] = [];
+  if (mismatches > 0) parts.push(`${mismatches} afvigelse${mismatches === 1 ? "" : "r"} med beløb`);
+  if (needs > 0) parts.push(`${needs} kræver oplysning`);
+  if (rest > 0) parts.push(`${rest} øvrige kontroller`);
+  return parts.join(" · ");
+}
+
 const CALC_PREVIEW_LINES = 8;
 
 function Calculation({ text }: { text: string }) {
@@ -131,16 +142,6 @@ export function PayslipWorkspace({
   const { transactions, balances, dropped } = partitionLines(report);
   const lines = [...transactions, ...balances];
   const reportChecks = slipLevelChecks(report);
-  // Kun egentlige afvigelser og inputbehov promoveres til egne rækker —
-  // forbehold/kontrolpunkter/OK samles under "Hele lønsedlen", ellers
-  // drukner lønposterne i meta-kontroller.
-  const attentionReportChecks = reportChecks.filter(
-    (check) => check.terminal === "MISMATCH" || check.terminal === "NEEDS_INPUT",
-  );
-  const routineReportChecks = reportChecks.filter(
-    (check) => !attentionReportChecks.includes(check),
-  );
-  const routineTerminal = strongestTerminal(routineReportChecks);
   const firstLine =
     lines.find((line) => checksForLine(report, line).length > 0) ?? lines[0] ?? null;
   const [selection, setSelection] = useState<number | "slip" | null>(
@@ -158,6 +159,7 @@ export function PayslipWorkspace({
   const orderedChecks = [...lineChecks].sort(
     (left, right) => TERMINALS[left.terminal].order - TERMINALS[right.terminal].order,
   );
+  const slipTerminal = strongestTerminal(reportChecks);
 
   function renderLine(line: SlipLine) {
     const checks = checksForLine(report, line);
@@ -248,71 +250,20 @@ export function PayslipWorkspace({
 
           {lines.length > 0 || reportChecks.length > 0 ? (
             <div className="max-h-[680px] overflow-y-auto" style={{ contentVisibility: "auto" }}>
-              {attentionReportChecks.map((check) => {
-                const selected = selection === "slip" && selectedCheck?.check_id === check.check_id;
-                return (
-                  <button
-                    aria-pressed={selected}
-                    className={`group grid w-full grid-cols-[4px_minmax(0,1fr)_auto_auto] items-center gap-3 border-b border-border px-3 py-3 text-left transition-colors ${
-                      selected ? "bg-accent/8" : "hover:bg-muted/35"
-                    }`}
-                    key={check.check_id}
-                    onClick={() => {
-                      setSelection("slip");
-                      setRequestedCheckId(check.check_id);
-                    }}
-                    type="button"
-                  >
-                    <span
-                      className={`h-8 w-1 rounded-full ${STATUS_BAR[check.terminal]}`}
-                      aria-hidden="true"
-                    />
-                    <span className="min-w-0">
-                      <strong className="block truncate text-[12px] font-semibold text-foreground">
-                        {check.title}
-                      </strong>
-                      <span className="mt-0.5 block truncate text-[10px] text-muted-foreground">
-                        {TERMINALS[check.terminal].label} · hele lønsedlen
-                      </span>
-                    </span>
-                    <span className="num whitespace-nowrap text-[12px] font-semibold text-foreground">
-                      {check.kroner?.kr == null ? "" : `${kr(check.kroner.kr)} kr`}
-                    </span>
-                    <ChevronRight
-                      className={`size-4 ${selected ? "text-accent" : "text-muted-foreground/50"}`}
-                      aria-hidden="true"
-                    />
-                  </button>
-                );
-              })}
-              {routineReportChecks.length > 0 ? (
+              {reportChecks.length > 0 ? (
                 <button
-                  aria-pressed={
-                    selection === "slip" &&
-                    !attentionReportChecks.some(
-                      (check) => check.check_id === selectedCheck?.check_id,
-                    )
-                  }
+                  aria-pressed={selection === "slip"}
                   className={`group grid w-full grid-cols-[4px_minmax(0,1fr)_auto_auto] items-center gap-3 border-b border-border px-3 py-3 text-left transition-colors ${
-                    selection === "slip" &&
-                    !attentionReportChecks.some(
-                      (check) => check.check_id === selectedCheck?.check_id,
-                    )
-                      ? "bg-accent/8"
-                      : "hover:bg-muted/35"
+                    selection === "slip" ? "bg-accent/8" : "hover:bg-muted/35"
                   }`}
                   onClick={() => {
                     setSelection("slip");
-                    setRequestedCheckId(strongestCheck(routineReportChecks)?.check_id ?? null);
+                    setRequestedCheckId(null);
                   }}
                   type="button"
                 >
                   <span
-                    className={`h-8 w-1 rounded-full ${
-                      routineTerminal === null || routineTerminal === "OK"
-                        ? "bg-border"
-                        : STATUS_BAR[routineTerminal]
-                    }`}
+                    className={`h-8 w-1 rounded-full ${slipTerminal ? STATUS_BAR[slipTerminal] : "bg-border"}`}
                     aria-hidden="true"
                   />
                   <span className="min-w-0">
@@ -320,11 +271,14 @@ export function PayslipWorkspace({
                       Hele lønsedlen
                     </strong>
                     <span className="mt-0.5 block truncate text-[10px] text-muted-foreground">
-                      {routineReportChecks.length} øvrige kontroller uden lønpost
+                      {slipSummary(reportChecks)}
                     </span>
                   </span>
                   <span aria-hidden="true" />
-                  <ChevronRight className="size-4 text-muted-foreground/50" aria-hidden="true" />
+                  <ChevronRight
+                    className={`size-4 ${selection === "slip" ? "text-accent" : "text-muted-foreground/50"}`}
+                    aria-hidden="true"
+                  />
                 </button>
               ) : null}
               {transactions.map(renderLine)}
