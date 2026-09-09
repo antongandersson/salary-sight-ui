@@ -61,14 +61,14 @@ function GroupSection({
     <section className="paper overflow-hidden rounded-xl">
       <div className="flex items-center gap-2 border-b border-border px-4 py-3">
         {icon}
-        <h2 className="text-[13px] font-semibold text-foreground">{title}</h2>
+        <h2 className="text-[14px] font-semibold text-foreground">{title}</h2>
       </div>
       {groups.map((group) => (
         <div
           className="border-b border-border last:border-0"
           key={`${group.source}:${group.family}`}
         >
-          <p className="bg-muted/25 px-4 py-2 text-[11px] font-semibold text-foreground">
+          <p className="bg-muted/25 px-4 py-2 text-[12px] font-semibold text-foreground">
             {group.familyTitle}
             <span className="ml-2 font-normal text-muted-foreground">
               {group.items.length} {group.items.length === 1 ? "måned" : "måneder"}
@@ -100,10 +100,10 @@ function GroupSection({
                     onClick={() => onOpen(item)}
                     type="button"
                   >
-                    <span className="text-[12px] font-semibold">{periodShort(item.period)}</span>
+                    <span className="text-[13px] font-semibold">{periodShort(item.period)}</span>
                     <span className="flex items-center gap-2">
                       {item.kr != null ? (
-                        <span className="num text-[12px] font-semibold">{kr(item.kr)} kr</span>
+                        <span className="num text-[13px] font-semibold">{kr(item.kr)} kr</span>
                       ) : null}
                       <ArrowRight className="size-3.5 text-accent" aria-hidden="true" />
                     </span>
@@ -134,7 +134,7 @@ export function ReviewQueue({
       <section className="paper rounded-xl p-6">
         <p className="label-caps text-accent">Gennemgang</p>
         <h1 className="mt-1 text-xl font-semibold text-foreground">Ingen punkter til gennemgang</h1>
-        <p className="mt-2 text-[12px] text-muted-foreground">
+        <p className="mt-2 text-[13px] text-muted-foreground">
           Case-sheetet indeholder ingen dokumenterede fund eller mulige krav.
         </p>
       </section>
@@ -152,7 +152,7 @@ export function ReviewQueue({
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">
             {doneCount} af {queue.length} punkter gennemgået
           </h1>
-          <p className="mt-1 text-[11px] text-muted-foreground">
+          <p className="mt-1 text-[12px] text-muted-foreground">
             Markeringerne er kun lokal arbejdstilstand — de gemmes ikke i sagssystemet.
           </p>
         </div>

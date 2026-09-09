@@ -13,7 +13,7 @@ export function StatusPill({ terminal, long = false }: { terminal: Terminal; lon
   const meta = TERMINALS[terminal];
   return (
     <span
-      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold tracking-wide ${toneClass[terminal]}`}
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[12px] font-semibold tracking-wide ${toneClass[terminal]}`}
     >
       <span className="size-1.5 rounded-full bg-current" />
       {long ? meta.label : meta.short}
@@ -23,7 +23,7 @@ export function StatusPill({ terminal, long = false }: { terminal: Terminal; lon
 
 export function ClassChip({ code, label }: { code: string; label: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-sm border border-border bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+    <span className="inline-flex items-center gap-1.5 rounded-sm border border-border bg-muted px-2 py-0.5 text-[12px] text-muted-foreground">
       <span className="num font-semibold text-foreground">{code}</span>
       {label}
     </span>

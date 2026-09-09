@@ -115,11 +115,11 @@ function DocumentPicker({
             <Label className="text-[14px] font-semibold" htmlFor={id}>
               {label}
             </Label>
-            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               {optional ? "Valgfri" : "Påkrævet"}
             </span>
           </div>
-          <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">{description}</p>
+          <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{description}</p>
         </div>
       </div>
 
@@ -136,7 +136,7 @@ function DocumentPicker({
         onDrop={handleDrop}
       >
         <UploadCloud className="mx-auto size-6 text-muted-foreground" aria-hidden="true" />
-        <p className="mt-2 text-[12px] text-muted-foreground">
+        <p className="mt-2 text-[13px] text-muted-foreground">
           Træk {acceptMultiple ? "PDF-filer" : "en PDF-fil"} hertil
         </p>
         <Button
@@ -169,10 +169,10 @@ function DocumentPicker({
               key={fileKey(file)}
             >
               <FileText className="size-4 shrink-0 text-accent" aria-hidden="true" />
-              <span className="min-w-0 flex-1 truncate text-[12px] text-foreground">
+              <span className="min-w-0 flex-1 truncate text-[13px] text-foreground">
                 {file.name}
               </span>
-              <span className="num text-[10px] text-muted-foreground">
+              <span className="num text-[11px] text-muted-foreground">
                 {formatSize(file.size)} MB
               </span>
               <Button
@@ -240,11 +240,11 @@ function MemberContextPicker({
             <Label className="text-[14px] font-semibold" htmlFor="member-context">
               Member context
             </Label>
-            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Alternativ
             </span>
           </div>
-          <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
+          <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
             Upload den kontrakt-afledte JSON-fil, når kontrakten allerede er blevet behandlet.
           </p>
         </div>
@@ -263,7 +263,7 @@ function MemberContextPicker({
         onDrop={handleDrop}
       >
         <UploadCloud className="mx-auto size-6 text-muted-foreground" aria-hidden="true" />
-        <p className="mt-2 text-[12px] text-muted-foreground">Træk en JSON-fil hertil</p>
+        <p className="mt-2 text-[13px] text-muted-foreground">Træk en JSON-fil hertil</p>
         <Button
           className="mt-3"
           disabled={busy}
@@ -288,10 +288,10 @@ function MemberContextPicker({
       {context ? (
         <div className="mt-3 flex items-center gap-2 rounded-md bg-muted/45 px-3 py-2">
           <FileJson2 className="size-4 shrink-0 text-accent" aria-hidden="true" />
-          <span className="min-w-0 flex-1 truncate text-[12px] text-foreground">
+          <span className="min-w-0 flex-1 truncate text-[13px] text-foreground">
             {context.file.name}
           </span>
-          <span className="num text-[10px] text-muted-foreground">
+          <span className="num text-[11px] text-muted-foreground">
             {String(context.payload["member_ref"])}
           </span>
           <Button
@@ -395,7 +395,7 @@ export function UploadCase({
           <span className="text-sm font-bold tracking-tight text-accent">PAYTJEK</span>
           <span className="text-sm font-semibold text-foreground">Ny lønseddelkontrol</span>
           {isDemoApi() ? (
-            <span className="ml-auto rounded-full border border-forbehold/40 bg-forbehold-soft px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-forbehold">
+            <span className="ml-auto rounded-full border border-forbehold/40 bg-forbehold-soft px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-forbehold">
               Testmiljø
             </span>
           ) : null}
@@ -445,7 +445,7 @@ export function UploadCase({
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <Label htmlFor="birth-date">Fødselsdato</Label>
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                     Valgfri
                   </span>
                 </div>
@@ -457,7 +457,7 @@ export function UploadCase({
                   type="date"
                   value={birthDate}
                 />
-                <p className="text-[11px] leading-relaxed text-muted-foreground">
+                <p className="text-[12px] leading-relaxed text-muted-foreground">
                   Registreres direkte på sagen som en fuld dato.
                 </p>
               </div>
@@ -476,7 +476,7 @@ export function UploadCase({
 
             <div>
               <p className="label-caps">Ansættelsesgrundlag</p>
-              <p className="mt-1 text-[12px] text-muted-foreground">
+              <p className="mt-1 text-[13px] text-muted-foreground">
                 Vælg kontrakt-PDF eller en allerede dannet member-context-fil.
               </p>
             </div>
@@ -501,7 +501,7 @@ export function UploadCase({
               />
             </div>
 
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-[12px] text-muted-foreground">
               PDF · højst 30 dokumenter samlet · 15 MB pr. dokument · member context højst 1 MB
             </p>
 
@@ -523,7 +523,7 @@ export function UploadCase({
             <h2 className="mt-3 text-[15px] font-semibold text-foreground">
               Du kan følge datagrundlaget
             </h2>
-            <ol className="mt-4 space-y-4 text-[13px] text-muted-foreground">
+            <ol className="mt-4 space-y-4 text-[14px] text-muted-foreground">
               <li>
                 <strong className="text-foreground">1.</strong> Dokumenterne uploades til din sag
               </li>
@@ -537,7 +537,7 @@ export function UploadCase({
               </li>
             </ol>
           </div>
-          <p className="px-1 text-[11px] leading-relaxed text-muted-foreground">
+          <p className="px-1 text-[12px] leading-relaxed text-muted-foreground">
             Der indlæses ingen eksempelrapport. Resultatet åbner først, når middleware har dannet en
             rapport til denne sag.
           </p>

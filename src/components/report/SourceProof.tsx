@@ -85,7 +85,7 @@ export function SourceProof({
           </h1>
         </div>
         <span
-          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold ${
+          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
             source.verified ? "bg-ok-soft text-ok" : "bg-forbehold-soft text-forbehold"
           }`}
         >
@@ -100,7 +100,7 @@ export function SourceProof({
 
       <div className="grid lg:grid-cols-2">
         <section className="px-5 py-4" aria-labelledby="basis-title">
-          <h2 className="text-[13px] font-semibold text-foreground" id="basis-title">
+          <h2 className="text-[14px] font-semibold text-foreground" id="basis-title">
             Sagens grundlag
           </h2>
           <dl className="mt-3 divide-y divide-border border-y border-border">
@@ -116,16 +116,16 @@ export function SourceProof({
                   className="grid grid-cols-[130px_minmax(0,1fr)] gap-4 py-3"
                   key={String(label)}
                 >
-                  <dt className="text-[10px] font-semibold text-muted-foreground">
+                  <dt className="text-[11px] font-semibold text-muted-foreground">
                     {String(label)}
                   </dt>
                   <dd>
-                    <p className="text-[11px] font-semibold text-foreground">{String(value)}</p>
+                    <p className="text-[12px] font-semibold text-foreground">{String(value)}</p>
                     {typeof itemSource === "string" ? (
-                      <p className="mt-0.5 text-[10px] text-muted-foreground">{itemSource}</p>
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">{itemSource}</p>
                     ) : null}
                     {limited ? (
-                      <p className="mt-1 text-[9px] font-semibold text-forbehold">
+                      <p className="mt-1 text-[10px] font-semibold text-forbehold">
                         Begrænset proveniens
                       </p>
                     ) : null}
@@ -135,7 +135,7 @@ export function SourceProof({
             })}
           </dl>
           {!contract && !hasContext ? (
-            <p className="mt-3 flex gap-2 text-[10px] leading-relaxed text-muted-foreground">
+            <p className="mt-3 flex gap-2 text-[11px] leading-relaxed text-muted-foreground">
               <TriangleAlert
                 className="mt-0.5 size-3.5 shrink-0 text-forbehold"
                 aria-hidden="true"
@@ -149,7 +149,7 @@ export function SourceProof({
           className="border-t border-border px-5 py-4 lg:border-l lg:border-t-0"
           aria-labelledby="sources-title"
         >
-          <h2 className="text-[13px] font-semibold text-foreground" id="sources-title">
+          <h2 className="text-[14px] font-semibold text-foreground" id="sources-title">
             Kilder og dokumenter
           </h2>
           <div className="mt-3 divide-y divide-border border-y border-border">
@@ -157,9 +157,9 @@ export function SourceProof({
               <div className="flex items-start gap-3 py-3" key={item.id}>
                 <Scale className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden="true" />
                 <div className="min-w-0">
-                  <p className="text-[11px] font-semibold text-foreground">{item.label}</p>
+                  <p className="text-[12px] font-semibold text-foreground">{item.label}</p>
                   <p
-                    className="mt-0.5 truncate text-[10px] text-muted-foreground"
+                    className="mt-0.5 truncate text-[11px] text-muted-foreground"
                     title={item.source}
                   >
                     {item.source}
@@ -171,10 +171,10 @@ export function SourceProof({
               <div className="flex items-start gap-3 py-3">
                 <FileJson2 className="mt-0.5 size-4 shrink-0 text-ok" aria-hidden="true" />
                 <div className="min-w-0">
-                  <p className="truncate text-[11px] font-semibold text-foreground">
+                  <p className="truncate text-[12px] font-semibold text-foreground">
                     {contextFilename ?? "Sagsoplysninger"}
                   </p>
-                  <p className="mt-0.5 text-[10px] text-muted-foreground">
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">
                     {contextEntries} felter
                     {contextRevision == null ? "" : ` · revision ${contextRevision}`}
                   </p>
@@ -185,10 +185,10 @@ export function SourceProof({
               <div className="flex items-start gap-3 py-3" key={document.document_id}>
                 <FileText className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden="true" />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[11px] font-semibold text-foreground">
+                  <p className="truncate text-[12px] font-semibold text-foreground">
                     {document.filename}
                   </p>
-                  <p className="mt-0.5 text-[10px] text-muted-foreground">
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">
                     {kindLabel(document.kind)} · {document.sha256.slice(0, 10)}…
                   </p>
                 </div>
@@ -197,7 +197,7 @@ export function SourceProof({
           </div>
 
           {remainingDocuments.length > 0 ? (
-            <details className="mt-3 text-[10px] text-muted-foreground">
+            <details className="mt-3 text-[11px] text-muted-foreground">
               <summary className="cursor-pointer font-semibold text-accent">
                 Vis yderligere {remainingDocuments.length} dokumenter
               </summary>
@@ -217,7 +217,7 @@ export function SourceProof({
         </section>
       </div>
 
-      <footer className="grid gap-2 border-t border-border bg-muted/20 px-5 py-3 text-[9px] text-muted-foreground sm:grid-cols-2 lg:grid-cols-4">
+      <footer className="grid gap-2 border-t border-border bg-muted/20 px-5 py-3 text-[10px] text-muted-foreground sm:grid-cols-2 lg:grid-cols-4">
         <span className="num truncate" title={caseId}>
           Sag {caseId}
         </span>

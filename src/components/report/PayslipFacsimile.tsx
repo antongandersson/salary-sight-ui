@@ -40,16 +40,16 @@ export function PayslipFacsimile({
           <h2 className="mt-1 text-[15px] font-semibold text-foreground" id="payslip-title">
             Lønseddel · {periodLabel(report.slip.period)}
           </h2>
-          <p className="mt-1 text-[11px] text-muted-foreground">
+          <p className="mt-1 text-[12px] text-muted-foreground">
             Direkte fra rule-engine/API-outputtet
           </p>
-          <p className="num mt-0.5 text-[10px] text-muted-foreground">
+          <p className="num mt-0.5 text-[11px] text-muted-foreground">
             {selectedLine
               ? `Kontrol ${String(selectedPosition ?? "—").padStart(3, "0")} peger på linje ${selectedLine.index}`
               : report.slip.slip_key}
           </p>
         </div>
-        <span className="flex items-center gap-2 rounded-full bg-muted px-2.5 py-1 text-[10px] text-muted-foreground">
+        <span className="flex items-center gap-2 rounded-full bg-muted px-2.5 py-1 text-[11px] text-muted-foreground">
           <FileText className="size-3.5 text-accent" aria-hidden="true" />
           {report.lines.length} linjer
         </span>
@@ -61,9 +61,9 @@ export function PayslipFacsimile({
         }`}
       >
         <div className="mx-auto min-w-[680px] max-w-[820px] overflow-hidden rounded-sm bg-card shadow-[0_10px_30px_rgba(30,35,40,.12)]">
-          <table className="w-full min-w-[680px] text-[13px]">
+          <table className="w-full min-w-[680px] text-[14px]">
             <thead>
-              <tr className="border-b border-border bg-muted/40 text-[11px] uppercase tracking-wide text-muted-foreground">
+              <tr className="border-b border-border bg-muted/40 text-[12px] uppercase tracking-wide text-muted-foreground">
                 <th className="w-16 py-2 pl-6 text-left font-semibold">Linje</th>
                 <th className="py-2 text-left font-semibold">Beskrivelse</th>
                 <th className="w-28 py-2 text-right font-semibold">Antal</th>
@@ -88,7 +88,7 @@ export function PayslipFacsimile({
                     }`}
                     key={line.index}
                   >
-                    <td className="num py-2 pl-6 text-[11px] text-muted-foreground">
+                    <td className="num py-2 pl-6 text-[12px] text-muted-foreground">
                       {line.index}
                     </td>
                     <td className="py-2 pr-3 text-foreground">
@@ -117,7 +117,7 @@ export function PayslipFacsimile({
                       <div className="flex flex-wrap justify-end gap-1">
                         {checks.map((check) => (
                           <button
-                            className="inline-flex items-center gap-1 rounded-sm border border-border bg-card px-1.5 py-0.5 text-[11px] text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+                            className="inline-flex items-center gap-1 rounded-sm border border-border bg-card px-1.5 py-0.5 text-[12px] text-muted-foreground hover:border-foreground/40 hover:text-foreground"
                             key={check.check_id}
                             onClick={() => onSelect(check.check_id)}
                             title={`${check.check_class} · ${check.title}`}
@@ -137,7 +137,7 @@ export function PayslipFacsimile({
         </div>
       </div>
 
-      <p className="border-t border-border bg-muted/30 px-5 py-3 text-[11px] leading-relaxed text-muted-foreground">
+      <p className="border-t border-border bg-muted/30 px-5 py-3 text-[12px] leading-relaxed text-muted-foreground">
         Lønlinjerne kommer direkte fra rule-engine/API-outputtet. Klik på en linje eller
         kontrolmarkør for at åbne den tilhørende autoritative kontrol.
       </p>

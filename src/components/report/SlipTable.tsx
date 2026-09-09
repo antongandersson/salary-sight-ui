@@ -35,7 +35,7 @@ export function SlipTable({
             <div className="border-b border-border bg-muted/60 px-4 py-2">
               <span className="label-caps">{laneLabels[lane] ?? lane}</span>
             </div>
-            <table className="w-full text-[13px]">
+            <table className="w-full text-[14px]">
               <tbody>
                 {lines.map((line) => {
                   const checks = line.checks.map((id) => byId.get(id)).filter(Boolean);
@@ -47,13 +47,13 @@ export function SlipTable({
                       key={line.index}
                       className="border-b border-border/60 last:border-0 hover:bg-muted/40"
                     >
-                      <td className="num w-10 py-2 pl-4 align-top text-[11px] text-muted-foreground">
+                      <td className="num w-10 py-2 pl-4 align-top text-[12px] text-muted-foreground">
                         {line.index}
                       </td>
                       <td className="py-2 pr-3 align-top">
                         <span className="text-foreground">{line.description ?? "—"}</span>
                         {line.quantity && line.rate ? (
-                          <span className="num ml-2 text-[12px] text-muted-foreground">
+                          <span className="num ml-2 text-[13px] text-muted-foreground">
                             {kr(line.quantity)} × {kr(line.rate)}
                           </span>
                         ) : null}
@@ -69,14 +69,14 @@ export function SlipTable({
                               type="button"
                               onClick={() => onSelect(c!.check_id)}
                               title={`${c!.check_class} · ${c!.title}`}
-                              className="inline-flex items-center gap-1 rounded-sm border border-border px-1.5 py-0.5 text-[11px] text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+                              className="inline-flex items-center gap-1 rounded-sm border border-border px-1.5 py-0.5 text-[12px] text-muted-foreground hover:border-foreground/40 hover:text-foreground"
                             >
                               <span className={`size-1.5 rounded-full ${dotClass[c!.terminal]}`} />
                               <span className="num">{c!.check_class}</span>
                             </button>
                           ))}
                           {!checks.length && worst === undefined ? (
-                            <span className="text-[11px] text-muted-foreground">ingen kontrol</span>
+                            <span className="text-[12px] text-muted-foreground">ingen kontrol</span>
                           ) : null}
                         </div>
                       </td>

@@ -557,19 +557,19 @@ function CaseScreen({
             <span className="text-sm font-bold tracking-tight text-accent">PAYTJEK</span>
             <span className="text-sm font-semibold text-foreground">Lønseddelkontrol</span>
           </div>
-          <div className="num flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-muted-foreground">
+          <div className="num flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-muted-foreground">
             <span>{caseLabel}</span>
             <span>Periode {periodLabel(report.slip.period)}</span>
           </div>
           <div className="ml-auto flex flex-wrap items-center gap-2">
             {isDemoApi() ? (
-              <span className="rounded-full border border-forbehold/40 bg-forbehold-soft px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-forbehold">
+              <span className="rounded-full border border-forbehold/40 bg-forbehold-soft px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-forbehold">
                 Testmiljø
               </span>
             ) : null}
             {reportEntries.find((entry) => reportKey(entry) === selectedReportKey)?.stale ? (
               <span
-                className="rounded-full border border-forbehold/40 bg-forbehold-soft px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-forbehold"
+                className="rounded-full border border-forbehold/40 bg-forbehold-soft px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-forbehold"
                 title="Rapportindekset markerer denne rapport som forældet — middleware har en nyere generation undervejs."
               >
                 Forældet generation
@@ -578,7 +578,7 @@ function CaseScreen({
             {reportEntries.length > 1 ? (
               <select
                 aria-label="Vælg lønperiode"
-                className="h-8 rounded-md border border-input bg-card px-2 text-[12px]"
+                className="h-8 rounded-md border border-input bg-card px-2 text-[13px]"
                 disabled={loading}
                 onChange={(event) => void openReport(event.target.value)}
                 value={selectedReportKey}
@@ -603,7 +603,7 @@ function CaseScreen({
       <main className="mx-auto max-w-[1400px] px-6 py-6">
         {error ? (
           <p
-            className="mb-4 rounded-md border border-mismatch/40 bg-mismatch-soft p-3 text-[13px] text-mismatch"
+            className="mb-4 rounded-md border border-mismatch/40 bg-mismatch-soft p-3 text-[14px] text-mismatch"
             role="alert"
           >
             {error}
@@ -622,7 +622,7 @@ function CaseScreen({
           ).map((nextTab) => (
             <button
               aria-pressed={tab === nextTab}
-              className={`rounded-md px-3 py-1.5 text-[13px] font-semibold transition-colors ${
+              className={`rounded-md px-3 py-1.5 text-[14px] font-semibold transition-colors ${
                 tab === nextTab
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"

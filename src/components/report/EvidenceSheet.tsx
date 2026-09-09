@@ -59,7 +59,7 @@ export function EvidenceSheet({
         <DialogHeader className="sticky top-0 z-10 border-b border-border bg-background/95 px-6 py-5 pr-14 text-left backdrop-blur">
           <div className="flex flex-wrap items-center gap-2">
             <StatusPill long terminal={check.terminal} />
-            <span className="num text-[10px] text-muted-foreground">
+            <span className="num text-[11px] text-muted-foreground">
               {check.line_index == null ? "Rapportniveau" : `Lønlinje ${check.line_index}`}
             </span>
           </div>
@@ -70,7 +70,7 @@ export function EvidenceSheet({
           {amount != null ? (
             <div className="mt-3 flex items-end gap-2">
               <span className="num text-2xl font-semibold text-mismatch">{kr(amount)} kr</span>
-              <span className="pb-0.5 text-[11px] text-muted-foreground">
+              <span className="pb-0.5 text-[12px] text-muted-foreground">
                 {check.kroner?.summed === false ? "indgår ikke i opgørelsen" : "fra rapporten"}
               </span>
             </div>
@@ -79,7 +79,7 @@ export function EvidenceSheet({
 
         {queueNav ? (
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-muted/25 px-6 py-2.5">
-            <span className="text-[11px] font-semibold text-muted-foreground">
+            <span className="text-[12px] font-semibold text-muted-foreground">
               Gennemgang {queueNav.index + 1} af {queueNav.total}
               {queueNav.reviewed ? " · gennemgået" : ""}
             </span>
@@ -116,7 +116,7 @@ export function EvidenceSheet({
               <h2 className="label-caps" id="evidence-explanation">
                 Forklaring fra rapporten
               </h2>
-              <p className="mt-2 whitespace-pre-line text-[13px] leading-relaxed text-foreground">
+              <p className="mt-2 whitespace-pre-line text-[14px] leading-relaxed text-foreground">
                 {check.note}
               </p>
             </section>
@@ -125,12 +125,12 @@ export function EvidenceSheet({
           {check.computation?.arithmetic ? (
             <section aria-labelledby="evidence-arithmetic">
               <h2
-                className="flex items-center gap-2 text-[12px] font-semibold text-foreground"
+                className="flex items-center gap-2 text-[13px] font-semibold text-foreground"
                 id="evidence-arithmetic"
               >
                 <Calculator className="size-4 text-accent" aria-hidden="true" /> Regnestykket
               </h2>
-              <pre className="num mt-2 whitespace-pre-wrap rounded-md border border-border bg-muted/45 p-4 text-[12px] leading-relaxed text-foreground">
+              <pre className="num mt-2 whitespace-pre-wrap rounded-md border border-border bg-muted/45 p-4 text-[13px] leading-relaxed text-foreground">
                 {check.computation.arithmetic}
               </pre>
             </section>
@@ -139,15 +139,15 @@ export function EvidenceSheet({
           {check.computation?.inputs?.length ? (
             <section aria-labelledby="evidence-inputs">
               <h2
-                className="flex items-center gap-2 text-[12px] font-semibold text-foreground"
+                className="flex items-center gap-2 text-[13px] font-semibold text-foreground"
                 id="evidence-inputs"
               >
                 <Database className="size-4 text-accent" aria-hidden="true" /> Hvert tal og dets
                 kilde
               </h2>
               <div className="mt-2 overflow-x-auto rounded-md border border-border">
-                <table className="w-full min-w-[520px] text-[12px]">
-                  <thead className="bg-muted/45 text-[10px] uppercase tracking-wide text-muted-foreground">
+                <table className="w-full min-w-[520px] text-[13px]">
+                  <thead className="bg-muted/45 text-[11px] uppercase tracking-wide text-muted-foreground">
                     <tr>
                       <th className="px-3 py-2 text-left">Tal</th>
                       <th className="px-3 py-2 text-right">Værdi</th>
@@ -173,7 +173,7 @@ export function EvidenceSheet({
           {check.quotes?.length ? (
             <section aria-labelledby="evidence-quotes">
               <h2
-                className="flex items-center gap-2 text-[12px] font-semibold text-foreground"
+                className="flex items-center gap-2 text-[13px] font-semibold text-foreground"
                 id="evidence-quotes"
               >
                 <Quote className="size-4 text-accent" aria-hidden="true" /> Citater
@@ -181,7 +181,7 @@ export function EvidenceSheet({
               <div className="mt-2 space-y-2">
                 {check.quotes.map((quote, index) => (
                   <blockquote
-                    className="border-l-2 border-accent bg-surface px-4 py-3 text-[13px] italic leading-relaxed text-foreground"
+                    className="border-l-2 border-accent bg-surface px-4 py-3 text-[14px] italic leading-relaxed text-foreground"
                     key={index}
                   >
                     “{quote}”
@@ -199,7 +199,7 @@ export function EvidenceSheet({
               <h2 className="label-caps" id="evidence-boundary">
                 Opgørelseskonvention
               </h2>
-              <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">
+              <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
                 {check.kroner.convention}
               </p>
             </section>
@@ -211,16 +211,16 @@ export function EvidenceSheet({
               aria-labelledby="evidence-missing"
             >
               <h2
-                className="flex items-center gap-2 text-[12px] font-semibold text-needs"
+                className="flex items-center gap-2 text-[13px] font-semibold text-needs"
                 id="evidence-missing"
               >
                 <FileQuestion className="size-4" aria-hidden="true" /> Det der mangler
               </h2>
-              <p className="mt-2 text-[13px] font-semibold text-foreground">
+              <p className="mt-2 text-[14px] font-semibold text-foreground">
                 {check.missing.artifact}
               </p>
               {check.missing.unlocks ? (
-                <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
+                <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
                   Afgør: {check.missing.unlocks}
                 </p>
               ) : null}
@@ -235,7 +235,7 @@ export function EvidenceSheet({
                   Se spørgsmål til medlem <ArrowRight className="size-3.5" aria-hidden="true" />
                 </Button>
               ) : (
-                <p className="mt-3 text-[11px] italic text-muted-foreground">
+                <p className="mt-3 text-[12px] italic text-muted-foreground">
                   Rapporten placerer ikke denne oplysning hos medlemmet.
                 </p>
               )}
@@ -250,7 +250,7 @@ export function EvidenceSheet({
               <ul className="mt-2 space-y-1.5">
                 {check.computation.sources.map((source, index) => (
                   <li
-                    className="flex gap-2 text-[12px] leading-relaxed text-muted-foreground"
+                    className="flex gap-2 text-[13px] leading-relaxed text-muted-foreground"
                     key={`${source}:${index}`}
                   >
                     <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-ok" aria-hidden="true" />{" "}
@@ -261,7 +261,7 @@ export function EvidenceSheet({
             </section>
           ) : null}
 
-          <footer className="flex flex-wrap justify-between gap-2 border-t border-border pt-4 text-[10px] text-muted-foreground">
+          <footer className="flex flex-wrap justify-between gap-2 border-t border-border pt-4 text-[11px] text-muted-foreground">
             <span>Regelmotor · ingen ny beregning i frontend</span>
             <span className="num">
               {check.check_id} · {report.slip.slip_key}

@@ -10,7 +10,7 @@ function Evidence({ check }: { check: Check }) {
       {comp?.arithmetic ? (
         <div>
           <p className="label-caps">Regnestykke</p>
-          <p className="num mt-1.5 whitespace-pre-line text-[13px] leading-relaxed text-foreground">
+          <p className="num mt-1.5 whitespace-pre-line text-[14px] leading-relaxed text-foreground">
             {comp.arithmetic}
           </p>
         </div>
@@ -19,7 +19,7 @@ function Evidence({ check }: { check: Check }) {
       {comp?.inputs?.length ? (
         <div>
           <p className="label-caps">Indgående tal</p>
-          <table className="mt-1.5 w-full text-[13px]">
+          <table className="mt-1.5 w-full text-[14px]">
             <tbody>
               {comp.inputs.map((input, i) => (
                 <tr key={i} className="border-b border-border/60 last:border-0">
@@ -40,16 +40,16 @@ function Evidence({ check }: { check: Check }) {
           <p className="label-caps">Afledte poster — vises ved siden af, indgår ikke i beløbet</p>
           <ul className="mt-1.5 space-y-2">
             {money.derived.map((d, i) => (
-              <li key={i} className="rounded-md bg-muted/60 p-2.5 text-[13px]">
+              <li key={i} className="rounded-md bg-muted/60 p-2.5 text-[14px]">
                 <div className="flex items-baseline justify-between gap-3">
                   <span className="font-medium">{d.label}</span>
                   <span className="num shrink-0">{kr(d.kr)} kr</span>
                 </div>
                 {d.arithmetic ? (
-                  <p className="num mt-1 text-[12px] text-muted-foreground">{d.arithmetic}</p>
+                  <p className="num mt-1 text-[13px] text-muted-foreground">{d.arithmetic}</p>
                 ) : null}
                 {d.proof ? (
-                  <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
+                  <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
                     {d.proof}
                   </p>
                 ) : null}
@@ -62,7 +62,7 @@ function Evidence({ check }: { check: Check }) {
       {money?.convention ? (
         <div>
           <p className="label-caps">Opgørelseskonvention</p>
-          <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+          <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">
             {money.convention}
           </p>
         </div>
@@ -71,9 +71,9 @@ function Evidence({ check }: { check: Check }) {
       {check.missing ? (
         <div className="rounded-md border border-needs/30 bg-needs-soft p-3">
           <p className="label-caps text-needs">Mangler for at kunne afgøres</p>
-          <p className="mt-1 text-[13px] text-foreground">{check.missing.artifact}</p>
+          <p className="mt-1 text-[14px] text-foreground">{check.missing.artifact}</p>
           {check.missing.unlocks ? (
-            <p className="mt-1 text-[12px] text-muted-foreground">Åbner: {check.missing.unlocks}</p>
+            <p className="mt-1 text-[13px] text-muted-foreground">Åbner: {check.missing.unlocks}</p>
           ) : null}
         </div>
       ) : null}
@@ -85,7 +85,7 @@ function Evidence({ check }: { check: Check }) {
             {check.quotes.map((q, i) => (
               <li
                 key={i}
-                className="border-l-2 border-accent/60 pl-2.5 text-[13px] italic text-foreground"
+                className="border-l-2 border-accent/60 pl-2.5 text-[14px] italic text-foreground"
               >
                 «{q}»
               </li>
@@ -101,7 +101,7 @@ function Evidence({ check }: { check: Check }) {
             {comp.sources.map((s, i) => (
               <li
                 key={i}
-                className="rounded-sm border border-border bg-surface px-2 py-0.5 text-[12px] text-muted-foreground"
+                className="rounded-sm border border-border bg-surface px-2 py-0.5 text-[13px] text-muted-foreground"
               >
                 {s}
               </li>
@@ -110,7 +110,7 @@ function Evidence({ check }: { check: Check }) {
         </div>
       ) : null}
 
-      <p className="num text-[11px] text-muted-foreground">
+      <p className="num text-[12px] text-muted-foreground">
         {check.check_id} · pligt {check.duty ?? "—"} ·{" "}
         {check.authored ? "formuleret kontrol" : "maskinregel"}
       </p>
@@ -150,7 +150,7 @@ export function CheckCard({
               />
             )}
             {check.line_index !== null && check.line_index !== undefined && (
-              <span className="num text-[11px] text-muted-foreground">
+              <span className="num text-[12px] text-muted-foreground">
                 linje {check.line_index}
               </span>
             )}
@@ -169,7 +169,7 @@ export function CheckCard({
 
       {check.note ? (
         <p
-          className={`mt-2 text-[13px] leading-relaxed text-muted-foreground ${
+          className={`mt-2 text-[14px] leading-relaxed text-muted-foreground ${
             expanded ? "" : "line-clamp-2"
           }`}
         >
@@ -183,7 +183,7 @@ export function CheckCard({
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="mt-3 text-[12px] font-semibold text-accent underline-offset-4 hover:underline"
+          className="mt-3 text-[13px] font-semibold text-accent underline-offset-4 hover:underline"
         >
           {open ? "Skjul dokumentation" : "Vis fuld dokumentation"}
         </button>

@@ -46,7 +46,7 @@ function FamilyList({
   return (
     <section className="paper overflow-hidden rounded-xl" aria-labelledby={id}>
       <div className="border-b border-border px-4 py-3">
-        <h2 className="text-[13px] font-semibold text-foreground" id={id}>
+        <h2 className="text-[14px] font-semibold text-foreground" id={id}>
           {title}
         </h2>
       </div>
@@ -61,20 +61,20 @@ function FamilyList({
             const row = (
               <>
                 <span
-                  className={`flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${badge}`}
+                  className={`flex size-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${badge}`}
                 >
                   {index + 1}
                 </span>
                 <span className="min-w-0 flex-1">
                   <strong
-                    className="block truncate text-[11px] font-semibold text-foreground"
+                    className="block truncate text-[12px] font-semibold text-foreground"
                     title={item.title}
                   >
                     {item.title}
                   </strong>
-                  <span className="mt-0.5 block text-[10px] text-muted-foreground">{range}</span>
+                  <span className="mt-0.5 block text-[11px] text-muted-foreground">{range}</span>
                 </span>
-                <span className={`num whitespace-nowrap text-[12px] font-semibold ${amountColor}`}>
+                <span className={`num whitespace-nowrap text-[13px] font-semibold ${amountColor}`}>
                   {amount(item.totalKr)}
                 </span>
                 {firstTarget && first ? (
@@ -102,7 +102,7 @@ function FamilyList({
                       const target = targetFor(month);
                       return (
                         <button
-                          className="num rounded border border-border bg-card px-1.5 py-0.5 text-[10px] text-muted-foreground hover:border-accent hover:text-accent disabled:pointer-events-none disabled:opacity-50"
+                          className="num rounded border border-border bg-card px-1.5 py-0.5 text-[11px] text-muted-foreground hover:border-accent hover:text-accent disabled:pointer-events-none disabled:opacity-50"
                           disabled={!target}
                           key={`${month.check_id}@${month.slip_key}`}
                           onClick={() => target && onSelect(target.key, month.check_id)}
@@ -120,7 +120,7 @@ function FamilyList({
           })}
         </ol>
       ) : (
-        <p className="px-4 py-5 text-[12px] text-muted-foreground">{emptyText}</p>
+        <p className="px-4 py-5 text-[13px] text-muted-foreground">{emptyText}</p>
       )}
     </section>
   );
@@ -149,11 +149,11 @@ function SummaryCard({
   return (
     <article className={`rounded-xl border p-4 ${colors}`}>
       <div className="flex items-center justify-between gap-3">
-        <p className="text-[10px] font-bold uppercase tracking-[0.12em]">{eyebrow}</p>
+        <p className="text-[11px] font-bold uppercase tracking-[0.12em]">{eyebrow}</p>
         <span aria-hidden="true">{icon}</span>
       </div>
       <p className="num mt-3 text-2xl font-semibold tracking-tight">{value}</p>
-      <p className="mt-1 text-[10px] opacity-75">{description}</p>
+      <p className="mt-1 text-[11px] opacity-75">{description}</p>
     </article>
   );
 }
@@ -173,14 +173,14 @@ function EmptyCaseSheet({
       <h1 className="mt-1 text-xl font-semibold text-foreground" id="case-sheet-missing-title">
         Samlet overblik er ikke klar endnu
       </h1>
-      <p className="mt-2 text-[12px] text-muted-foreground">
+      <p className="mt-2 text-[13px] text-muted-foreground">
         De enkelte lønsedler kan stadig åbnes. Frontend samler ikke selv sagen.
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
         {reports.map((item) => (
           <button
             aria-pressed={item.key === currentReportKey}
-            className={`rounded-md border px-3 py-2 text-[11px] font-semibold ${
+            className={`rounded-md border px-3 py-2 text-[12px] font-semibold ${
               item.key === currentReportKey
                 ? "border-accent bg-accent/10 text-accent"
                 : "border-border bg-card text-muted-foreground hover:text-foreground"
@@ -233,7 +233,7 @@ export function ReportOverview({
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">
             {caseSheet.slips.count} lønperioder kontrolleret
           </h1>
-          <p className="mt-1 text-[12px] text-muted-foreground">
+          <p className="mt-1 text-[13px] text-muted-foreground">
             {periodLabel(caseSheet.slips.first_period)}–{periodLabel(caseSheet.slips.last_period)}
             {caseSheet.agreements.length > 0 ? ` · ${caseSheet.agreements.join(" + ")}` : ""}
           </p>
@@ -241,14 +241,14 @@ export function ReportOverview({
         <span className="flex flex-wrap items-center gap-2">
           {caseSheetSource?.stale ? (
             <span
-              className="rounded-full border border-forbehold/40 bg-forbehold-soft px-3 py-1.5 text-[10px] font-semibold text-forbehold"
+              className="rounded-full border border-forbehold/40 bg-forbehold-soft px-3 py-1.5 text-[11px] font-semibold text-forbehold"
               title="Middleware markerer case-sheetet som forældet — en nyere generation er undervejs."
             >
               Forældet generation
             </span>
           ) : null}
           {typeof caseSheetSource?.generation === "number" ? (
-            <span className="num rounded-full border border-border bg-card px-3 py-1.5 text-[10px] text-muted-foreground">
+            <span className="num rounded-full border border-border bg-card px-3 py-1.5 text-[11px] text-muted-foreground">
               generation {caseSheetSource.generation}
             </span>
           ) : null}
@@ -279,7 +279,7 @@ export function ReportOverview({
             value={String(caseSheet.control_points.count)}
           />
         </div>
-        <p className="mt-2 px-1 text-[10px] text-muted-foreground">
+        <p className="mt-2 px-1 text-[11px] text-muted-foreground">
           Opgørelserne er separate og kommer direkte fra middleware.
         </p>
       </section>
@@ -318,7 +318,7 @@ export function ReportOverview({
 
         <section className="paper overflow-hidden rounded-xl" aria-labelledby="input-title">
           <div className="border-b border-border px-4 py-3">
-            <h2 className="text-[13px] font-semibold text-foreground" id="input-title">
+            <h2 className="text-[14px] font-semibold text-foreground" id="input-title">
               Næste materiale
             </h2>
           </div>
@@ -329,14 +329,14 @@ export function ReportOverview({
                   className="flex items-start gap-3 border-b border-border px-4 py-3 last:border-0"
                   key={`${input.artifact}:${index}`}
                 >
-                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-needs-soft text-[10px] font-bold text-needs">
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-needs-soft text-[11px] font-bold text-needs">
                     {index + 1}
                   </span>
                   <span className="min-w-0">
-                    <strong className="block text-[11px] font-semibold text-foreground">
+                    <strong className="block text-[12px] font-semibold text-foreground">
                       {input.artifact}
                     </strong>
-                    <span className="mt-0.5 block text-[10px] leading-snug text-muted-foreground">
+                    <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">
                       {input.unlocks}
                     </span>
                   </span>
@@ -344,7 +344,7 @@ export function ReportOverview({
               ))}
             </ol>
           ) : (
-            <p className="px-4 py-5 text-[12px] text-muted-foreground">
+            <p className="px-4 py-5 text-[13px] text-muted-foreground">
               Der efterspørges ikke yderligere materiale.
             </p>
           )}

@@ -49,7 +49,7 @@ export function PeriodRail({
     >
       <div className="border-b border-border px-3 py-3">
         <p className="label-caps">Perioder</p>
-        <p className="mt-1 text-[11px] text-muted-foreground">
+        <p className="mt-1 text-[12px] text-muted-foreground">
           {entries.length} rapport{entries.length === 1 ? "" : "er"}
         </p>
       </div>
@@ -62,7 +62,7 @@ export function PeriodRail({
             <button
               aria-label={`${periodLabel(entry.period)}${entry.is_revision ? ", revision" : ""}`}
               aria-pressed={selected}
-              className={`flex w-full items-center gap-2 border-l-2 px-3 py-2 text-left text-[11px] transition-colors ${
+              className={`flex w-full items-center gap-2 border-l-2 px-3 py-2 text-left text-[12px] transition-colors ${
                 selected
                   ? "border-l-accent bg-accent/8 font-semibold text-foreground"
                   : "border-l-transparent text-muted-foreground hover:bg-muted/45 hover:text-foreground"
@@ -75,17 +75,17 @@ export function PeriodRail({
               <span className={`size-2 shrink-0 rounded-full ${periodTone(caseSheet, entry)}`} />
               <span className="num min-w-0 flex-1">{shortPeriod(entry.period)}</span>
               {entry.is_revision ? (
-                <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-accent">
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-accent">
                   <FileClock className="size-3" aria-hidden="true" /> rev.
                 </span>
               ) : isSuperseded ? (
-                <span className="text-[9px]">erstattet</span>
+                <span className="text-[10px]">erstattet</span>
               ) : null}
             </button>
           );
         })}
       </div>
-      <div className="space-y-1 border-t border-border bg-muted/25 px-3 py-2.5 text-[9px] text-muted-foreground">
+      <div className="space-y-1 border-t border-border bg-muted/25 px-3 py-2.5 text-[10px] text-muted-foreground">
         <p className="flex items-center gap-1.5">
           <span className="size-1.5 rounded-full bg-mismatch" /> Afgjort fund
         </p>

@@ -12,8 +12,8 @@ function Panel({
   return (
     <section className="paper rounded-lg p-4">
       <div className="flex items-baseline justify-between gap-2">
-        <h2 className="text-[13px] font-semibold tracking-tight text-foreground">{title}</h2>
-        {meta ? <span className="num text-[11px] text-muted-foreground">{meta}</span> : null}
+        <h2 className="text-[14px] font-semibold tracking-tight text-foreground">{title}</h2>
+        {meta ? <span className="num text-[12px] text-muted-foreground">{meta}</span> : null}
       </div>
       <div className="mt-3">{children}</div>
     </section>
@@ -32,11 +32,11 @@ function Disclosure({
   return (
     <details className="paper group rounded-lg">
       <summary className="flex cursor-pointer list-none items-baseline justify-between gap-2 px-4 py-3 [&::-webkit-details-marker]:hidden">
-        <span className="text-[13px] font-semibold tracking-tight text-foreground">{title}</span>
+        <span className="text-[14px] font-semibold tracking-tight text-foreground">{title}</span>
         <span className="flex items-center gap-2">
-          {meta ? <span className="num text-[11px] text-muted-foreground">{meta}</span> : null}
-          <span className="text-[11px] font-semibold text-accent group-open:hidden">Vis</span>
-          <span className="hidden text-[11px] font-semibold text-accent group-open:inline">
+          {meta ? <span className="num text-[12px] text-muted-foreground">{meta}</span> : null}
+          <span className="text-[12px] font-semibold text-accent group-open:hidden">Vis</span>
+          <span className="hidden text-[12px] font-semibold text-accent group-open:inline">
             Skjul
           </span>
         </span>
@@ -81,8 +81,8 @@ export function SideRail({ report }: { report: Report }) {
           <ul className="space-y-2.5">
             {report.missing_inputs.map((m, i) => (
               <li key={i} className="border-l-2 border-forbehold/60 pl-2.5">
-                <p className="text-[13px] leading-snug text-foreground">{m.artifact}</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                <p className="text-[14px] leading-snug text-foreground">{m.artifact}</p>
+                <p className="mt-0.5 text-[12px] text-muted-foreground">
                   {m.kind} · åbner: {m.unlocks} · {m.checks_count} kontrol
                   {m.checks_count === 1 ? "" : "ler"}
                 </p>
@@ -94,15 +94,15 @@ export function SideRail({ report }: { report: Report }) {
 
       {questions.length > 0 ? (
         <Disclosure title="Mulige afklaringsspørgsmål" meta={`${questions.length} generelle`}>
-          <p className="mb-3 text-[11px] leading-relaxed text-muted-foreground">
+          <p className="mb-3 text-[12px] leading-relaxed text-muted-foreground">
             Screeningsspørgsmålene er ikke nødvendigvis nødvendige i denne sag og indgår ikke som
             opgaver i arbejdsplanen.
           </p>
           <ul className="space-y-2.5">
             {questions.map((q) => (
               <li key={q.key} className="border-l-2 border-border pl-2.5">
-                <p className="text-[13px] leading-snug text-foreground">{q.question}</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">{q.label}</p>
+                <p className="text-[14px] leading-snug text-foreground">{q.question}</p>
+                <p className="mt-0.5 text-[12px] text-muted-foreground">{q.label}</p>
               </li>
             ))}
           </ul>
@@ -111,17 +111,17 @@ export function SideRail({ report }: { report: Report }) {
 
       {questions.length === 0 && report.missing_inputs.length === 0 ? (
         <section className="rounded-lg border border-ok/25 bg-ok-soft/35 p-4">
-          <h2 className="text-[13px] font-semibold text-foreground">
+          <h2 className="text-[14px] font-semibold text-foreground">
             Ingen åbne dataforespørgsler
           </h2>
-          <p className="mt-1 text-[12px] text-muted-foreground">
+          <p className="mt-1 text-[13px] text-muted-foreground">
             Rapporten efterspørger ikke flere oplysninger eller bilag.
           </p>
         </section>
       ) : null}
 
       <Disclosure title="Sagens grundlag" meta="kontrakt + oplyst">
-        <dl className="space-y-1.5 text-[13px]">
+        <dl className="space-y-1.5 text-[14px]">
           {facts.map(([k, v]) => (
             <div key={k} className="flex items-baseline justify-between gap-3">
               <dt className="text-muted-foreground">{k}</dt>
@@ -130,7 +130,7 @@ export function SideRail({ report }: { report: Report }) {
           ))}
         </dl>
         {trin ? (
-          <p className="mt-3 rounded-md bg-muted/70 p-2.5 text-[12px] leading-relaxed text-muted-foreground">
+          <p className="mt-3 rounded-md bg-muted/70 p-2.5 text-[13px] leading-relaxed text-muted-foreground">
             Trinindplacering: trin {String(trin["step"])} på stigen «{String(trin["ladder"])}»,
             dokumenteret af sedlen for {String(trin["documented_by_period"])} med trykt sats{" "}
             {kr(Number(trin["column_value"]))} kr/t. Ikke gættet.
@@ -139,7 +139,7 @@ export function SideRail({ report }: { report: Report }) {
       </Disclosure>
 
       <Disclosure title="Sessionen" meta={String(session["session_id"] ?? "—")}>
-        <dl className="space-y-1.5 text-[13px]">
+        <dl className="space-y-1.5 text-[14px]">
           <div className="flex justify-between gap-3">
             <dt className="text-muted-foreground">Sedler i sagen</dt>
             <dd className="num font-medium">{String(session["slips_in_session"])}</dd>
@@ -168,7 +168,7 @@ export function SideRail({ report }: { report: Report }) {
         </dl>
       </Disclosure>
 
-      <p className="px-1 text-[11px] leading-relaxed text-muted-foreground">
+      <p className="px-1 text-[12px] leading-relaxed text-muted-foreground">
         {String(report.provenance["renderer"])} · ingen sprogmodel i visningsvejen. Rapporten viser
         kun det, reglerne og sedlen kan bære.
       </p>

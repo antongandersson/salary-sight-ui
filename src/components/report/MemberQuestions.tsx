@@ -26,13 +26,13 @@ function InputRow({
         type="checkbox"
       />
       <span className="min-w-0 flex-1">
-        <strong className="block text-[13px] font-semibold leading-snug text-foreground">
+        <strong className="block text-[14px] font-semibold leading-snug text-foreground">
           {input.artifact}
         </strong>
-        <span className="mt-1 block text-[11px] leading-relaxed text-muted-foreground">
+        <span className="mt-1 block text-[12px] leading-relaxed text-muted-foreground">
           {input.unlocks}
         </span>
-        <span className="mt-2 block text-[10px] font-semibold text-needs">
+        <span className="mt-2 block text-[11px] font-semibold text-needs">
           Påvirker {input.slips_count} {input.slips_count === 1 ? "lønseddel" : "lønsedler"} ·{" "}
           {input.kind}
         </span>
@@ -51,7 +51,7 @@ export function MemberQuestions({ caseSheet }: { caseSheet: CaseSheet | null }) 
 
   if (!caseSheet) {
     return (
-      <p className="paper rounded-xl p-5 text-[13px] text-muted-foreground">
+      <p className="paper rounded-xl p-5 text-[14px] text-muted-foreground">
         Spørgsmål kan først grupperes, når middleware har leveret et case-sheet.
       </p>
     );
@@ -65,11 +65,11 @@ export function MemberQuestions({ caseSheet }: { caseSheet: CaseSheet | null }) 
           <h1 className="mt-1 text-xl font-semibold text-foreground">
             Indhent det, der kan afgøre sagen
           </h1>
-          <p className="mt-1 text-[12px] text-muted-foreground">
+          <p className="mt-1 text-[13px] text-muted-foreground">
             Samme oplysning vises én gang, selv når den påvirker mange perioder.
           </p>
         </div>
-        <span className="rounded-full bg-needs-soft px-3 py-1.5 text-[11px] font-semibold text-needs">
+        <span className="rounded-full bg-needs-soft px-3 py-1.5 text-[12px] font-semibold text-needs">
           {selected.length} valgt
         </span>
       </header>
@@ -78,10 +78,10 @@ export function MemberQuestions({ caseSheet }: { caseSheet: CaseSheet | null }) 
           <div className="flex items-center gap-3 border-b border-border px-4 py-3">
             <UserRound className="size-4 text-needs" aria-hidden="true" />
             <div>
-              <h2 className="text-[13px] font-semibold text-foreground" id="member-input-title">
+              <h2 className="text-[14px] font-semibold text-foreground" id="member-input-title">
                 Kan indhentes fra medlemmet
               </h2>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-[11px] text-muted-foreground">
                 Direkte fra case-sheet · ask_target: member
               </p>
             </div>
@@ -102,11 +102,11 @@ export function MemberQuestions({ caseSheet }: { caseSheet: CaseSheet | null }) 
               />
             ))
           ) : (
-            <p className="px-4 py-5 text-[12px] text-muted-foreground">
+            <p className="px-4 py-5 text-[13px] text-muted-foreground">
               Middleware efterspørger ikke oplysninger fra medlemmet.
             </p>
           )}
-          <p className="border-t border-border bg-muted/25 px-4 py-3 text-[10px] text-muted-foreground">
+          <p className="border-t border-border bg-muted/25 px-4 py-3 text-[11px] text-muted-foreground">
             Udvalget er lokal arbejdsstatus og ændrer ikke rapporten. Afsendelse og svarhistorik
             kræver integration med sagssystemet.
           </p>
@@ -115,10 +115,10 @@ export function MemberQuestions({ caseSheet }: { caseSheet: CaseSheet | null }) 
           <div className="flex items-center gap-3 border-b border-border px-4 py-3">
             <LockKeyhole className="size-4 text-forbehold" aria-hidden="true" />
             <div>
-              <h2 className="text-[13px] font-semibold text-foreground" id="other-input-title">
+              <h2 className="text-[14px] font-semibold text-foreground" id="other-input-title">
                 Kan ikke lukkes af medlemmet
               </h2>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-[11px] text-muted-foreground">
                 Rapporten placerer inputtet et andet sted
               </p>
             </div>
@@ -133,10 +133,10 @@ export function MemberQuestions({ caseSheet }: { caseSheet: CaseSheet | null }) 
                       aria-hidden="true"
                     />
                     <div>
-                      <p className="text-[12px] font-semibold leading-snug text-foreground">
+                      <p className="text-[13px] font-semibold leading-snug text-foreground">
                         {input.artifact}
                       </p>
-                      <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                      <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
                         {input.unlocks}
                       </p>
                     </div>
@@ -145,7 +145,7 @@ export function MemberQuestions({ caseSheet }: { caseSheet: CaseSheet | null }) 
               ))}
             </ul>
           ) : (
-            <p className="px-4 py-5 text-[12px] text-muted-foreground">
+            <p className="px-4 py-5 text-[13px] text-muted-foreground">
               Ingen øvrige input er efterspurgt.
             </p>
           )}
