@@ -1,4 +1,4 @@
-import { Calculator, ChevronRight, FileSearch } from "lucide-react";
+import { Calculator, ChevronRight, FileSearch, Search } from "lucide-react";
 import { useState } from "react";
 
 import type { CaseSheet } from "@/lib/case-sheet";
@@ -148,6 +148,12 @@ export function PayslipWorkspace({
     firstLine?.index ?? (reportChecks.length > 0 ? "slip" : null),
   );
   const [requestedCheckId, setRequestedCheckId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const matchesQuery = (line: SlipLine) =>
+    (line.description ?? line.concept ?? "").toLowerCase().includes(query.trim().toLowerCase());
+  const filteredTransactions = query ? transactions.filter(matchesQuery) : transactions;
+  const filteredBalances = query ? balances.filter(matchesQuery) : balances;
+  const filteredLines = [...filteredTransactions, ...filteredBalances];
   const selectedLine =
     selection === "slip" ? null : (lines.find((line) => line.index === selection) ?? firstLine);
   const lineChecks =
@@ -240,12 +246,30 @@ export function PayslipWorkspace({
         />
 
         <div className="border-t border-border xl:border-l xl:border-t-0">
-          <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
             <div>
               <h2 className="text-[13px] font-semibold text-foreground">Lønposter</h2>
               <p className="mt-0.5 text-[11px] text-muted-foreground">Vælg en post</p>
             </div>
-            <span className="num text-[11px] text-muted-foreground">{lines.length} poster</span>
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search
+                  className="pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground/60"
+                  aria-hidden="true"
+                />
+                <input
+                  aria-label="Filtrér lønposter"
+                  className="h-7 w-36 rounded-md border border-input bg-card pl-7 pr-2 text-[12px] placeholder:text-muted-foreground/60"
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Filtrér…"
+                  type="search"
+                  value={query}
+                />
+              </div>
+              <span className="num whitespace-nowrap text-[11px] text-muted-foreground">
+                {query ? `${filteredLines.length} af ${lines.length}` : lines.length} poster
+              </span>
+            </div>
           </div>
 
           {lines.length > 0 || reportChecks.length > 0 ? (
@@ -281,14 +305,19 @@ export function PayslipWorkspace({
                   />
                 </button>
               ) : null}
-              {transactions.map(renderLine)}
-              {balances.length > 0 ? (
+              {filteredTransactions.map(renderLine)}
+              {filteredBalances.length > 0 ? (
                 <>
                   <p className="border-b border-border bg-muted/25 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                     Saldi
                   </p>
-                  {balances.map(renderLine)}
+                  {filteredBalances.map(renderLine)}
                 </>
+              ) : null}
+              {query && filteredLines.length === 0 ? (
+                <p className="px-4 py-6 text-[13px] text-muted-foreground">
+                  Ingen lønposter matcher »{query.trim()}«.
+                </p>
               ) : null}
               {dropped.length > 0 ? (
                 <details className="border-b border-border text-[11px] text-muted-foreground">
