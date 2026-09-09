@@ -6,7 +6,6 @@ import { EvidenceSheet } from "@/components/report/EvidenceSheet";
 import { MemberQuestions } from "@/components/report/MemberQuestions";
 import { PayslipWorkspace } from "@/components/report/PayslipWorkspace";
 import { ReportOverview } from "@/components/report/ReportOverview";
-import { ReportRegister } from "@/components/report/ReportRegister";
 import { ReviewQueue } from "@/components/report/ReviewQueue";
 import { SourceProof } from "@/components/report/SourceProof";
 import { ProcessingCase } from "@/components/upload/ProcessingCase";
@@ -54,8 +53,7 @@ export const Route = createFileRoute("/")({
 });
 
 type Phase = "upload" | "processing" | "report";
-type ReportTab =
-  "overblik" | "gennemgang" | "seddel" | "register" | "sporgsmaal" | "brev" | "datagrundlag";
+type ReportTab = "overblik" | "gennemgang" | "seddel" | "sporgsmaal" | "brev" | "datagrundlag";
 type LoadedReport = {
   entry: ReportIndexEntry;
   key: string;
@@ -617,7 +615,6 @@ function CaseScreen({
               "overblik",
               "gennemgang",
               "seddel",
-              "register",
               "sporgsmaal",
               "brev",
               "datagrundlag",
@@ -640,13 +637,11 @@ function CaseScreen({
                   ? `Gennemgang ${reviewQueue.length}`
                   : nextTab === "seddel"
                     ? `Lønsedler ${reportEntries.length}`
-                    : nextTab === "register"
-                      ? "Register"
-                      : nextTab === "sporgsmaal"
-                        ? `Spørgsmål ${caseSheetResult?.caseSheet.needs_input.filter((input) => input.ask_target === "member").length ?? 0}`
-                        : nextTab === "brev"
-                          ? "Arbejdsgiverbrev"
-                          : "Grundlag & kilder"}
+                    : nextTab === "sporgsmaal"
+                      ? `Spørgsmål ${caseSheetResult?.caseSheet.needs_input.filter((input) => input.ask_target === "member").length ?? 0}`
+                      : nextTab === "brev"
+                        ? "Arbejdsgiverbrev"
+                        : "Grundlag & kilder"}
             </button>
           ))}
         </div>
@@ -676,17 +671,6 @@ function CaseScreen({
               onToggleReviewed={toggleReviewed}
               queue={reviewQueue}
               reviewed={reviewed}
-            />
-          </div>
-        ) : tab === "register" ? (
-          <div className="mt-5">
-            <ReportRegister
-              caseSheet={caseSheetResult?.caseSheet ?? null}
-              entries={reportEntries}
-              onOpen={(entry) => {
-                void openReport(reportKey(entry));
-                setTab("seddel");
-              }}
             />
           </div>
         ) : tab === "sporgsmaal" ? (

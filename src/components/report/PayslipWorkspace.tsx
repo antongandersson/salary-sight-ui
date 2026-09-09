@@ -87,6 +87,30 @@ function calculation(check: Check): string | null {
   return check.computation?.arithmetic ?? check.kroner?.arithmetic ?? null;
 }
 
+const CALC_PREVIEW_LINES = 8;
+
+function Calculation({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const lines = text.split("\n");
+  const clamped = !expanded && lines.length > CALC_PREVIEW_LINES + 2;
+  return (
+    <div>
+      <pre className="num mt-4 whitespace-pre-wrap rounded-lg border border-border bg-card p-4 text-[12px] leading-relaxed text-foreground">
+        {clamped ? `${lines.slice(0, CALC_PREVIEW_LINES).join("\n")}\n…` : text}
+      </pre>
+      {lines.length > CALC_PREVIEW_LINES + 2 ? (
+        <button
+          className="mt-1.5 text-[11px] font-semibold text-accent hover:underline"
+          onClick={() => setExpanded((current) => !current)}
+          type="button"
+        >
+          {clamped ? `Vis hele regnestykket (${lines.length} linjer)` : "Vis færre"}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 export function PayslipWorkspace({
   caseSheet,
   entries,
@@ -107,6 +131,8 @@ export function PayslipWorkspace({
   const { transactions, balances, dropped } = partitionLines(report);
   const lines = [...transactions, ...balances];
   const reportChecks = slipLevelChecks(report);
+  const attentionReportChecks = reportChecks.filter((check) => check.terminal !== "OK");
+  const routineReportChecks = reportChecks.filter((check) => check.terminal === "OK");
   const firstLine =
     lines.find((line) => checksForLine(report, line).length > 0) ?? lines[0] ?? null;
   const [selection, setSelection] = useState<number | "slip" | null>(
@@ -121,7 +147,9 @@ export function PayslipWorkspace({
     lineChecks.find((check) => check.check_id === requestedCheckId) ?? strongestCheck(lineChecks);
   const allChecks = allReportChecks(report);
   const attentionCount = allChecks.filter((check) => check.terminal !== "OK").length;
-  const slipTerminal = strongestTerminal(reportChecks);
+  const orderedChecks = [...lineChecks].sort(
+    (left, right) => TERMINALS[left.terminal].order - TERMINALS[right.terminal].order,
+  );
 
   function renderLine(line: SlipLine) {
     const checks = checksForLine(report, line);
@@ -212,35 +240,76 @@ export function PayslipWorkspace({
 
           {lines.length > 0 || reportChecks.length > 0 ? (
             <div className="max-h-[680px] overflow-y-auto" style={{ contentVisibility: "auto" }}>
-              {reportChecks.length > 0 ? (
+              {attentionReportChecks.map((check) => {
+                const selected = selection === "slip" && selectedCheck?.check_id === check.check_id;
+                return (
+                  <button
+                    aria-pressed={selected}
+                    className={`group grid w-full grid-cols-[4px_minmax(0,1fr)_auto_auto] items-center gap-3 border-b border-border px-3 py-3 text-left transition-colors ${
+                      selected ? "bg-accent/8" : "hover:bg-muted/35"
+                    }`}
+                    key={check.check_id}
+                    onClick={() => {
+                      setSelection("slip");
+                      setRequestedCheckId(check.check_id);
+                    }}
+                    type="button"
+                  >
+                    <span
+                      className={`h-8 w-1 rounded-full ${STATUS_BAR[check.terminal]}`}
+                      aria-hidden="true"
+                    />
+                    <span className="min-w-0">
+                      <strong className="block truncate text-[12px] font-semibold text-foreground">
+                        {check.title}
+                      </strong>
+                      <span className="mt-0.5 block truncate text-[10px] text-muted-foreground">
+                        {TERMINALS[check.terminal].label} · hele lønsedlen
+                      </span>
+                    </span>
+                    <span className="num whitespace-nowrap text-[12px] font-semibold text-foreground">
+                      {check.kroner?.kr == null ? "" : `${kr(check.kroner.kr)} kr`}
+                    </span>
+                    <ChevronRight
+                      className={`size-4 ${selected ? "text-accent" : "text-muted-foreground/50"}`}
+                      aria-hidden="true"
+                    />
+                  </button>
+                );
+              })}
+              {routineReportChecks.length > 0 ? (
                 <button
-                  aria-pressed={selection === "slip"}
+                  aria-pressed={
+                    selection === "slip" &&
+                    !attentionReportChecks.some(
+                      (check) => check.check_id === selectedCheck?.check_id,
+                    )
+                  }
                   className={`group grid w-full grid-cols-[4px_minmax(0,1fr)_auto_auto] items-center gap-3 border-b border-border px-3 py-3 text-left transition-colors ${
-                    selection === "slip" ? "bg-accent/8" : "hover:bg-muted/35"
+                    selection === "slip" &&
+                    !attentionReportChecks.some(
+                      (check) => check.check_id === selectedCheck?.check_id,
+                    )
+                      ? "bg-accent/8"
+                      : "hover:bg-muted/35"
                   }`}
                   onClick={() => {
                     setSelection("slip");
-                    setRequestedCheckId(null);
+                    setRequestedCheckId(routineReportChecks[0]?.check_id ?? null);
                   }}
                   type="button"
                 >
-                  <span
-                    className={`h-8 w-1 rounded-full ${slipTerminal ? STATUS_BAR[slipTerminal] : "bg-border"}`}
-                    aria-hidden="true"
-                  />
+                  <span className="h-8 w-1 rounded-full bg-border" aria-hidden="true" />
                   <span className="min-w-0">
                     <strong className="block truncate text-[12px] font-semibold text-foreground">
                       Hele lønsedlen
                     </strong>
                     <span className="mt-0.5 block truncate text-[10px] text-muted-foreground">
-                      {reportChecks.length} kontroller uden lønpost
+                      {routineReportChecks.length} øvrige kontroller uden lønpost
                     </span>
                   </span>
                   <span aria-hidden="true" />
-                  <ChevronRight
-                    className={`size-4 ${selection === "slip" ? "text-accent" : "text-muted-foreground/50"}`}
-                    aria-hidden="true"
-                  />
+                  <ChevronRight className="size-4 text-muted-foreground/50" aria-hidden="true" />
                 </button>
               ) : null}
               {transactions.map(renderLine)}
@@ -297,29 +366,42 @@ export function PayslipWorkspace({
 
           {lineChecks.length > 0 ? (
             <div className="p-4">
-              {lineChecks.length > 1 ? (
+              {orderedChecks.length > 1 ? (
                 <div
-                  className="mb-4 flex flex-wrap gap-1.5"
+                  className="mb-4 overflow-hidden rounded-lg border border-border"
                   role="group"
                   aria-label="Kontroller på lønposten"
                 >
-                  {lineChecks.map((check) => (
-                    <button
-                      aria-label={`${TERMINALS[check.terminal].short}: ${check.title}`}
-                      aria-pressed={check.check_id === selectedCheck?.check_id}
-                      className={`rounded-md border px-2 py-1 text-[10px] font-semibold transition-colors ${
-                        check.check_id === selectedCheck?.check_id
-                          ? "border-accent bg-accent/10 text-accent"
-                          : "border-border bg-card text-muted-foreground hover:text-foreground"
-                      }`}
-                      key={check.check_id}
-                      onClick={() => setRequestedCheckId(check.check_id)}
-                      title={check.title}
-                      type="button"
-                    >
-                      {TERMINALS[check.terminal].short}
-                    </button>
-                  ))}
+                  {orderedChecks.map((check) => {
+                    const selected = check.check_id === selectedCheck?.check_id;
+                    return (
+                      <button
+                        aria-pressed={selected}
+                        className={`flex w-full items-center gap-2 border-b border-border px-2.5 py-1.5 text-left transition-colors last:border-0 ${
+                          selected ? "bg-accent/10" : "bg-card hover:bg-muted/35"
+                        }`}
+                        key={check.check_id}
+                        onClick={() => setRequestedCheckId(check.check_id)}
+                        type="button"
+                      >
+                        <span
+                          className={`size-2 shrink-0 rounded-full ${STATUS_BAR[check.terminal]}`}
+                          aria-hidden="true"
+                        />
+                        <span
+                          className={`min-w-0 flex-1 truncate text-[11px] ${
+                            selected ? "font-semibold text-foreground" : "text-muted-foreground"
+                          }`}
+                          title={check.title}
+                        >
+                          {check.title}
+                        </span>
+                        <span className="shrink-0 text-[10px] font-semibold text-muted-foreground">
+                          {TERMINALS[check.terminal].short}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               ) : null}
 
@@ -330,9 +412,10 @@ export function PayslipWorkspace({
                     {selectedCheck.title}
                   </h3>
                   {calculation(selectedCheck) ? (
-                    <pre className="num mt-4 whitespace-pre-wrap rounded-lg border border-border bg-card p-4 text-[12px] leading-relaxed text-foreground">
-                      {calculation(selectedCheck)}
-                    </pre>
+                    <Calculation
+                      key={selectedCheck.check_id}
+                      text={calculation(selectedCheck) ?? ""}
+                    />
                   ) : (
                     <div className="mt-4 flex gap-2 rounded-lg border border-border bg-card p-4 text-[11px] leading-relaxed text-muted-foreground">
                       <Calculator
