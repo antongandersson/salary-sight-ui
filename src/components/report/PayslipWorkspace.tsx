@@ -131,8 +131,16 @@ export function PayslipWorkspace({
   const { transactions, balances, dropped } = partitionLines(report);
   const lines = [...transactions, ...balances];
   const reportChecks = slipLevelChecks(report);
-  const attentionReportChecks = reportChecks.filter((check) => check.terminal !== "OK");
-  const routineReportChecks = reportChecks.filter((check) => check.terminal === "OK");
+  // Kun egentlige afvigelser og inputbehov promoveres til egne rækker —
+  // forbehold/kontrolpunkter/OK samles under "Hele lønsedlen", ellers
+  // drukner lønposterne i meta-kontroller.
+  const attentionReportChecks = reportChecks.filter(
+    (check) => check.terminal === "MISMATCH" || check.terminal === "NEEDS_INPUT",
+  );
+  const routineReportChecks = reportChecks.filter(
+    (check) => !attentionReportChecks.includes(check),
+  );
+  const routineTerminal = strongestTerminal(routineReportChecks);
   const firstLine =
     lines.find((line) => checksForLine(report, line).length > 0) ?? lines[0] ?? null;
   const [selection, setSelection] = useState<number | "slip" | null>(
@@ -295,11 +303,18 @@ export function PayslipWorkspace({
                   }`}
                   onClick={() => {
                     setSelection("slip");
-                    setRequestedCheckId(routineReportChecks[0]?.check_id ?? null);
+                    setRequestedCheckId(strongestCheck(routineReportChecks)?.check_id ?? null);
                   }}
                   type="button"
                 >
-                  <span className="h-8 w-1 rounded-full bg-border" aria-hidden="true" />
+                  <span
+                    className={`h-8 w-1 rounded-full ${
+                      routineTerminal === null || routineTerminal === "OK"
+                        ? "bg-border"
+                        : STATUS_BAR[routineTerminal]
+                    }`}
+                    aria-hidden="true"
+                  />
                   <span className="min-w-0">
                     <strong className="block truncate text-[12px] font-semibold text-foreground">
                       Hele lønsedlen
