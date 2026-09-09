@@ -7,6 +7,7 @@ import { MemberQuestions } from "@/components/report/MemberQuestions";
 import { PayslipWorkspace } from "@/components/report/PayslipWorkspace";
 import { ReportOverview } from "@/components/report/ReportOverview";
 import { ReportRegister } from "@/components/report/ReportRegister";
+import { ReviewQueue } from "@/components/report/ReviewQueue";
 import { SourceProof } from "@/components/report/SourceProof";
 import { ProcessingCase } from "@/components/upload/ProcessingCase";
 import { UploadCase, type UploadSubmission } from "@/components/upload/UploadCase";
@@ -36,6 +37,7 @@ import {
 } from "@/lib/paytjek-api";
 import { readyReports, reportKey } from "@/lib/report-index";
 import { allReportChecks, periodLabel, type Report } from "@/lib/report";
+import { buildReviewQueue, type ReviewItem } from "@/lib/review-queue";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -52,7 +54,8 @@ export const Route = createFileRoute("/")({
 });
 
 type Phase = "upload" | "processing" | "report";
-type ReportTab = "overblik" | "seddel" | "register" | "sporgsmaal" | "brev" | "datagrundlag";
+type ReportTab =
+  "overblik" | "gennemgang" | "seddel" | "register" | "sporgsmaal" | "brev" | "datagrundlag";
 type LoadedReport = {
   entry: ReportIndexEntry;
   key: string;
@@ -102,8 +105,9 @@ async function loadCaseSheet(
   signal?: AbortSignal,
 ): Promise<CaseSheetResult | null> {
   try {
-    const result = await getCaseSheet(caseId, signal);
-    return result.source.stale ? null : result;
+    // Et stale case-sheet vises stadig — staleness mærkes i UI'et i stedet
+    // for at kassere middlewarens data.
+    return await getCaseSheet(caseId, signal);
   } catch (cause) {
     if (cause instanceof PaytjekApiError && cause.status === 404) return null;
     throw cause;
@@ -492,9 +496,38 @@ function CaseScreen({
   const [tab, setTab] = useState<ReportTab>("overblik");
   const [focus, setFocus] = useState<string | null>(null);
   const [evidenceOpen, setEvidenceOpen] = useState(false);
+  const [reviewed, setReviewed] = useState<ReadonlySet<string>>(new Set());
 
   const checks = allReportChecks(report);
   const focused = focus ? (checks.find((check) => check.check_id === focus) ?? null) : null;
+  const reviewQueue = buildReviewQueue(caseSheetResult?.caseSheet ?? null);
+  const queueIndex = focused
+    ? reviewQueue.findIndex(
+        (item) => item.checkId === focused.check_id && item.slipKey === report.slip.slip_key,
+      )
+    : -1;
+  const queueItem = queueIndex >= 0 ? reviewQueue[queueIndex] : undefined;
+  const queuePrev = queueIndex > 0 ? reviewQueue[queueIndex - 1] : undefined;
+  const queueNext =
+    queueIndex >= 0 && queueIndex < reviewQueue.length - 1
+      ? reviewQueue[queueIndex + 1]
+      : undefined;
+
+  function toggleReviewed(id: string) {
+    setReviewed((current) => {
+      const next = new Set(current);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  function openQueueItem(item: ReviewItem) {
+    void showCheck(item.checkId, reportKey({ period: item.period, slip_key: item.slipKey }));
+  }
   const reportsByPeriod = new Map<string, number>();
   for (const entry of reportEntries) {
     reportsByPeriod.set(entry.period, (reportsByPeriod.get(entry.period) ?? 0) + 1);
@@ -536,6 +569,14 @@ function CaseScreen({
                 Testmiljø
               </span>
             ) : null}
+            {reportEntries.find((entry) => reportKey(entry) === selectedReportKey)?.stale ? (
+              <span
+                className="rounded-full border border-forbehold/40 bg-forbehold-soft px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-forbehold"
+                title="Rapportindekset markerer denne rapport som forældet — middleware har en nyere generation undervejs."
+              >
+                Forældet generation
+              </span>
+            ) : null}
             {reportEntries.length > 1 ? (
               <select
                 aria-label="Vælg lønperiode"
@@ -572,7 +613,15 @@ function CaseScreen({
         ) : null}
         <div className="paper flex flex-wrap items-center gap-1 rounded-lg px-3 py-1.5">
           {(
-            ["overblik", "seddel", "register", "sporgsmaal", "brev", "datagrundlag"] as ReportTab[]
+            [
+              "overblik",
+              "gennemgang",
+              "seddel",
+              "register",
+              "sporgsmaal",
+              "brev",
+              "datagrundlag",
+            ] as ReportTab[]
           ).map((nextTab) => (
             <button
               aria-pressed={tab === nextTab}
@@ -587,15 +636,17 @@ function CaseScreen({
             >
               {nextTab === "overblik"
                 ? "Sagsoversigt"
-                : nextTab === "seddel"
-                  ? `Lønsedler ${reportEntries.length}`
-                  : nextTab === "register"
-                    ? "Register"
-                    : nextTab === "sporgsmaal"
-                      ? `Spørgsmål ${caseSheetResult?.caseSheet.needs_input.filter((input) => input.ask_target === "member").length ?? 0}`
-                      : nextTab === "brev"
-                        ? "Arbejdsgiverbrev"
-                        : "Grundlag & kilder"}
+                : nextTab === "gennemgang"
+                  ? `Gennemgang ${reviewQueue.length}`
+                  : nextTab === "seddel"
+                    ? `Lønsedler ${reportEntries.length}`
+                    : nextTab === "register"
+                      ? "Register"
+                      : nextTab === "sporgsmaal"
+                        ? `Spørgsmål ${caseSheetResult?.caseSheet.needs_input.filter((input) => input.ask_target === "member").length ?? 0}`
+                        : nextTab === "brev"
+                          ? "Arbejdsgiverbrev"
+                          : "Grundlag & kilder"}
             </button>
           ))}
         </div>
@@ -616,6 +667,15 @@ function CaseScreen({
                 period: entry.period,
                 slipKey: entry.slip_key,
               }))}
+            />
+          </div>
+        ) : tab === "gennemgang" ? (
+          <div className="mt-5">
+            <ReviewQueue
+              onOpen={openQueueItem}
+              onToggleReviewed={toggleReviewed}
+              queue={reviewQueue}
+              reviewed={reviewed}
             />
           </div>
         ) : tab === "register" ? (
@@ -672,6 +732,21 @@ function CaseScreen({
           setTab("sporgsmaal");
         }}
         open={evidenceOpen}
+        queueNav={
+          queueItem
+            ? {
+                index: queueIndex,
+                total: reviewQueue.length,
+                reviewed: reviewed.has(queueItem.id),
+                onPrev: queuePrev ? () => openQueueItem(queuePrev) : null,
+                onNext: queueNext ? () => openQueueItem(queueNext) : null,
+                onReviewedNext: () => {
+                  setReviewed((current) => new Set(current).add(queueItem.id));
+                  if (queueNext) openQueueItem(queueNext);
+                },
+              }
+            : null
+        }
         report={report}
       />
     </div>

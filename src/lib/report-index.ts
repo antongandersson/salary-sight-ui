@@ -11,13 +11,15 @@ export function reportKey(entry: Pick<ReportIndexEntry, "period" | "slip_key">):
 }
 
 export function readyReports(entries: readonly ReportIndexEntry[]): ReportIndexEntry[] {
-  return entries
-    .filter((entry) => !entry.stale)
-    .sort((left, right) =>
-      right.period === left.period
-        ? right.slip_key.localeCompare(left.slip_key)
-        : right.period.localeCompare(left.period),
-    );
+  const fresh = entries.filter((entry) => !entry.stale);
+  // Er ALT markeret stale (middleware har bumpet generation), vises de stale
+  // rapporter frem for ingenting — de mærkes som forældede i UI'et.
+  const usable = fresh.length > 0 ? fresh : [...entries];
+  return usable.sort((left, right) =>
+    right.period === left.period
+      ? right.slip_key.localeCompare(left.slip_key)
+      : right.period.localeCompare(left.period),
+  );
 }
 
 export function reportForReference<T extends ReportPointer>(

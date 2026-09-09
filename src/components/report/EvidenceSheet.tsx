@@ -1,4 +1,13 @@
-import { ArrowRight, Calculator, Database, FileQuestion, Quote, ShieldCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Calculator,
+  CheckCheck,
+  Database,
+  FileQuestion,
+  Quote,
+  ShieldCheck,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,17 +26,28 @@ function displayValue(value: number | string | null | undefined): string {
   return String(value);
 }
 
+export type EvidenceQueueNav = {
+  index: number;
+  total: number;
+  reviewed: boolean;
+  onPrev: (() => void) | null;
+  onNext: (() => void) | null;
+  onReviewedNext: () => void;
+};
+
 export function EvidenceSheet({
   check,
   onOpenChange,
   onShowQuestions,
   open,
+  queueNav,
   report,
 }: {
   check: Check | null;
   onOpenChange: (open: boolean) => void;
   onShowQuestions: () => void;
   open: boolean;
+  queueNav?: EvidenceQueueNav | null;
   report: Report;
 }) {
   if (!check) return null;
@@ -56,6 +76,39 @@ export function EvidenceSheet({
             </div>
           ) : null}
         </DialogHeader>
+
+        {queueNav ? (
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-muted/25 px-6 py-2.5">
+            <span className="text-[11px] font-semibold text-muted-foreground">
+              Gennemgang {queueNav.index + 1} af {queueNav.total}
+              {queueNav.reviewed ? " · gennemgået" : ""}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Button
+                disabled={!queueNav.onPrev}
+                onClick={() => queueNav.onPrev?.()}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                <ArrowLeft className="size-3.5" aria-hidden="true" /> Forrige
+              </Button>
+              <Button onClick={queueNav.onReviewedNext} size="sm" type="button">
+                <CheckCheck className="size-3.5" aria-hidden="true" /> Gennemgået
+                {queueNav.onNext ? " + næste" : ""}
+              </Button>
+              <Button
+                disabled={!queueNav.onNext}
+                onClick={() => queueNav.onNext?.()}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                Næste <ArrowRight className="size-3.5" aria-hidden="true" />
+              </Button>
+            </span>
+          </div>
+        ) : null}
 
         <div className="space-y-7 px-6 py-6">
           {check.note ? (

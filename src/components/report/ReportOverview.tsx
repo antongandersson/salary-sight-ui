@@ -1,10 +1,10 @@
 import { ArrowRight, CircleDollarSign, FileQuestion, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 
-import type { CaseSheet, CaseSheetFinding, CaseSheetMonthReference } from "@/lib/case-sheet";
+import type { CaseSheet, CaseSheetMonthReference } from "@/lib/case-sheet";
 import type { CaseSheetSource } from "@/lib/paytjek-api";
 import { reportForReference, type ReportPointer } from "@/lib/report-index";
-import { kr, periodLabel } from "@/lib/report";
+import { kr, periodLabel, periodShort } from "@/lib/report";
 
 export type OverviewReport = ReportPointer;
 
@@ -12,8 +12,118 @@ function amount(value: number | null): string {
   return typeof value === "number" ? `${kr(value)} kr` : "Ikke opgjort";
 }
 
-function findingReference(finding: CaseSheetFinding): CaseSheetMonthReference | null {
-  return finding.months[0] ?? null;
+type FamilyRow = {
+  key: string;
+  title: string;
+  months: CaseSheetMonthReference[];
+  totalKr: number | null;
+};
+
+function FamilyList({
+  emptyText,
+  id,
+  items,
+  onSelect,
+  reports,
+  title,
+  tone,
+}: {
+  emptyText: string;
+  id: string;
+  items: FamilyRow[];
+  onSelect: (reportKey: string, checkId: string) => void;
+  reports: readonly OverviewReport[];
+  title: string;
+  tone: "mismatch" | "needs";
+}) {
+  const badge = tone === "mismatch" ? "bg-mismatch-soft text-mismatch" : "bg-needs-soft text-needs";
+  const amountColor = tone === "mismatch" ? "text-mismatch" : "text-needs";
+
+  function targetFor(reference: CaseSheetMonthReference | undefined) {
+    return reference ? reportForReference(reports, reference) : null;
+  }
+
+  return (
+    <section className="paper overflow-hidden rounded-xl" aria-labelledby={id}>
+      <div className="border-b border-border px-4 py-3">
+        <h2 className="text-[13px] font-semibold text-foreground" id={id}>
+          {title}
+        </h2>
+      </div>
+      {items.length > 0 ? (
+        <ol>
+          {items.map((item, index) => {
+            const first = item.months[0];
+            const last = item.months[item.months.length - 1];
+            const firstTarget = targetFor(first);
+            const range =
+              first && last ? `${periodLabel(first.period)}–${periodLabel(last.period)}` : "";
+            const row = (
+              <>
+                <span
+                  className={`flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${badge}`}
+                >
+                  {index + 1}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <strong
+                    className="block truncate text-[11px] font-semibold text-foreground"
+                    title={item.title}
+                  >
+                    {item.title}
+                  </strong>
+                  <span className="mt-0.5 block text-[10px] text-muted-foreground">{range}</span>
+                </span>
+                <span className={`num whitespace-nowrap text-[12px] font-semibold ${amountColor}`}>
+                  {amount(item.totalKr)}
+                </span>
+                {firstTarget && first ? (
+                  <ArrowRight className="size-4 shrink-0 text-accent" aria-hidden="true" />
+                ) : null}
+              </>
+            );
+
+            return (
+              <li className="border-b border-border last:border-0" key={item.key}>
+                {firstTarget && first ? (
+                  <button
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-muted/35"
+                    onClick={() => onSelect(firstTarget.key, first.check_id)}
+                    type="button"
+                  >
+                    {row}
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-3 px-4 py-3">{row}</div>
+                )}
+                {item.months.length > 1 ? (
+                  <div className="flex flex-wrap gap-1.5 px-4 pb-3 pl-[52px]">
+                    {item.months.map((month) => {
+                      const target = targetFor(month);
+                      return (
+                        <button
+                          className="num rounded border border-border bg-card px-1.5 py-0.5 text-[10px] text-muted-foreground hover:border-accent hover:text-accent disabled:pointer-events-none disabled:opacity-50"
+                          disabled={!target}
+                          key={`${month.check_id}@${month.slip_key}`}
+                          onClick={() => target && onSelect(target.key, month.check_id)}
+                          title={month.kr != null ? `${kr(month.kr)} kr` : undefined}
+                          type="button"
+                        >
+                          {periodShort(month.period)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </li>
+            );
+          })}
+        </ol>
+      ) : (
+        <p className="px-4 py-5 text-[12px] text-muted-foreground">{emptyText}</p>
+      )}
+    </section>
+  );
 }
 
 function SummaryCard({
@@ -128,11 +238,21 @@ export function ReportOverview({
             {caseSheet.agreements.length > 0 ? ` · ${caseSheet.agreements.join(" + ")}` : ""}
           </p>
         </div>
-        {typeof caseSheetSource?.generation === "number" ? (
-          <span className="num rounded-full border border-border bg-card px-3 py-1.5 text-[10px] text-muted-foreground">
-            generation {caseSheetSource.generation}
-          </span>
-        ) : null}
+        <span className="flex flex-wrap items-center gap-2">
+          {caseSheetSource?.stale ? (
+            <span
+              className="rounded-full border border-forbehold/40 bg-forbehold-soft px-3 py-1.5 text-[10px] font-semibold text-forbehold"
+              title="Middleware markerer case-sheetet som forældet — en nyere generation er undervejs."
+            >
+              Forældet generation
+            </span>
+          ) : null}
+          {typeof caseSheetSource?.generation === "number" ? (
+            <span className="num rounded-full border border-border bg-card px-3 py-1.5 text-[10px] text-muted-foreground">
+              generation {caseSheetSource.generation}
+            </span>
+          ) : null}
+        </span>
       </header>
 
       <section aria-label="Sagens udfald">
@@ -165,63 +285,36 @@ export function ReportOverview({
       </section>
 
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,.85fr)]">
-        <section className="paper overflow-hidden rounded-xl" aria-labelledby="findings-title">
-          <div className="border-b border-border px-4 py-3">
-            <h2 className="text-[13px] font-semibold text-foreground" id="findings-title">
-              Dokumenterede fund
-            </h2>
-          </div>
-          {visibleFindings.length > 0 ? (
-            <ol>
-              {visibleFindings.map((finding, index) => {
-                const reference = findingReference(finding);
-                const target = reference ? reportForReference(reports, reference) : null;
-                const row = (
-                  <>
-                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-mismatch-soft text-[10px] font-bold text-mismatch">
-                      {index + 1}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <strong
-                        className="block truncate text-[11px] font-semibold text-foreground"
-                        title={finding.title}
-                      >
-                        {finding.title}
-                      </strong>
-                      <span className="mt-0.5 block text-[10px] text-muted-foreground">
-                        {periodLabel(finding.first_month)}–{periodLabel(finding.last_month)}
-                      </span>
-                    </span>
-                    <span className="num whitespace-nowrap text-[12px] font-semibold text-mismatch">
-                      {amount(finding.total_kr)}
-                    </span>
-                    {target && reference ? (
-                      <ArrowRight className="size-4 shrink-0 text-accent" aria-hidden="true" />
-                    ) : null}
-                  </>
-                );
-
-                return (
-                  <li className="border-b border-border last:border-0" key={finding.family}>
-                    {target && reference ? (
-                      <button
-                        className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-muted/35"
-                        onClick={() => onSelect(target.key, reference.check_id)}
-                        type="button"
-                      >
-                        {row}
-                      </button>
-                    ) : (
-                      <div className="flex items-center gap-3 px-4 py-3">{row}</div>
-                    )}
-                  </li>
-                );
-              })}
-            </ol>
-          ) : (
-            <p className="px-4 py-5 text-[12px] text-muted-foreground">Ingen afgjorte fund.</p>
-          )}
-        </section>
+        <div className="space-y-5">
+          <FamilyList
+            emptyText="Ingen afgjorte fund."
+            id="findings-title"
+            items={visibleFindings.map((finding) => ({
+              key: finding.family,
+              title: finding.title,
+              months: finding.months,
+              totalKr: finding.total_kr,
+            }))}
+            onSelect={onSelect}
+            reports={reports}
+            title="Dokumenterede fund"
+            tone="mismatch"
+          />
+          <FamilyList
+            emptyText="Ingen mulige krav."
+            id="claims-title"
+            items={caseSheet.possible_claims.families.map((family) => ({
+              key: family.family,
+              title: family.title,
+              months: family.months,
+              totalKr: family.total_kr,
+            }))}
+            onSelect={onSelect}
+            reports={reports}
+            title="Mulige krav — kræver dokumentation"
+            tone="needs"
+          />
+        </div>
 
         <section className="paper overflow-hidden rounded-xl" aria-labelledby="input-title">
           <div className="border-b border-border px-4 py-3">

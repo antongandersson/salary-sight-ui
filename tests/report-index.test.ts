@@ -38,6 +38,11 @@ describe("rapportindeks", () => {
     expect(input.map(reportKey)).toEqual(["2025-12:b", "2026-01:a", "2026-02:stale", "2026-01:z"]);
   });
 
+  test("er alle rapporter stale, vises de alligevel frem for ingenting", () => {
+    const input = [entry("2026-01", "a", { stale: true }), entry("2026-02", "b", { stale: true })];
+    expect(readyReports(input).map(reportKey)).toEqual(["2026-02:b", "2026-01:a"]);
+  });
+
   test("samme periode med to slip-nøgler forbliver to forskellige rapporter", () => {
     const original = entry("2024-10", "original");
     const revision = entry("2024-10", "revision");

@@ -204,6 +204,25 @@ export function checkPosition(report: Report, checkId: string): number | null {
   return index === -1 ? null : index + 1;
 }
 
+export function periodShort(period: string): string {
+  const [y, m] = period.split("-");
+  const months = [
+    "jan",
+    "feb",
+    "mar",
+    "apr",
+    "maj",
+    "jun",
+    "jul",
+    "aug",
+    "sep",
+    "okt",
+    "nov",
+    "dec",
+  ];
+  return `${months[Number(m) - 1]} ${y?.slice(2)}`;
+}
+
 export function periodLabel(period: string): string {
   const [y, m] = period.split("-");
   const months = [
