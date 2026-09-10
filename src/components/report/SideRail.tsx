@@ -50,7 +50,7 @@ export function SideRail({ report }: { report: Report }) {
   const cf = report.context_facts as Record<string, { value?: unknown; label?: string }>;
   const session = report.session as Record<string, unknown>;
   const trin = session["trin_placement"] as Record<string, unknown> | undefined;
-  const questions = report.questions.filter((q) => q.raised);
+  const questions = (report.questions ?? []).filter((q) => q.raised);
   const weeklyHours = cf["timer_pr_uge"]?.value;
 
   function factValue(key: string): string {

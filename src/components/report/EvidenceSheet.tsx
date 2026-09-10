@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { kr, type Check, type Report } from "@/lib/report";
+import { kr, type Check, type CheckFacts, type Report } from "@/lib/report";
 import { StatusPill } from "./StatusPill";
 
 function displayValue(value: number | string | null | undefined): string {
@@ -25,6 +25,52 @@ function displayValue(value: number | string | null | undefined): string {
   if (value === null || value === undefined) return "—";
   return String(value);
 }
+
+function factLabel(key: string): string {
+  return key.replaceAll("_", " ");
+}
+
+// Generisk visning af middlewarens faktabundter (pension_basis_facts,
+// trin_facts, rounding_facts) — alt vises, intet omfortolkes.
+function FactValue({ value }: { value: unknown }) {
+  if (value === null || value === undefined || value === "") {
+    return <span className="text-muted-foreground">—</span>;
+  }
+  if (typeof value === "boolean") return <>{value ? "ja" : "nej"}</>;
+  if (typeof value === "number")
+    return <span className="num">{value.toLocaleString("da-DK")}</span>;
+  if (typeof value === "string") return <>{value}</>;
+  if (Array.isArray(value)) {
+    if (value.length === 0) return <span className="text-muted-foreground">—</span>;
+    return (
+      <div className="space-y-2">
+        {value.map((item, index) => (
+          <div className="rounded border border-border bg-card px-3 py-2" key={index}>
+            <FactValue value={item} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return (
+    <dl className="space-y-1">
+      {Object.entries(value as Record<string, unknown>).map(([key, entry]) => (
+        <div className="grid grid-cols-[180px_minmax(0,1fr)] gap-2" key={key}>
+          <dt className="text-[11px] text-muted-foreground">{factLabel(key)}</dt>
+          <dd className="min-w-0 text-[12px] leading-relaxed text-foreground">
+            <FactValue value={entry} />
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+const FACT_SECTIONS: Array<[keyof Check, string]> = [
+  ["pension_basis_facts", "Pensionsgrundlag"],
+  ["trin_facts", "Løntrin"],
+  ["rounding_facts", "Afrunding"],
+];
 
 export type EvidenceQueueNav = {
   index: number;
@@ -111,6 +157,11 @@ export function EvidenceSheet({
         ) : null}
 
         <div className="space-y-7 px-6 py-6">
+          {check.superseded?.length ? (
+            <p className="rounded-md border border-border bg-muted/35 px-3 py-2 text-[12px] text-muted-foreground">
+              Denne kontrol erstatter: <span className="num">{check.superseded.join(", ")}</span>
+            </p>
+          ) : null}
           {check.note ? (
             <section aria-labelledby="evidence-explanation">
               <h2 className="label-caps" id="evidence-explanation">
@@ -169,6 +220,21 @@ export function EvidenceSheet({
               </div>
             </section>
           ) : null}
+
+          {FACT_SECTIONS.map(([field, label]) => {
+            const facts = check[field] as CheckFacts | null | undefined;
+            if (!facts || typeof facts !== "object" || Object.keys(facts).length === 0) {
+              return null;
+            }
+            return (
+              <section aria-label={`Faktagrundlag — ${label}`} key={field}>
+                <h2 className="label-caps">Faktagrundlag — {label}</h2>
+                <div className="mt-2 rounded-md border border-border bg-muted/20 p-3">
+                  <FactValue value={facts} />
+                </div>
+              </section>
+            );
+          })}
 
           {check.quotes?.length ? (
             <section aria-labelledby="evidence-quotes">

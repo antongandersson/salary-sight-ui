@@ -31,6 +31,8 @@ export type CheckFinding = {
   alternatives: string[] | null;
 };
 
+export type CheckFacts = Record<string, unknown>;
+
 export type Check = {
   check_id: string;
   check_class: string;
@@ -39,6 +41,14 @@ export type Check = {
   visibility?: "internal" | "user_facing";
   section: string;
   surface: string;
+  superseded?: string[];
+  claim_axis?: string | null;
+  basis?: unknown;
+  note_source?: string | null;
+  title_source?: string | null;
+  pension_basis_facts?: CheckFacts | null;
+  trin_facts?: CheckFacts | null;
+  rounding_facts?: CheckFacts | null;
   substance?: "finding" | "generic" | null;
   duty?: string | null;
   note?: string | null;
@@ -112,13 +122,16 @@ export type Report = {
     checks: string[];
     checks_count: number;
   }>;
-  questions: Array<{
+  // Fjernet fra rapportformatet i september 2026; optional for ældre rapporter.
+  questions?: Array<{
     key: string;
     label: string;
     question: string;
     raised: boolean;
     raised_by: Array<{ rule_id: string; detail: string; binding: string }>;
   }>;
+  case_sheet_pointers?: Array<{ months_count: number; sheet_point: number; title: string }>;
+  provenance_facts?: Record<string, unknown>;
   refusals: Check[];
   anchors: Record<string, number>;
 };
