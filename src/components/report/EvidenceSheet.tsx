@@ -227,12 +227,21 @@ export function EvidenceSheet({
               return null;
             }
             return (
-              <section aria-label={`Faktagrundlag — ${label}`} key={field}>
-                <h2 className="label-caps">Faktagrundlag — {label}</h2>
-                <div className="mt-2 rounded-md border border-border bg-muted/20 p-3">
+              <details
+                aria-label={`Faktagrundlag — ${label}`}
+                className="group rounded-md border border-border bg-muted/20"
+                key={field}
+              >
+                <summary className="label-caps flex cursor-pointer items-center justify-between px-3 py-2.5">
+                  Faktagrundlag — {label}
+                  <span className="text-[11px] font-normal normal-case tracking-normal text-muted-foreground group-open:hidden">
+                    vis detaljer
+                  </span>
+                </summary>
+                <div className="border-t border-border p-3">
                   <FactValue value={facts} />
                 </div>
-              </section>
+              </details>
             );
           })}
 
