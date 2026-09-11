@@ -44,8 +44,40 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+// ponytail: delt brugernavn/kodeord via HTTP Basic Auth — gaten er kun aktiv
+// når PAYTJEK_USER/PAYTJEK_PASSWORD er sat (fx på Railway); rigtig
+// brugerstyring kræver sagssystemets auth og er ikke afklaret (jf. HANDOFF).
+function expectedAuthorization(): string | null {
+  const env = globalThis.process?.env;
+  const user = env?.["PAYTJEK_USER"];
+  const password = env?.["PAYTJEK_PASSWORD"];
+  if (!user || !password) return null;
+  return `Basic ${btoa(`${user}:${password}`)}`;
+}
+
+function timingSafeEquals(left: string, right: string): boolean {
+  if (left.length !== right.length) return false;
+  let diff = 0;
+  for (let i = 0; i < left.length; i += 1) {
+    diff |= left.charCodeAt(i) ^ right.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
+function unauthorized(): Response {
+  return new Response("PayTjek kræver login.", {
+    status: 401,
+    headers: { "www-authenticate": 'Basic realm="PayTjek", charset="UTF-8"' },
+  });
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    const expected = expectedAuthorization();
+    if (expected !== null) {
+      const provided = request.headers.get("authorization") ?? "";
+      if (!timingSafeEquals(provided, expected)) return unauthorized();
+    }
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
