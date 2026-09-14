@@ -10,6 +10,11 @@ export type ReviewItem = {
   checkId: string;
   kr: number | null;
   terminal: string | null;
+  // Måneds-beregning fra case-sheetet (nyt format) — vises, aldrig genberegnet.
+  expected: number | null;
+  printed: number | null;
+  lineDescription: string | null;
+  olderThanLimitation: boolean;
 };
 
 export function reviewItemId(reference: Pick<CaseSheetMonthReference, "check_id" | "slip_key">) {
@@ -41,6 +46,10 @@ export function buildReviewQueue(caseSheet: CaseSheet | null): ReviewItem[] {
         checkId: month.check_id,
         kr: month.kr ?? null,
         terminal: month.terminal ?? null,
+        expected: month.expected ?? null,
+        printed: month.printed ?? null,
+        lineDescription: month.line_description ?? null,
+        olderThanLimitation: month.older_than_limitation === true,
       });
     }
   };

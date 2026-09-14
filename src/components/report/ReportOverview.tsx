@@ -1,7 +1,21 @@
-import { ArrowRight, CircleDollarSign, FileQuestion, ShieldCheck } from "lucide-react";
+import {
+  ArrowRight,
+  CircleDollarSign,
+  FileQuestion,
+  Scale,
+  ShieldCheck,
+  TrendingUp,
+} from "lucide-react";
 import type { ReactNode } from "react";
 
-import type { CaseSheet, CaseSheetMonthReference } from "@/lib/case-sheet";
+import type {
+  CaseSheet,
+  CaseSheetClaimsLedger,
+  CaseSheetMonthReference,
+  CaseSheetNeedInput,
+  CaseSheetRefused,
+  CaseSheetStepTiming,
+} from "@/lib/case-sheet";
 import type { CaseSheetSource } from "@/lib/paytjek-api";
 import { reportForReference, type ReportPointer } from "@/lib/report-index";
 import { kr, periodLabel, periodShort } from "@/lib/report";
@@ -17,6 +31,7 @@ type FamilyRow = {
   title: string;
   months: CaseSheetMonthReference[];
   totalKr: number | null;
+  note?: string | null;
 };
 
 function FamilyList({
@@ -72,7 +87,10 @@ function FamilyList({
                   >
                     {item.title}
                   </strong>
-                  <span className="mt-0.5 block text-[11px] text-muted-foreground">{range}</span>
+                  <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                    {range}
+                    {item.note ? ` · ${item.note}` : ""}
+                  </span>
                 </span>
                 <span className={`num whitespace-nowrap text-[13px] font-semibold ${amountColor}`}>
                   {amount(item.totalKr)}
@@ -124,6 +142,192 @@ function FamilyList({
       )}
     </section>
   );
+}
+
+// Kravskontoen fra case-sheetet: hovedstol, restsaldo og afregningsstatus
+// pr. krav — alle tal og formuleringer kommer uændret fra middleware.
+function ClaimsLedgerSection({ ledger }: { ledger: CaseSheetClaimsLedger }) {
+  if (ledger.claims.length === 0) return null;
+  return (
+    <section className="paper overflow-hidden rounded-xl" aria-labelledby="ledger-title">
+      <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+        <Scale className="size-4 text-accent" aria-hidden="true" />
+        <h2 className="text-[14px] font-semibold text-foreground" id="ledger-title">
+          Kravskonto
+        </h2>
+      </div>
+      <ol>
+        {ledger.claims.map((claim, index) => (
+          <li
+            className="border-b border-border px-4 py-3 last:border-0"
+            key={claim.claim_no ?? index}
+          >
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <span className="min-w-0 flex-1">
+                <strong className="block text-[12px] font-semibold text-foreground">
+                  {claim.claim_no != null ? `Krav ${claim.claim_no} · ` : ""}
+                  {claim.title}
+                </strong>
+                <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                  {claim.opened_period ? periodLabel(claim.opened_period) : "—"}
+                  {claim.last_impact_period ? `–${periodLabel(claim.last_impact_period)}` : ""}
+                  {claim.months_affected?.length
+                    ? ` · ${claim.months_affected.length} måneder`
+                    : ""}
+                  {claim.settlement_status ? ` · ${claim.settlement_status}` : ""}
+                </span>
+                {claim.layer_note ? (
+                  <span
+                    className="mt-1 block text-[11px] italic leading-snug text-muted-foreground"
+                    title={claim.layer_note}
+                  >
+                    {claim.layer_note}
+                  </span>
+                ) : null}
+              </span>
+              <span className="text-right">
+                <span className="num block text-[13px] font-semibold text-mismatch">
+                  {amount(claim.principal_kr ?? null)}
+                </span>
+                <span className="num block text-[11px] text-muted-foreground">
+                  Rest: {amount(claim.remaining_balance_kr ?? null)}
+                </span>
+              </span>
+            </div>
+          </li>
+        ))}
+      </ol>
+      {ledger.sum_rule || ledger.settlement_rule || ledger.scope_rule ? (
+        <p className="border-t border-border bg-muted/25 px-4 py-2.5 text-[11px] leading-relaxed text-muted-foreground">
+          {[ledger.sum_rule, ledger.settlement_rule, ledger.scope_rule].filter(Boolean).join(" · ")}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+// Trin-tidslinjen (step_timing): hvornår et løntrin forfaldt, hvornår det blev
+// givet, og hvad forsinkelsen er opgjort til.
+function StepTimingSection({ steps }: { steps: CaseSheetStepTiming[] }) {
+  if (steps.length === 0) return null;
+  return (
+    <section className="paper overflow-hidden rounded-xl" aria-labelledby="step-timing-title">
+      <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+        <TrendingUp className="size-4 text-accent" aria-hidden="true" />
+        <h2 className="text-[14px] font-semibold text-foreground" id="step-timing-title">
+          Trin-tidslinje
+        </h2>
+      </div>
+      <ol>
+        {steps.map((step, index) => (
+          <li className="border-b border-border px-4 py-3 last:border-0" key={index}>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <span className="min-w-0 flex-1">
+                <strong className="block text-[12px] font-semibold text-foreground">
+                  {step.label ?? step.kind ?? `Trin ${index + 1}`}
+                </strong>
+                {step.headline ? (
+                  <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">
+                    {step.headline}
+                  </span>
+                ) : null}
+                <span className="num mt-0.5 block text-[11px] text-muted-foreground">
+                  {step.due_month ? `Forfald ${periodLabel(step.due_month)}` : null}
+                  {step.moved_month ? ` · givet ${periodLabel(step.moved_month)}` : ""}
+                  {step.months_late != null && step.months_late > 0
+                    ? ` · ${step.months_late} mdr. forsinket`
+                    : ""}
+                  {step.rate_before != null && step.rate_after != null
+                    ? ` · ${kr(step.rate_before)} → ${kr(step.rate_after)} kr/t`
+                    : ""}
+                  {step.missing_artifact ? ` · mangler: ${step.missing_artifact}` : ""}
+                </span>
+              </span>
+              {step.rollup_kr != null ? (
+                <span className="text-right">
+                  <span className="num block text-[13px] font-semibold text-mismatch">
+                    {amount(step.rollup_kr)}
+                  </span>
+                  <span className="num block text-[11px] text-muted-foreground">
+                    {step.rollup_months != null ? `${step.rollup_months} mdr.` : ""}
+                    {step.rollup_unpriced_months
+                      ? ` · ${step.rollup_unpriced_months} uden beløb`
+                      : ""}
+                  </span>
+                </span>
+              ) : null}
+            </div>
+            {step.source_location ? (
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Kilde: {step.source_location}
+              </p>
+            ) : null}
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+// Samlede forbehold og afviste kontroller fra case-sheetet — vises som lister,
+// optællingerne kommer fra middleware.
+function ReservationList({
+  emptyHidden = true,
+  id,
+  items,
+  title,
+}: {
+  emptyHidden?: boolean;
+  id: string;
+  items: Array<{ heading: string; meta: string; detail?: string | null }>;
+  title: string;
+}) {
+  if (items.length === 0 && emptyHidden) return null;
+  return (
+    <section className="paper overflow-hidden rounded-xl" aria-labelledby={id}>
+      <div className="border-b border-border px-4 py-3">
+        <h2 className="text-[14px] font-semibold text-foreground" id={id}>
+          {title}
+        </h2>
+      </div>
+      <ol>
+        {items.map((item, index) => (
+          <li className="border-b border-border px-4 py-3 last:border-0" key={index}>
+            <strong className="block text-[12px] font-semibold text-foreground">
+              {item.heading}
+            </strong>
+            <span className="num mt-0.5 block text-[11px] text-muted-foreground">{item.meta}</span>
+            {item.detail ? (
+              <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">
+                {item.detail}
+              </span>
+            ) : null}
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+function reservationItems(
+  entries: CaseSheetNeedInput[],
+): Array<{ heading: string; meta: string; detail?: string | null }> {
+  return entries.map((entry) => ({
+    heading: entry.artifact,
+    meta: `${entry.count} kontroller · ${entry.months_count} måneder · ${entry.slips_count} sedler`,
+    detail: entry.unlocks,
+  }));
+}
+
+function refusedItems(
+  entries: CaseSheetRefused[],
+): Array<{ heading: string; meta: string; detail?: string | null }> {
+  return entries.map((entry) => ({
+    heading: entry.title ?? entry.family ?? "Afvist kontrol",
+    meta: `${entry.count} kontroller${
+      entry.months_count != null ? ` · ${entry.months_count} måneder` : ""
+    }${entry.slips_count != null ? ` · ${entry.slips_count} sedler` : ""}`,
+  }));
 }
 
 function SummaryCard({
@@ -294,6 +498,15 @@ export function ReportOverview({
               title: finding.title,
               months: finding.months,
               totalKr: finding.total_kr,
+              note:
+                [
+                  finding.months_kr_undetermined
+                    ? `${finding.months_kr_undetermined} måneder uden fastsat beløb`
+                    : null,
+                  finding.limitation_flag ? "berørt af forældelsesfrist" : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ") || null,
             }))}
             onSelect={onSelect}
             reports={reports}
@@ -314,41 +527,67 @@ export function ReportOverview({
             title="Mulige krav — kræver dokumentation"
             tone="needs"
           />
+          {caseSheet.possible_claims.mutual_exclusion_note ? (
+            <p className="px-1 text-[11px] leading-relaxed text-muted-foreground">
+              {caseSheet.possible_claims.mutual_exclusion_note}
+              {caseSheet.possible_claims.excluded_by_mutual_exclusion_kr != null
+                ? ` (${amount(caseSheet.possible_claims.excluded_by_mutual_exclusion_kr)} udeladt)`
+                : ""}
+            </p>
+          ) : null}
+          {caseSheet.claims_ledger ? (
+            <ClaimsLedgerSection ledger={caseSheet.claims_ledger} />
+          ) : null}
+          {caseSheet.step_timing?.length ? (
+            <StepTimingSection steps={caseSheet.step_timing} />
+          ) : null}
         </div>
 
-        <section className="paper overflow-hidden rounded-xl" aria-labelledby="input-title">
-          <div className="border-b border-border px-4 py-3">
-            <h2 className="text-[14px] font-semibold text-foreground" id="input-title">
-              Næste materiale
-            </h2>
-          </div>
-          {visibleInputs.length > 0 ? (
-            <ol>
-              {visibleInputs.map((input, index) => (
-                <li
-                  className="flex items-start gap-3 border-b border-border px-4 py-3 last:border-0"
-                  key={`${input.artifact}:${index}`}
-                >
-                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-needs-soft text-[11px] font-bold text-needs">
-                    {index + 1}
-                  </span>
-                  <span className="min-w-0">
-                    <strong className="block text-[12px] font-semibold text-foreground">
-                      {input.artifact}
-                    </strong>
-                    <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">
-                      {input.unlocks}
+        <div className="space-y-5">
+          <section className="paper overflow-hidden rounded-xl" aria-labelledby="input-title">
+            <div className="border-b border-border px-4 py-3">
+              <h2 className="text-[14px] font-semibold text-foreground" id="input-title">
+                Næste materiale
+              </h2>
+            </div>
+            {visibleInputs.length > 0 ? (
+              <ol>
+                {visibleInputs.map((input, index) => (
+                  <li
+                    className="flex items-start gap-3 border-b border-border px-4 py-3 last:border-0"
+                    key={`${input.artifact}:${index}`}
+                  >
+                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-needs-soft text-[11px] font-bold text-needs">
+                      {index + 1}
                     </span>
-                  </span>
-                </li>
-              ))}
-            </ol>
-          ) : (
-            <p className="px-4 py-5 text-[13px] text-muted-foreground">
-              Der efterspørges ikke yderligere materiale.
-            </p>
-          )}
-        </section>
+                    <span className="min-w-0">
+                      <strong className="block text-[12px] font-semibold text-foreground">
+                        {input.artifact}
+                      </strong>
+                      <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">
+                        {input.unlocks}
+                      </span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="px-4 py-5 text-[13px] text-muted-foreground">
+                Der efterspørges ikke yderligere materiale.
+              </p>
+            )}
+          </section>
+          <ReservationList
+            id="forbehold-title"
+            items={reservationItems(caseSheet.forbehold ?? [])}
+            title="Forbehold"
+          />
+          <ReservationList
+            id="refused-title"
+            items={refusedItems(caseSheet.refused ?? [])}
+            title="Afviste kontroller"
+          />
+        </div>
       </div>
     </div>
   );

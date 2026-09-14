@@ -70,6 +70,7 @@ const FACT_SECTIONS: Array<[keyof Check, string]> = [
   ["pension_basis_facts", "Pensionsgrundlag"],
   ["trin_facts", "Løntrin"],
   ["rounding_facts", "Afrunding"],
+  ["norm_basis", "Timegrundlag (norm)"],
 ];
 
 export type EvidenceQueueNav = {
@@ -160,6 +161,23 @@ export function EvidenceSheet({
           {check.superseded?.length ? (
             <p className="rounded-md border border-border bg-muted/35 px-3 py-2 text-[12px] text-muted-foreground">
               Denne kontrol erstatter: <span className="num">{check.superseded.join(", ")}</span>
+            </p>
+          ) : null}
+          {check.superseded_by ? (
+            <p className="rounded-md border border-forbehold/30 bg-forbehold-soft px-3 py-2 text-[12px] text-muted-foreground">
+              Denne kontrol er afløst af en senere seddel
+              {check.superseded_by.slip_key ? (
+                <>
+                  {" "}
+                  (<span className="num">{check.superseded_by.slip_key}</span>)
+                </>
+              ) : null}
+              {check.superseded_by.note ? ` — ${check.superseded_by.note}` : ""}
+            </p>
+          ) : null}
+          {check.grouped_under ? (
+            <p className="rounded-md border border-border bg-muted/35 px-3 py-2 text-[12px] text-muted-foreground">
+              Hører under kontrollen: <span className="num">{check.grouped_under}</span>
             </p>
           ) : null}
           {check.note ? (

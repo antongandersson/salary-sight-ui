@@ -7,6 +7,7 @@ function kindLabel(kind: string): string {
   const labels: Record<string, string> = {
     payslip: "Lønseddel",
     contract: "Kontrakt",
+    satsberegning: "Satstrin",
     unknown: "Ukendt dokument",
   };
   return labels[kind.toLowerCase()] ?? kind;
@@ -52,12 +53,16 @@ export function SourceProof({
   const basis = caseSheet
     ? [
         ["Ansættelsesform", caseSheet.grundlag.employment_type],
+        ["Personalegruppe", caseSheet.grundlag.staff_group],
         ["Uddannelsesår", caseSheet.grundlag.elevaar],
         ["Ugentlig norm", caseSheet.grundlag.timer_pr_uge],
         ["Aftalestart", caseSheet.grundlag.contract_start_date],
+        ["Grundforløb bestået", caseSheet.grundlag.grundforloeb_bestaaet],
+        ["Satsberegningens dato", caseSheet.grundlag.satsberegning_dato],
         ["Dækning", caseSheet.grundlag.coverage],
       ].filter((item) => item[1] != null)
     : [];
+  const coverageChecks = caseSheet?.coverage_checks ?? [];
   const ruleSources = caseSheet
     ? caseSheet.findings
         .filter((finding) => finding.source_location || finding.rule_id)
@@ -195,6 +200,36 @@ export function SourceProof({
               </div>
             ))}
           </div>
+
+          {coverageChecks.length > 0 ? (
+            <div className="mt-4">
+              <h3 className="text-[13px] font-semibold text-foreground">Sagens dækning</h3>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                Kontroller på sagsniveau fra case-sheetet.
+              </p>
+              <div className="mt-2 divide-y divide-border border-y border-border">
+                {coverageChecks.map((check, index) => (
+                  <div className="py-3" key={String(check["check_id"] ?? index)}>
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="min-w-0 text-[12px] font-semibold text-foreground">
+                        {String(check["title"] ?? check["check_id"] ?? "Kontrol")}
+                      </p>
+                      {typeof check["terminal"] === "string" ? (
+                        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                          {check["terminal"]}
+                        </span>
+                      ) : null}
+                    </div>
+                    {typeof check["note"] === "string" && check["note"] ? (
+                      <p className="mt-1 whitespace-pre-line text-[11px] leading-relaxed text-muted-foreground">
+                        {check["note"]}
+                      </p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           {remainingDocuments.length > 0 ? (
             <details className="mt-3 text-[11px] text-muted-foreground">

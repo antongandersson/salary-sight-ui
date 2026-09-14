@@ -100,7 +100,24 @@ function GroupSection({
                     onClick={() => onOpen(item)}
                     type="button"
                   >
-                    <span className="text-[13px] font-semibold">{periodShort(item.period)}</span>
+                    <span className="min-w-0">
+                      <span className="block text-[13px] font-semibold">
+                        {periodShort(item.period)}
+                        {item.olderThanLimitation ? (
+                          <span className="ml-2 rounded-full bg-forbehold-soft px-1.5 py-0.5 text-[10px] font-semibold text-forbehold">
+                            ældre end forældelsesfrist
+                          </span>
+                        ) : null}
+                      </span>
+                      {item.expected != null || item.printed != null ? (
+                        <span className="num block text-[11px] text-muted-foreground">
+                          {item.expected != null ? `forventet ${kr(item.expected)}` : ""}
+                          {item.expected != null && item.printed != null ? " · " : ""}
+                          {item.printed != null ? `trykt ${kr(item.printed)}` : ""}
+                          {item.lineDescription ? ` · ${item.lineDescription}` : ""}
+                        </span>
+                      ) : null}
+                    </span>
                     <span className="flex items-center gap-2">
                       {item.kr != null ? (
                         <span className="num text-[13px] font-semibold">{kr(item.kr)} kr</span>
