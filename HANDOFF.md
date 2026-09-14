@@ -1,23 +1,115 @@
 # PayTjek frontend — implementeringshandoff
 
-Senest opdateret: 9. september 2026 (revideret samme dag: datakomplethed + gennemgangs-flow)
+Senest opdateret: 14. september 2026 (fuldt sessions-handoff, afløser tillægget fra 9. september)
 
-## Tillæg 9. september 2026 — datakomplethed og gennemgang
+## Sessions-handoff 9.–11. september 2026
 
-Efterfølgende etape (branch `claude/understand-repo-04223d`) har ændret følgende:
+Alt arbejde ligger på branchen **`claude/understand-repo-04223d`**, pushet til
+`https://github.com/antongandersson/salary-sight-ui.git`. Branchen indeholder hele
+codex-etapen (fast-forward fra `codex/middleware-integration`, hvis ukommitterede
+arbejdstræ blev committet som `b30cba4`) plus 12 nye commits (`935451f`…`a8d2bcb`).
+Arbejdstræet er rent. Der er **ikke** oprettet PR til `main` — det er en åben beslutning
+(merge til main synker til Lovable).
 
-- **Intet API-data skæres væk.** Sagsoversigtens 4-styks-loft på fund/materiale er fjernet;
-  arbejdsbordet viser nu også saldolinjer (sektionen **Saldi**) og PARSE_DROPPED i foldbar liste;
-  kontroller uden linjetilknytning har fået indgangen **Hele lønsedlen**; alle regelkilder vises i
-  **Grundlag & kilder**.
-- **Ny fane: Gennemgang.** Alle måneds-referencer fra case-sheetets fund og mulige krav i én
-  arbejdsliste (`src/lib/review-queue.ts`, `ReviewQueue.tsx`) med lokal gennemgået-markering
-  (ikke persisteret) og Forrige/Næste-navigation i bevisarket.
-- **Mulige krav er klikbare** på sagsoversigten, og fund/krav har måneds-chips til hver berørt
-  periode (ikke kun første måned).
-- **Stale-fallback.** Er alle rapporter i indekset markeret stale, vises de alligevel med badgen
-  **Forældet generation** (samme for stale case-sheet) i stedet for en uåbnelig sag. Set i praksis:
-  demo-middleware bumpede generation midt på dagen, hvorefter DM-C1 ellers ikke kunne åbnes.
+### 1. Datakomplethed — intet API-data skæres væk (`935451f`)
+
+- Sagsoversigtens 4-styks-loft på fund/materiale fjernet; alle vises.
+- Arbejdsbordet viser saldolinjer i egen **Saldi**-sektion og PARSE_DROPPED i foldbar liste
+  (`partitionLines` i `PayslipWorkspace.tsx`).
+- Kontroller uden linjetilknytning har indgangen **Hele lønsedlen** (`slipLevelChecks`).
+- Alle regelkilder vises i **Grundlag & kilder** (før kun 3).
+
+### 2. Gennemgangs-flow (`9c3078c`)
+
+- Ny fane **Gennemgang**: alle måneds-referencer fra case-sheetets fund + mulige krav i én
+  arbejdsliste (`src/lib/review-queue.ts`, `ReviewQueue.tsx`), grupperet pr. familie, med
+  fremdriftsbjælke og lokal gennemgået-markering (IKKE persisteret — kun UI-tilstand).
+- Bevisarket har kø-navigation: **Forrige / Gennemgået + næste / Næste** (`EvidenceQueueNav`).
+- Sagsoversigten: **Mulige krav** er en klikbar liste som fundene; fund/krav har måneds-chips
+  til hver berørt periode (ikke kun første måned).
+- **Stale-fallback** (`readyReports`): er ALLE rapporter markeret stale, vises de alligevel
+  med badgen **Forældet generation** (samme for stale case-sheet) i stedet for en uåbnelig sag.
+
+### 3. UI-feedbackrunde (`9580b3a`, `675ace1`, `a125f52`)
+
+- **Register-fanen er slettet** (redundant med Gennemgang + sagsoversigt).
+- Kontrol-vælgeren i højre rude er en **liste med titel + statusprik** (afvigelser øverst,
+  OK nederst) i stedet for anonyme status-chips.
+- Lange middleware-regnestykker **foldes efter 8 linjer** med "Vis hele regnestykket".
+- Vigtig lære: kontroller må IKKE optræde som rækker i lønpostlisten (blev prøvet og rullet
+  tilbage på brugerens feedback). Lønpostlisten indeholder kun rigtige linjer plus én
+  "Hele lønsedlen"-række, hvis undertekst opsummerer indholdet
+  ("2 afvigelser med beløb · 10 øvrige kontroller", `slipSummary`).
+
+### 4. Typografi og navigation (`7b98ef0`, `deefa65`)
+
+- Alle tekststørrelser ét trin op (9→10 … 13→14 px) i rapport- og upload-komponenter.
+- **Perioderail grupperet pr. år** med fold-ud (andre år foldes ved 8+ rapporter) og antal
+  fund/krav som tal pr. periode og pr. år (`PeriodRail.tsx`).
+- **Søgefilter i lønpostlisten** ("3 af 31 poster").
+
+### 5. Nyt rapportformat september 2026 (`784743f`, `6bd7de5`)
+
+Backend har opdateret rapportformatet (`cycle11-raw-verification-report-v1`):
+
+- Nye check-felter: `superseded` (id'er på kontroller denne erstatter), `claim_axis`, `basis`,
+  `note_source`/`title_source` samt faktabundterne `pension_basis_facts`, `trin_facts`,
+  `rounding_facts`. Alle typer opdateret i `src/lib/report.ts`.
+- `questions` er FJERNET fra rapporten (nu optional i typen; kun ubrugt legacy `SideRail`
+  brugte det). Nyt topniveau: `case_sheet_pointers`, `provenance_facts`.
+- Bevisarket viser faktabundterne som **"Faktagrundlag — Pensionsgrundlag/Løntrin/Afrunding"**
+  (generisk nøgle/værdi-rendering, `FactValue`), **sammenfoldet som standard** — løntrins-
+  kartoteket gjorde ellers arket ~13.000px højt. Plus "Denne kontrol erstatter: <id>"-note.
+
+### 6. Railway-deploy med login (`b9927b8`, `a8d2bcb`)
+
+- **URL: https://paytjek-frontend-production.up.railway.app** — projekt `paytjek-frontend`
+  (id `4b1e3194-a39c-458d-94ae-fcbd9dc6c364`), konto antongandersson@gmail.com.
+- Login er **HTTP Basic Auth** i `src/server.ts`, aktiv kun når `PAYTJEK_USER` /
+  `PAYTJEK_PASSWORD` er sat (Railway-variabler; bruger `metal`, kodeord i Railway-dashboardet).
+  Lokalt og på Lovable er gaten inaktiv. Skift kodeord:
+  `railway variables --service paytjek-frontend --set "PAYTJEK_PASSWORD=…"` + redeploy.
+- Build-detalje: repoets default nitro-preset er `cloudflare-module` (Lovable). Railway-servicen
+  har variablen `NITRO_PRESET=node-server`, og `package.json` har fået
+  `"start": "bun .output/server/index.mjs"`. OBS: Railways railpack-builder **ignorerede
+  `railway.json`** — variablen + start-scriptet er det, der virker.
+- Kun UI'et er bag login; API-kald går stadig direkte fra browseren til demo-middleware.
+
+### 7. Backend-fund gjort i sessionen (skal meldes til middleware-teamet)
+
+1. **Genberegnings-storm / stale-flag der aldrig ryddes:** GET på case-sheet/rapporter for en
+   stale sag enqueuer en fuld re-render af alle sagens rapporter, men renderingen markerer
+   aldrig sagen frisk igen (DM-C1 gik generation 36→67 på 14 min ved almindelige sideåbninger).
+   Gentagne opslag oversvømmer arbejdskøen og gjorde 9/9 brugerens upload ekstremt langsom
+   (jobs i QUEUED i minutter; reproduceret med curl uden om frontenden).
+   Konsekvens i UI: badgen "Forældet generation" står permanent på ramte sager.
+2. **Parser-problem lokaliseret:** de nyeste lønsedler i flere sager har uafkodede rækker
+   (PARSE_DROPPED, `amount_unread`), bl.a. selve arbejdsgiverpensions-linjen — det udløser
+   forbeholdet "Manglende bidrag — pension — uafkodede rækker på sedlen" fra maj 2026 og frem.
+   Bekræftet som reelt backend-/dokumentkvalitetsproblem, ikke en frontendfejl.
+
+### 8. Åbne beslutninger og næste skridt
+
+1. **Støj-oprydning (foreslået, IKKE godkendt endnu):** brug checkens `section`-felt —
+   "Hele lønsedlen" viser kun `slip_level`; `coverage`- og linjeløse `cross_slip`-kontroller
+   flyttes til Grundlag & kilder som "Sagens dækning" (vist én gang i stedet for pr. seddel);
+   "N markeret"-tælleren splittes i "X afvigelser · Y forbehold". `visibility`-feltet bruges
+   bevidst IKKE til dette (det er medlem/konsulent-skel; arbejdsbordet viser alle kontroller —
+   afklaret med brugeren, behold).
+2. PR/merge til `main` (= Lovable-sync) er ikke besluttet.
+3. Etape 4 fra planen: persistens af gennemgangs-markeringer (kræver sagssystem-endpoint),
+   sikker visning af original-PDF, rigtig autentificering, samt backend-fejlmeldingerne ovenfor.
+4. Brugertest med 2–3 lønkonsulenter anbefales stadig.
+
+### Praktisk
+
+- Dev-server: `.claude/launch.json` har konfigurationen `paytjek-dev` (port 5199);
+  `bun run dev -- --host 127.0.0.1 --port 5199`. Genåbn en sag med
+  `http://localhost:5199/?case_id=<id>&period=<YYYY-MM>`.
+- Demo-API'et har `GET /api/v1/cases` (udokumenteret i frontendklienten) — praktisk til at
+  finde case-id'er. Vær varsom med at genindlæse store stale sager (jf. punkt 7.1).
+- Verifikation ved handoff: `bunx tsc --noEmit`, `bun test` (15 tests), `bun run lint`
+  (0 fejl, 8 kendte Fast Refresh-advarsler), `bun run build` — alle bestået.
 
 ## Kort fortalt
 
@@ -36,14 +128,14 @@ kontrolstatus, regnestykker, fund, spørgsmål og brevgrundlag.
 
 ```text
 Projekt: /Users/leifandersson/Projects/salary-sight-ui-codex
-Branch:  codex/middleware-integration
-HEAD:    e678dac docs: add project handoff
+Branch:  claude/understand-repo-04223d (pushet; indeholder hele codex/middleware-integration)
 Remote:  https://github.com/antongandersson/salary-sight-ui.git
+Deploy:  https://paytjek-frontend-production.up.railway.app (Basic Auth, se sessions-handoff pkt. 6)
 ```
 
-De seneste frontendændringer er ikke committet. Arbejdstræet indeholder både den aktuelle
-rapportetape og tidligere middleware-/uploadændringer. Gennemgå derfor diffen og stage kun de
-tilsigtede filer før commit.
+Arbejdstræet er rent, og alt er committet og pushet. Se sessions-handoffet øverst for
+commit-oversigten. (Historisk note: codex-etapens ukommitterede arbejde blev reddet i
+`b30cba4` den 9. september.)
 
 Projektet er koblet til Lovable. Publiceret historik må ikke force-pushes, rebaseres, amend'es eller
 squashes, hvis ændringen allerede er pushed. Almindelige nye commits kan synkroniseres tilbage til
