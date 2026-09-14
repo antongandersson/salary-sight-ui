@@ -35,6 +35,65 @@ function periodCounts(
 // Fold kun årene sammen når listen er lang; små sager viser alt.
 const FOLD_THRESHOLD = 8;
 
+// Kompakt vandret variant til smalle skærme, hvor den fulde rail ville
+// skubbe lønposterne langt ned. Samme data, samme farvekoder.
+export function PeriodStrip({
+  caseSheet,
+  entries,
+  loading,
+  onSelect,
+  selectedKey,
+}: {
+  caseSheet: CaseSheet | null;
+  entries: ReportIndexEntry[];
+  loading: boolean;
+  onSelect: (key: string) => void;
+  selectedKey: string;
+}) {
+  return (
+    <nav aria-label="Lønperioder" className="border-b border-border">
+      <div className="flex items-center gap-2 overflow-x-auto px-3 py-2.5">
+        <span className="label-caps shrink-0">Perioder</span>
+        {entries.map((entry) => {
+          const key = reportKey(entry);
+          const selected = key === selectedKey;
+          const counts = periodCounts(caseSheet, entry);
+          return (
+            <button
+              aria-label={`${periodLabel(entry.period)}${entry.is_revision ? ", revision" : ""}`}
+              aria-pressed={selected}
+              className={`num flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] transition-colors ${
+                selected
+                  ? "border-accent bg-accent/8 font-semibold text-foreground"
+                  : "border-border bg-card text-muted-foreground hover:text-foreground"
+              }`}
+              disabled={loading}
+              key={key}
+              onClick={() => onSelect(key)}
+              type="button"
+            >
+              <span
+                className={`size-1.5 shrink-0 rounded-full ${
+                  counts.findings > 0
+                    ? "bg-mismatch"
+                    : counts.claims > 0
+                      ? "bg-needs"
+                      : caseSheet
+                        ? "bg-ok"
+                        : "bg-muted-foreground/35"
+                }`}
+                aria-hidden="true"
+              />
+              {shortPeriod(entry.period)}
+              {entry.is_revision ? <span className="font-semibold text-accent">rev.</span> : null}
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
 export function PeriodRail({
   caseSheet,
   contained = false,

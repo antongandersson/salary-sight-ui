@@ -14,7 +14,7 @@ import {
   type SlipLine,
   type Terminal,
 } from "@/lib/report";
-import { PeriodRail } from "./PeriodRail";
+import { PeriodRail, PeriodStrip } from "./PeriodRail";
 import { StatusPill } from "./StatusPill";
 
 const STATUS_BAR: Record<Terminal, string> = {
@@ -211,7 +211,9 @@ export function PayslipWorkspace({
   }
 
   return (
-    <section className="paper overflow-hidden rounded-xl" aria-label="Lønseddelarbejdsbord">
+    // overflow-clip (ikke -hidden): et scroll-container-forfader ville slå
+    // beregningspanelets sticky bottom-sheet fra på smalle skærme.
+    <section className="paper overflow-clip rounded-xl" aria-label="Lønseddelarbejdsbord">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
         <div>
           <p className="label-caps text-accent">Lønseddel + kontrol</p>
@@ -235,17 +237,28 @@ export function PayslipWorkspace({
         </div>
       </header>
 
-      <div className="grid min-h-[620px] xl:grid-cols-[150px_minmax(390px,1.05fr)_minmax(330px,.95fr)]">
-        <PeriodRail
-          caseSheet={caseSheet}
-          contained
-          entries={entries}
-          loading={loading}
-          onSelect={onSelectReport}
-          selectedKey={selectedReportKey}
-        />
+      <div className="grid min-h-[620px] grid-cols-1 lg:grid-cols-[136px_minmax(0,1.05fr)_minmax(300px,.95fr)]">
+        <div className="hidden lg:block">
+          <PeriodRail
+            caseSheet={caseSheet}
+            contained
+            entries={entries}
+            loading={loading}
+            onSelect={onSelectReport}
+            selectedKey={selectedReportKey}
+          />
+        </div>
+        <div className="lg:hidden">
+          <PeriodStrip
+            caseSheet={caseSheet}
+            entries={entries}
+            loading={loading}
+            onSelect={onSelectReport}
+            selectedKey={selectedReportKey}
+          />
+        </div>
 
-        <div className="border-t border-border xl:border-l xl:border-t-0">
+        <div className="border-t border-border lg:border-l lg:border-t-0">
           <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
             <div>
               <h2 className="text-[13px] font-semibold text-foreground">Lønposter</h2>
@@ -349,8 +362,10 @@ export function PayslipWorkspace({
           )}
         </div>
 
+        {/* Under lg: fastgjort bund-panel, så regnestykket er synligt med det
+            samme, når en lønpost vælges i den stakkede visning. */}
         <aside
-          className="border-t border-border bg-muted/15 xl:border-l xl:border-t-0"
+          className="sticky bottom-0 z-10 max-h-[45vh] overflow-y-auto border-t border-border bg-card shadow-[0_-10px_24px_-16px_rgb(0_0_0/0.35)] lg:static lg:z-auto lg:max-h-none lg:overflow-visible lg:border-l lg:border-t-0 lg:bg-muted/15 lg:shadow-none"
           aria-live="polite"
         >
           <div className="border-b border-border px-4 py-3">
