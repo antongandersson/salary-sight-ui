@@ -38,6 +38,7 @@ function kindLabel(kind: string | undefined): string {
   const labels: Record<string, string> = {
     payslip: "Lønseddel",
     contract: "Kontrakt",
+    satsberegning: "Satstrin",
     unknown: "Ukendt dokument",
   };
   return kind ? (labels[kind.toLowerCase()] ?? kind) : "Klassificeres";

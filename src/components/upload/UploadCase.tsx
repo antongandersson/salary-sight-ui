@@ -1,5 +1,13 @@
 import { useRef, useState, type ChangeEvent, type DragEvent, type FormEvent } from "react";
-import { BriefcaseBusiness, FileJson2, FileText, ShieldCheck, UploadCloud, X } from "lucide-react";
+import {
+  BriefcaseBusiness,
+  FileJson2,
+  FileText,
+  ListOrdered,
+  ShieldCheck,
+  UploadCloud,
+  X,
+} from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -68,6 +76,7 @@ type DocumentPickerProps = {
   label: string;
   onFiles: (files: File[]) => void;
   optional?: boolean;
+  pickLabel?: string;
 };
 
 function DocumentPicker({
@@ -80,6 +89,7 @@ function DocumentPicker({
   label,
   onFiles,
   optional = false,
+  pickLabel,
 }: DocumentPickerProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
@@ -147,7 +157,7 @@ function DocumentPicker({
           type="button"
           variant="outline"
         >
-          {acceptMultiple ? "Vælg lønsedler" : "Vælg kontrakt"}
+          {pickLabel ?? (acceptMultiple ? "Vælg lønsedler" : "Vælg kontrakt")}
         </Button>
         <input
           accept="application/pdf,.pdf"
@@ -316,6 +326,7 @@ export type UploadSubmission = {
   birthDate: string | null;
   payslips: File[];
   contract: File | null;
+  satsberegning: File | null;
   memberContext: MemberContextUpload | null;
 };
 
@@ -333,25 +344,36 @@ export function UploadCase({
   const [birthDate, setBirthDate] = useState("");
   const [payslips, setPayslips] = useState<File[]>([]);
   const [contractFiles, setContractFiles] = useState<File[]>([]);
+  const [satsberegningFiles, setSatsberegningFiles] = useState<File[]>([]);
   const [memberContext, setMemberContext] = useState<MemberContextUpload | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  function validateDocuments(nextPayslips: readonly File[], nextContract: readonly File[]) {
-    const allFiles = [...nextPayslips, ...nextContract];
+  function validateDocuments(
+    nextPayslips: readonly File[],
+    nextContract: readonly File[],
+    nextSatsberegning: readonly File[],
+  ) {
+    const allFiles = [...nextPayslips, ...nextContract, ...nextSatsberegning];
     if (allFiles.length > MAX_FILES) return "Du kan højst uploade 30 PDF-filer ad gangen.";
     return allFiles.map(validatePdf).find((result) => result !== null) ?? null;
   }
 
   function updatePayslips(next: File[]) {
-    const nextError = validateDocuments(next, contractFiles);
+    const nextError = validateDocuments(next, contractFiles, satsberegningFiles);
     setValidationError(nextError);
     if (nextError === null) setPayslips(next);
   }
 
   function updateContract(next: File[]) {
-    const nextError = validateDocuments(payslips, next);
+    const nextError = validateDocuments(payslips, next, satsberegningFiles);
     setValidationError(nextError);
     if (nextError === null) setContractFiles(next);
+  }
+
+  function updateSatsberegning(next: File[]) {
+    const nextError = validateDocuments(payslips, contractFiles, next);
+    setValidationError(nextError);
+    if (nextError === null) setSatsberegningFiles(next);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -372,7 +394,7 @@ export function UploadCase({
       setValidationError("Vælg enten kontrakt-PDF eller member context — ikke begge dele.");
       return;
     }
-    const nextError = validateDocuments(payslips, contractFiles);
+    const nextError = validateDocuments(payslips, contractFiles, satsberegningFiles);
     if (nextError !== null) {
       setValidationError(nextError);
       return;
@@ -384,6 +406,7 @@ export function UploadCase({
       birthDate: birthDate || null,
       payslips,
       contract: contractFiles[0] ?? null,
+      satsberegning: satsberegningFiles[0] ?? null,
       memberContext,
     });
   }
@@ -500,6 +523,19 @@ export function UploadCase({
                 onError={setValidationError}
               />
             </div>
+
+            <DocumentPicker
+              acceptMultiple={false}
+              busy={busy}
+              description="Dansk Metals satstrin-dokument (løn som lærling). En ny upload erstatter den tidligere, og sagens kontroller genkøres."
+              files={satsberegningFiles}
+              icon={ListOrdered}
+              id="satsberegning"
+              label="Satstrin"
+              onFiles={updateSatsberegning}
+              optional
+              pickLabel="Vælg satstrin"
+            />
 
             <p className="text-[12px] text-muted-foreground">
               PDF · højst 30 dokumenter samlet · 15 MB pr. dokument · member context højst 1 MB

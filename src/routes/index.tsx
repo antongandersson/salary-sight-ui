@@ -26,9 +26,10 @@ import {
   putCaseContext,
   uploadBatch,
   uploadContract,
+  uploadSatsberegning,
   type BatchStatus,
   type CaseSheetResult,
-  type ContractUploadResponse,
+  type DedicatedUploadResponse,
   type DocumentSummary,
   type LetterBasis,
   type ReportIndexEntry,
@@ -127,7 +128,9 @@ function PaytjekFlow() {
   const [error, setError] = useState<string | null>(null);
   const [caseId, setCaseId] = useState("");
   const [batchId, setBatchId] = useState("");
-  const [contractUpload, setContractUpload] = useState<ContractUploadResponse | null>(null);
+  // Uploads via de dedikerede én-PDF-endpoints (kontrakt, satstrin); deres
+  // jobs polles ved siden af lønseddel-batchen.
+  const [extraUploads, setExtraUploads] = useState<DedicatedUploadResponse[]>([]);
   const [caseLabel, setCaseLabel] = useState("");
   const [batchStatus, setBatchStatus] = useState<BatchStatus | null>(null);
   const [report, setReport] = useState<Report | null>(null);
@@ -218,15 +221,20 @@ function PaytjekFlow() {
         setContextRevision(contextResult.revision);
       }
       setBirthDate(submission.birthDate);
-      const [batch, uploadedContract] = await Promise.all([
+      const dedicated: Promise<DedicatedUploadResponse>[] = [];
+      if (submission.contract) {
+        dedicated.push(uploadContract(createdCase.case_id, submission.contract));
+      }
+      if (submission.satsberegning) {
+        dedicated.push(uploadSatsberegning(createdCase.case_id, submission.satsberegning));
+      }
+      const [batch, uploaded] = await Promise.all([
         uploadBatch(createdCase.case_id, submission.payslips),
-        submission.contract
-          ? uploadContract(createdCase.case_id, submission.contract)
-          : Promise.resolve(null),
+        Promise.all(dedicated),
       ]);
       setCaseId(createdCase.case_id);
       setBatchId(batch.batch_id);
-      setContractUpload(uploadedContract);
+      setExtraUploads(uploaded);
       setCaseLabel(createdCase.label);
       setBatchStatus({
         batch_id: batch.batch_id,
@@ -240,18 +248,14 @@ function PaytjekFlow() {
             duplicate: job.duplicate,
             state: "QUEUED",
           })),
-          ...(uploadedContract
-            ? [
-                {
-                  job_id: uploadedContract.job_id,
-                  filename: uploadedContract.filename,
-                  kind: uploadedContract.kind,
-                  expected_kind: "contract" as const,
-                  duplicate: uploadedContract.duplicate,
-                  state: "QUEUED",
-                },
-              ]
-            : []),
+          ...uploaded.map((upload) => ({
+            job_id: upload.job_id,
+            filename: upload.filename,
+            kind: upload.kind,
+            expected_kind: upload.kind,
+            duplicate: upload.duplicate,
+            state: "QUEUED",
+          })),
         ],
       });
       setPhase("processing");
@@ -270,37 +274,36 @@ function PaytjekFlow() {
 
     async function poll() {
       try {
-        const [status, contractStatus] = await Promise.all([
+        const [status, extraStatuses] = await Promise.all([
           getBatchStatus(caseId, batchId, controller.signal),
-          contractUpload
-            ? getJobStatus(contractUpload.job_id, controller.signal)
-            : Promise.resolve(null),
+          Promise.all(extraUploads.map((upload) => getJobStatus(upload.job_id, controller.signal))),
         ]);
         if (controller.signal.aborted) return;
-        const contractJob =
-          contractUpload && contractStatus
-            ? {
-                job_id: contractStatus.job_id,
-                filename: contractUpload.filename,
-                // The dedicated contract endpoint declares the document kind. The
-                // job endpoint is polled for processing state, not reclassification.
-                kind: contractUpload.kind,
-                expected_kind: "contract" as const,
-                duplicate: contractUpload.duplicate,
-                state: contractStatus.state,
-                ...(contractStatus.period !== undefined ? { period: contractStatus.period } : {}),
-                ...(contractStatus.error !== undefined ? { error: contractStatus.error } : {}),
-              }
-            : null;
+        const extraJobs = extraUploads.map((upload, index) => {
+          const jobStatus = extraStatuses[index]!;
+          return {
+            job_id: jobStatus.job_id,
+            filename: upload.filename,
+            // The dedicated endpoints declare the document kind. The job
+            // endpoint is polled for processing state, not reclassification.
+            kind: upload.kind,
+            expected_kind: upload.kind,
+            duplicate: upload.duplicate,
+            state: jobStatus.state,
+            ...(jobStatus.period !== undefined ? { period: jobStatus.period } : {}),
+            ...(jobStatus.error !== undefined ? { error: jobStatus.error } : {}),
+          };
+        });
         const allJobsComplete =
           status.state.toLowerCase() === "complete" &&
-          (contractJob === null || isTerminalJobState(contractJob.state));
-        const currentJobs = [...status.jobs, ...(contractJob === null ? [] : [contractJob])];
+          extraJobs.every((job) => isTerminalJobState(job.state));
+        const currentJobs = [...status.jobs, ...extraJobs];
         setBatchStatus((current) => ({
           ...status,
           state: allJobsComplete ? "complete" : "processing",
           jobs: currentJobs.map((job) => {
-            if (contractJob?.job_id === job.job_id) return contractJob;
+            const extraJob = extraJobs.find((candidate) => candidate.job_id === job.job_id);
+            if (extraJob) return extraJob;
             const existing = current?.jobs.find((candidate) => candidate.job_id === job.job_id);
             return {
               ...job,
@@ -364,7 +367,7 @@ function PaytjekFlow() {
       controller.abort();
       if (timer) clearTimeout(timer);
     };
-  }, [batchId, caseId, contractUpload, error, phase]);
+  }, [batchId, caseId, extraUploads, error, phase]);
 
   async function selectReport(nextKey: string) {
     const entry = reportEntries.find((candidate) => reportKey(candidate) === nextKey);
@@ -400,7 +403,7 @@ function PaytjekFlow() {
     setError(null);
     setCaseId("");
     setBatchId("");
-    setContractUpload(null);
+    setExtraUploads([]);
     setCaseLabel("");
     setBatchStatus(null);
     setReport(null);

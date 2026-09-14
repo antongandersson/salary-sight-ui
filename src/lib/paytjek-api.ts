@@ -5,7 +5,7 @@ const DEFAULT_API_BASE_URL =
   "https://paytjekdemoserviceseb3e8725-paytjek-platform-api.functions.fnc.pl-waw.scw.cloud";
 
 export type AgreementFamily = "IND23" | "IND25";
-export type DocumentKind = "payslip" | "contract" | "unknown";
+export type DocumentKind = "payslip" | "contract" | "satsberegning" | "unknown";
 
 export type BatchJob = {
   job_id: string;
@@ -49,16 +49,18 @@ type RawCreateBatchResponse = {
   }>;
 };
 
-export type ContractUploadResponse = {
+// Svar fra de dedikerede én-PDF-endpoints (kontrakt og satsberegning);
+// endpointet — ikke klassifikationen — afgør dokumenttypen.
+export type DedicatedUploadResponse = {
   batch_id: string;
   job_id: string;
   document_id: string;
   filename: string;
-  kind: "contract";
+  kind: "contract" | "satsberegning";
   duplicate?: boolean | null;
 };
 
-type RawContractUploadResponse = Omit<ContractUploadResponse, "kind"> & {
+type RawDedicatedUploadResponse = Omit<DedicatedUploadResponse, "kind"> & {
   kind?: string;
 };
 
@@ -238,7 +240,9 @@ async function get<T>(path: string, signal?: AbortSignal): Promise<T> {
 
 function documentKind(value: string): DocumentKind {
   const normalized = value.toLowerCase();
-  return normalized === "payslip" || normalized === "contract" ? normalized : "unknown";
+  return normalized === "payslip" || normalized === "contract" || normalized === "satsberegning"
+    ? normalized
+    : "unknown";
 }
 
 export async function createCase(
@@ -277,18 +281,32 @@ export async function uploadBatch(
   };
 }
 
-export async function uploadContract(caseId: string, file: File): Promise<ContractUploadResponse> {
+async function uploadDedicated(
+  caseId: string,
+  endpoint: "contract" | "satsberegning",
+  file: File,
+): Promise<DedicatedUploadResponse> {
   const body = new FormData();
   body.append("file", file, file.name);
 
-  const result = await json<RawContractUploadResponse>(
-    await fetch(`${baseUrl()}/api/v1/cases/${encodeURIComponent(caseId)}/contract`, {
+  const result = await json<RawDedicatedUploadResponse>(
+    await fetch(`${baseUrl()}/api/v1/cases/${encodeURIComponent(caseId)}/${endpoint}`, {
       method: "POST",
       headers: { accept: "application/json" },
       body,
     }),
   );
-  return { ...result, kind: "contract" };
+  return { ...result, kind: endpoint };
+}
+
+export function uploadContract(caseId: string, file: File): Promise<DedicatedUploadResponse> {
+  return uploadDedicated(caseId, "contract", file);
+}
+
+// Dansk Metals satstrin-dokument ("løn som lærling"); en re-upload erstatter
+// den tidligere læsning, og middleware genkører sagens audits.
+export function uploadSatsberegning(caseId: string, file: File): Promise<DedicatedUploadResponse> {
+  return uploadDedicated(caseId, "satsberegning", file);
 }
 
 export async function putCaseContext(
