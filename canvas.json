@@ -1,0 +1,12 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1440, "h": 1200, "title": "Lønsedler — redesign (juni 2026, DM-C1)" }
+  ],
+  "annotations": [
+    { "id": "etape-1", "x": -280, "y": 150, "w": 240, "text": "Etape 1 — Kræver handling\n\nSedlens afvigelser og manglende oplysninger samlet øverst som klikbare rækker. Ét klik vælger lønpost + kontrol. De 31 linjer bliver reference, ikke indgang." },
+    { "id": "etape-2", "x": -280, "y": 480, "w": 240, "text": "Etape 2 — Støj-oprydning\n\nChips i klart sprog (\"2 afvigelser · 2 mangler oplysning · 7 forbehold\") i stedet for \"42 kontroller · 13 markeret\". \"Hele lønsedlen\" viser kun sedlens eget niveau — sagens dækning flyttes til Grundlag & kilder." },
+    { "id": "etape-3", "x": 1500, "y": 150, "w": 240, "text": "Etape 3 — Læsbart regnestykke\n\nForventet / trykt / afvigelse som nøgletal øverst. Regnestykket er samme ordrette middleware-tekst, kun delt i punkter med tallene fremhævet. Ingen omformulering." },
+    { "id": "etape-4", "x": 1500, "y": 480, "w": 240, "text": "Etape 4 — Skimbar lønpostliste\n\nLinjer uden reelt udfald er dæmpede og uden statusfarve. Kun afvigelser (rød) og manglende oplysninger (blå) træder frem. Saldi har eget afsnit." }
+  ],
+  "launch": { "view": "canvas" }
+}

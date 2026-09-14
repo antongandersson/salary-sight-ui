@@ -1,0 +1,365 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif; background: oklch(0.968 0.006 85); color: oklch(0.21 0.012 60); -webkit-font-smoothing: antialiased; }
+    a { color: oklch(0.52 0.22 27); } a:hover { color: oklch(0.45 0.2 27); }
+    .num { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+    .caps { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; color: oklch(0.505 0.012 65); }
+    .paper { background: #fff; border: 1px solid oklch(0.885 0.008 80); box-shadow: 0 1px 0 0 oklch(0.885 0.008 80), 0 8px 24px -18px oklch(0.2 0.03 60 / 0.5); }
+  </style>
+</helmet>
+<div style="width: 1440px; background: oklch(0.968 0.006 85); min-height: 1010px">
+
+  <!-- Topbar -->
+  <div style="border-bottom: 1px solid oklch(0.885 0.008 80); background: oklch(0.986 0.004 85)">
+    <div style="display: flex; align-items: center; gap: 24px; max-width: 1400px; margin: 0 auto; padding: 12px 24px">
+      <div style="display: flex; align-items: baseline; gap: 12px">
+        <span style="font-size: 14px; font-weight: 700; letter-spacing: -0.01em; color: oklch(0.52 0.22 27)">PAYTJEK</span>
+        <span style="font-size: 14px; font-weight: 600">Lønseddelkontrol</span>
+      </div>
+      <div class="num" style="display: flex; align-items: center; gap: 16px; font-size: 13px; color: oklch(0.505 0.012 65)">
+        <span>DM-C1</span>
+        <span>Periode juni 2026</span>
+      </div>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 8px">
+        <span style="border: 1px solid oklch(0.53 0.13 70 / 0.4); background: oklch(0.958 0.035 80); color: oklch(0.53 0.13 70); border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase">Testmiljø</span>
+        <span style="display: inline-flex; align-items: center; gap: 8px; height: 32px; border: 1px solid oklch(0.885 0.008 80); background: #fff; border-radius: 6px; padding: 0 10px; font-size: 13px">juni 2026
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="oklch(0.505 0.012 65)" stroke-width="1.6"><path d="M4 6l4 4 4-4"></path></svg>
+        </span>
+        <span style="display: inline-flex; align-items: center; height: 32px; border: 1px solid oklch(0.885 0.008 80); background: #fff; border-radius: 6px; padding: 0 12px; font-size: 13px; font-weight: 600">Ny sag</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Faner -->
+  <div style="max-width: 1400px; margin: 0 auto; padding: 24px 24px 0">
+    <div class="paper" style="display: flex; align-items: center; gap: 4px; border-radius: 8px; padding: 6px 12px">
+      <span style="padding: 6px 12px; border-radius: 6px; font-size: 14px; font-weight: 600; color: oklch(0.505 0.012 65)">Sagsoversigt</span>
+      <span style="padding: 6px 12px; border-radius: 6px; font-size: 14px; font-weight: 600; color: oklch(0.505 0.012 65)">Gennemgang 19</span>
+      <span style="padding: 6px 12px; border-radius: 6px; font-size: 14px; font-weight: 600; background: oklch(0.28 0.018 60); color: oklch(0.98 0.004 85)">Lønsedler 25</span>
+      <span style="padding: 6px 12px; border-radius: 6px; font-size: 14px; font-weight: 600; color: oklch(0.505 0.012 65)">Spørgsmål 3</span>
+      <span style="padding: 6px 12px; border-radius: 6px; font-size: 14px; font-weight: 600; color: oklch(0.505 0.012 65)">Arbejdsgiverbrev</span>
+      <span style="padding: 6px 12px; border-radius: 6px; font-size: 14px; font-weight: 600; color: oklch(0.505 0.012 65)">Grundlag &amp; kilder</span>
+    </div>
+  </div>
+
+  <!-- Arbejdsbord -->
+  <div style="max-width: 1400px; margin: 0 auto; padding: 20px 24px 32px">
+    <div class="paper" style="border-radius: 12px; overflow: hidden">
+
+      <!-- Sektionshoved: ETAPE 2 — statuschips i klart sprog -->
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid oklch(0.885 0.008 80); padding: 12px 16px">
+        <div>
+          <div class="caps" style="color: oklch(0.52 0.22 27)">Lønseddel + kontrol</div>
+          <div style="font-size: 18px; font-weight: 600; letter-spacing: -0.01em; margin-top: 2px">juni 2026</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600">
+          <span style="border: 1px solid oklch(0.5 0.21 27 / 0.3); background: oklch(0.953 0.028 30); color: oklch(0.5 0.21 27); border-radius: 999px; padding: 4px 10px">2 afvigelser · 700,46 kr</span>
+          <span style="border: 1px solid oklch(0.47 0.13 250 / 0.3); background: oklch(0.955 0.022 250); color: oklch(0.47 0.13 250); border-radius: 999px; padding: 4px 10px">2 mangler oplysning</span>
+          <span style="border: 1px solid oklch(0.53 0.13 70 / 0.35); background: oklch(0.958 0.035 80); color: oklch(0.53 0.13 70); border-radius: 999px; padding: 4px 10px">7 forbehold</span>
+          <span style="border: 1px solid oklch(0.885 0.008 80); background: oklch(0.935 0.006 85 / 0.35); color: oklch(0.505 0.012 65); border-radius: 999px; padding: 4px 10px">31 øvrige i orden</span>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 136px minmax(0, 1fr) 430px">
+
+        <!-- Perioderail -->
+        <div style="border-right: 1px solid oklch(0.885 0.008 80)">
+          <div style="border-bottom: 1px solid oklch(0.885 0.008 80); padding: 12px">
+            <div class="caps">Perioder</div>
+            <div style="font-size: 13px; color: oklch(0.505 0.012 65); margin-top: 4px">25 rapporter</div>
+          </div>
+          <div style="padding: 4px 0">
+            <div style="display: flex; align-items: center; gap: 6px; padding: 6px 12px" class="caps">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6l4 4 4-4"></path></svg>
+              <span class="num">2026</span>
+              <span style="margin-left: auto; font-weight: 400; text-transform: none; letter-spacing: 0">8 fund</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-left: 2px solid oklch(0.52 0.22 27); background: oklch(0.52 0.22 27 / 0.08); font-size: 13px; font-weight: 600">
+              <span style="width: 8px; height: 8px; border-radius: 999px; background: oklch(0.5 0.21 27)"></span>
+              <span class="num" style="flex: 1">06/2026</span>
+              <span class="num" style="font-size: 11px; font-weight: 700; color: oklch(0.5 0.21 27)">2</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-left: 2px solid transparent; font-size: 13px; color: oklch(0.505 0.012 65)">
+              <span style="width: 8px; height: 8px; border-radius: 999px; background: oklch(0.5 0.21 27)"></span>
+              <span class="num" style="flex: 1">05/2026</span>
+              <span class="num" style="font-size: 11px; font-weight: 700; color: oklch(0.5 0.21 27)">2</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-left: 2px solid transparent; font-size: 13px; color: oklch(0.505 0.012 65)">
+              <span style="width: 8px; height: 8px; border-radius: 999px; background: oklch(0.5 0.21 27)"></span>
+              <span class="num" style="flex: 1">04/2026</span>
+              <span class="num" style="font-size: 11px; font-weight: 700; color: oklch(0.5 0.21 27)">2</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-left: 2px solid transparent; font-size: 13px; color: oklch(0.505 0.012 65)">
+              <span style="width: 8px; height: 8px; border-radius: 999px; background: oklch(0.5 0.21 27)"></span>
+              <span class="num" style="flex: 1">03/2026</span>
+              <span class="num" style="font-size: 11px; font-weight: 700; color: oklch(0.5 0.21 27)">2</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-left: 2px solid transparent; font-size: 13px; color: oklch(0.505 0.012 65)">
+              <span style="width: 8px; height: 8px; border-radius: 999px; background: oklch(0.47 0.1 155)"></span>
+              <span class="num" style="flex: 1">02/2026</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-left: 2px solid transparent; font-size: 13px; color: oklch(0.505 0.012 65)">
+              <span style="width: 8px; height: 8px; border-radius: 999px; background: oklch(0.47 0.1 155)"></span>
+              <span class="num" style="flex: 1">01/2026</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; padding: 8px 12px" class="caps">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 4l4 4-4 4"></path></svg>
+              <span class="num">2025</span>
+              <span style="margin-left: auto; font-weight: 400; text-transform: none; letter-spacing: 0">6 fund</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; padding: 8px 12px" class="caps">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 4l4 4-4 4"></path></svg>
+              <span class="num">2024</span>
+              <span style="margin-left: auto; font-weight: 400; text-transform: none; letter-spacing: 0">7 rapp.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Midterkolonne -->
+        <div style="border-right: 1px solid oklch(0.885 0.008 80)">
+
+          <!-- ETAPE 1: Kræver handling -->
+          <div style="border-bottom: 1px solid oklch(0.885 0.008 80); background: oklch(0.953 0.028 30 / 0.35)">
+            <div style="display: flex; align-items: center; gap: 8px; padding: 10px 16px 6px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.5 0.21 27)" stroke-width="2"><path d="M12 9v4"></path><path d="M12 17h.01"></path><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"></path></svg>
+              <span class="caps" style="color: oklch(0.5 0.21 27)">Kræver handling · 4</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 9px 16px; background: oklch(0.52 0.22 27 / 0.08); border-top: 1px solid oklch(0.885 0.008 80)">
+              <span style="width: 4px; height: 28px; border-radius: 999px; background: oklch(0.5 0.21 27)"></span>
+              <span style="flex: 1; min-width: 0">
+                <span style="display: block; font-size: 13px; font-weight: 600">Mindstesats — sats under gulvet</span>
+                <span style="display: block; font-size: 11px; color: oklch(0.505 0.012 65); margin-top: 1px">Normaltimer 1 x sats · forventet 97,30 · trykt 94,00 kr/t</span>
+              </span>
+              <span class="num" style="font-size: 13px; font-weight: 600; color: oklch(0.5 0.21 27); white-space: nowrap">544,50 kr</span>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="oklch(0.52 0.22 27)" stroke-width="1.8"><path d="M6 4l4 4-4 4"></path></svg>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 9px 16px; border-top: 1px solid oklch(0.885 0.008 80)">
+              <span style="width: 4px; height: 28px; border-radius: 999px; background: oklch(0.5 0.21 27)"></span>
+              <span style="flex: 1; min-width: 0">
+                <span style="display: block; font-size: 13px; font-weight: 600">Bidragsprocent — fritvalgskonto (arbejdsgiverbidrag)</span>
+                <span style="display: block; font-size: 11px; color: oklch(0.505 0.012 65); margin-top: 1px">Fritvalg, opsparet · trykt 9,00 % mod overenskomstens 10,00 %</span>
+              </span>
+              <span class="num" style="font-size: 13px; font-weight: 600; color: oklch(0.5 0.21 27); white-space: nowrap">155,96 kr</span>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="oklch(0.505 0.012 65)" stroke-width="1.8"><path d="M6 4l4 4-4 4"></path></svg>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 9px 16px; border-top: 1px solid oklch(0.885 0.008 80)">
+              <span style="width: 4px; height: 28px; border-radius: 999px; background: oklch(0.47 0.13 250)"></span>
+              <span style="flex: 1; min-width: 0">
+                <span style="display: block; font-size: 13px; font-weight: 600">Timer ud over periodens normale kapacitet</span>
+                <span style="display: block; font-size: 11px; color: oklch(0.505 0.012 65); margin-top: 1px">Normaltimer 1 x sats · afventer oplysning om overarbejdstimer</span>
+              </span>
+              <span style="font-size: 11px; font-weight: 600; color: oklch(0.47 0.13 250); white-space: nowrap">Mangler oplysning</span>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="oklch(0.505 0.012 65)" stroke-width="1.8"><path d="M6 4l4 4-4 4"></path></svg>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 9px 16px; border-top: 1px solid oklch(0.885 0.008 80)">
+              <span style="width: 4px; height: 28px; border-radius: 999px; background: oklch(0.47 0.13 250)"></span>
+              <span style="flex: 1; min-width: 0">
+                <span style="display: block; font-size: 13px; font-weight: 600">Trækprocenten kan ikke kontrolleres mod sedlen</span>
+                <span style="display: block; font-size: 11px; color: oklch(0.505 0.012 65); margin-top: 1px">A-skat · afventer skattekortoplysning</span>
+              </span>
+              <span style="font-size: 11px; font-weight: 600; color: oklch(0.47 0.13 250); white-space: nowrap">Mangler oplysning</span>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="oklch(0.505 0.012 65)" stroke-width="1.8"><path d="M6 4l4 4-4 4"></path></svg>
+            </div>
+          </div>
+
+          <!-- Lønpost-header -->
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid oklch(0.885 0.008 80); padding: 10px 16px">
+            <div>
+              <div style="font-size: 13px; font-weight: 600">Lønposter</div>
+              <div style="font-size: 11px; color: oklch(0.505 0.012 65); margin-top: 1px">Alle sedlens linjer — afvigelser er fremhævet</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <span style="display: inline-flex; align-items: center; gap: 6px; height: 28px; border: 1px solid oklch(0.885 0.008 80); background: #fff; border-radius: 6px; padding: 0 8px; font-size: 12px; color: oklch(0.505 0.012 65); width: 130px">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+                Filtrér…
+              </span>
+              <span class="num" style="font-size: 11px; color: oklch(0.505 0.012 65); white-space: nowrap">31 poster</span>
+            </div>
+          </div>
+
+          <!-- ETAPE 2: Hele lønsedlen — kun sedlens eget niveau -->
+          <div style="display: grid; grid-template-columns: 4px minmax(0,1fr) auto auto; align-items: center; gap: 12px; border-bottom: 1px solid oklch(0.885 0.008 80); padding: 10px 12px">
+            <span style="width: 4px; height: 32px; border-radius: 999px; background: oklch(0.53 0.13 70)"></span>
+            <span style="min-width: 0">
+              <span style="display: block; font-size: 13px; font-weight: 600">Hele lønsedlen</span>
+              <span style="display: block; font-size: 11px; color: oklch(0.505 0.012 65); margin-top: 1px">Kontroller på sedlens eget niveau — sagens dækning vises under Grundlag &amp; kilder</span>
+            </span>
+            <span></span>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="oklch(0.505 0.012 65)" stroke-width="1.8"><path d="M6 4l4 4-4 4"></path></svg>
+          </div>
+
+          <!-- ETAPE 4: skimbar liste — OK-linjer dæmpet, kun reelle udfald har farve -->
+          <div style="display: grid; grid-template-columns: 4px minmax(0,1fr) auto auto; align-items: center; gap: 12px; border-bottom: 1px solid oklch(0.885 0.008 80); padding: 10px 12px; color: oklch(0.505 0.012 65)">
+            <span style="width: 4px; height: 32px; border-radius: 999px; background: oklch(0.885 0.008 80)"></span>
+            <span style="min-width: 0"><span style="display: block; font-size: 13px">Tøm fritvalgskonto m/ferie</span></span>
+            <span class="num" style="font-size: 13px; white-space: nowrap">8.294,13 kr</span>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="oklch(0.885 0.008 80)" stroke-width="1.8"><path d="M6 4l4 4-4 4"></path></svg>
+          </div>
+          <div style="display: grid; grid-template-columns: 4px minmax(0,1fr) auto auto; align-items: center; gap: 12px; border-bottom: 1px solid oklch(0.885 0.008 80); padding: 10px 12px; background: oklch(0.52 0.22 27 / 0.08)">
+            <span style="width: 4px; height: 32px; border-radius: 999px; background: oklch(0.5 0.21 27)"></span>
+            <span style="min-width: 0">
+              <span style="display: block; font-size: 13px; font-weight: 600">Normaltimer 1 x sats</span>
+              <span class="num" style="display: block; font-size: 11px; color: oklch(0.505 0.012 65); margin-top: 1px">165,00 × 94,00 kr</span>
+            </span>
+            <span class="num" style="font-size: 13px; font-weight: 600; white-space: nowrap">15.510,00 kr</span>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="oklch(0.52 0.22 27)" stroke-width="1.8"><path d="M6 4l4 4-4 4"></path></svg>
+          </div>
+          <div style="display: grid; grid-template-columns: 4px minmax(0,1fr) auto auto; align-items: center; gap: 12px; border-bottom: 1px solid oklch(0.885 0.008 80); padding: 10px 12px; color: oklch(0.505 0.012 65)">
+            <span style="width: 4px; height: 32px; border-radius: 999px; background: oklch(0.885 0.008 80)"></span>
+            <span style="min-width: 0">
+              <span style="display: block; font-size: 13px">Arbejdsmarkedspension, medarbejderprocent</span>
+              <span class="num" style="display: block; font-size: 11px; margin-top: 1px">2,00 % af 20.851,84 kr</span>
+            </span>
+            <span class="num" style="font-size: 13px; white-space: nowrap">417,04 kr</span>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="oklch(0.885 0.008 80)" stroke-width="1.8"><path d="M6 4l4 4-4 4"></path></svg>
+          </div>
+          <div style="display: grid; grid-template-columns: 4px minmax(0,1fr) auto auto; align-items: center; gap: 12px; border-bottom: 1px solid oklch(0.885 0.008 80); padding: 10px 12px; color: oklch(0.505 0.012 65)">
+            <span style="width: 4px; height: 32px; border-radius: 999px; background: oklch(0.885 0.008 80)"></span>
+            <span style="min-width: 0"><span style="display: block; font-size: 13px">ATP-bidrag af løn</span></span>
+            <span class="num" style="font-size: 13px; white-space: nowrap">99,00 kr</span>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="oklch(0.885 0.008 80)" stroke-width="1.8"><path d="M6 4l4 4-4 4"></path></svg>
+          </div>
+          <div style="display: grid; grid-template-columns: 4px minmax(0,1fr) auto auto; align-items: center; gap: 12px; border-bottom: 1px solid oklch(0.885 0.008 80); padding: 10px 12px; color: oklch(0.505 0.012 65)">
+            <span style="width: 4px; height: 32px; border-radius: 999px; background: oklch(0.885 0.008 80)"></span>
+            <span style="min-width: 0">
+              <span style="display: block; font-size: 13px">AM-bidrag</span>
+              <span class="num" style="display: block; font-size: 11px; margin-top: 1px">8,00 % af 23.288,09 kr</span>
+            </span>
+            <span class="num" style="font-size: 13px; white-space: nowrap">1.863,00 kr</span>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="oklch(0.885 0.008 80)" stroke-width="1.8"><path d="M6 4l4 4-4 4"></path></svg>
+          </div>
+          <div style="display: grid; grid-template-columns: 4px minmax(0,1fr) auto auto; align-items: center; gap: 12px; border-bottom: 1px solid oklch(0.885 0.008 80); padding: 10px 12px">
+            <span style="width: 4px; height: 32px; border-radius: 999px; background: oklch(0.47 0.13 250)"></span>
+            <span style="min-width: 0">
+              <span style="display: block; font-size: 13px; font-weight: 600">A-skat</span>
+              <span class="num" style="display: block; font-size: 11px; color: oklch(0.505 0.012 65); margin-top: 1px">37,00 % af 15.890,00 kr</span>
+            </span>
+            <span class="num" style="font-size: 13px; font-weight: 600; white-space: nowrap">5.880,00 kr</span>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="oklch(0.505 0.012 65)" stroke-width="1.8"><path d="M6 4l4 4-4 4"></path></svg>
+          </div>
+          <div style="display: grid; grid-template-columns: 4px minmax(0,1fr) auto auto; align-items: center; gap: 12px; border-bottom: 1px solid oklch(0.885 0.008 80); padding: 10px 12px">
+            <span style="width: 4px; height: 32px; border-radius: 999px; background: oklch(0.5 0.21 27)"></span>
+            <span style="min-width: 0">
+              <span style="display: block; font-size: 13px; font-weight: 600">Fritvalg, opsparet</span>
+              <span class="num" style="display: block; font-size: 11px; color: oklch(0.505 0.012 65); margin-top: 1px">9,00 % af 15.596,39 kr</span>
+            </span>
+            <span class="num" style="font-size: 13px; font-weight: 600; white-space: nowrap">1.403,68 kr</span>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="oklch(0.505 0.012 65)" stroke-width="1.8"><path d="M6 4l4 4-4 4"></path></svg>
+          </div>
+          <div style="display: grid; grid-template-columns: 4px minmax(0,1fr) auto auto; align-items: center; gap: 12px; border-bottom: 1px solid oklch(0.885 0.008 80); padding: 10px 12px; color: oklch(0.505 0.012 65)">
+            <span style="width: 4px; height: 32px; border-radius: 999px; background: oklch(0.885 0.008 80)"></span>
+            <span style="min-width: 0">
+              <span style="display: block; font-size: 13px">Søgnehelligdag, opsparet</span>
+              <span class="num" style="display: block; font-size: 11px; margin-top: 1px">4,00 % af 23.796,35 kr</span>
+            </span>
+            <span class="num" style="font-size: 13px; white-space: nowrap">951,85 kr</span>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="oklch(0.885 0.008 80)" stroke-width="1.8"><path d="M6 4l4 4-4 4"></path></svg>
+          </div>
+          <div class="caps" style="border-bottom: 1px solid oklch(0.885 0.008 80); background: oklch(0.935 0.006 85 / 0.25); padding: 6px 12px">Saldi</div>
+          <div style="display: grid; grid-template-columns: 4px minmax(0,1fr) auto auto; align-items: center; gap: 12px; border-bottom: 1px solid oklch(0.885 0.008 80); padding: 10px 12px; color: oklch(0.505 0.012 65)">
+            <span style="width: 4px; height: 32px; border-radius: 999px; background: oklch(0.885 0.008 80)"></span>
+            <span style="min-width: 0"><span style="display: block; font-size: 13px">Til udbetaling</span></span>
+            <span class="num" style="font-size: 13px; white-space: nowrap">15.545,09 kr</span>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="oklch(0.885 0.008 80)" stroke-width="1.8"><path d="M6 4l4 4-4 4"></path></svg>
+          </div>
+          <div style="display: grid; grid-template-columns: 4px minmax(0,1fr) auto auto; align-items: center; gap: 12px; padding: 10px 12px; color: oklch(0.505 0.012 65)">
+            <span style="width: 4px; height: 32px; border-radius: 999px; background: oklch(0.885 0.008 80)"></span>
+            <span style="min-width: 0"><span style="display: block; font-size: 13px">Fritvalg</span></span>
+            <span class="num" style="font-size: 13px; white-space: nowrap">8.294,13 kr</span>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="oklch(0.885 0.008 80)" stroke-width="1.8"><path d="M6 4l4 4-4 4"></path></svg>
+          </div>
+        </div>
+
+        <!-- Højre: Beregning -->
+        <div style="background: oklch(0.935 0.006 85 / 0.15)">
+          <div style="border-bottom: 1px solid oklch(0.885 0.008 80); padding: 10px 16px">
+            <div style="font-size: 13px; font-weight: 600">Beregning</div>
+            <div style="font-size: 11px; color: oklch(0.505 0.012 65); margin-top: 1px">Normaltimer 1 x sats</div>
+          </div>
+          <div style="padding: 16px">
+
+            <!-- Kontrol-vælger -->
+            <div style="border: 1px solid oklch(0.885 0.008 80); border-radius: 8px; overflow: hidden; margin-bottom: 16px">
+              <div style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: oklch(0.52 0.22 27 / 0.1); border-bottom: 1px solid oklch(0.885 0.008 80)">
+                <span style="width: 8px; height: 8px; border-radius: 999px; background: oklch(0.5 0.21 27)"></span>
+                <span style="flex: 1; font-size: 12px; font-weight: 600">Mindstesats — sats under gulvet</span>
+                <span style="font-size: 11px; font-weight: 600; color: oklch(0.505 0.012 65)">Afvigelse</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: #fff; border-bottom: 1px solid oklch(0.885 0.008 80)">
+                <span style="width: 8px; height: 8px; border-radius: 999px; background: oklch(0.47 0.13 250)"></span>
+                <span style="flex: 1; font-size: 12px; color: oklch(0.505 0.012 65)">Timer ud over periodens normale kapacitet</span>
+                <span style="font-size: 11px; font-weight: 600; color: oklch(0.505 0.012 65)">Mangler input</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: #fff; border-bottom: 1px solid oklch(0.885 0.008 80)">
+                <span style="width: 8px; height: 8px; border-radius: 999px; background: oklch(0.45 0.02 60)"></span>
+                <span style="flex: 1; font-size: 12px; color: oklch(0.505 0.012 65)">Kontraktkontrol af løn og pension bevidst ikke udført</span>
+                <span style="font-size: 11px; font-weight: 600; color: oklch(0.505 0.012 65)">Ikke udført</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: #fff; border-bottom: 1px solid oklch(0.885 0.008 80)">
+                <span style="width: 8px; height: 8px; border-radius: 999px; background: oklch(0.47 0.1 155)"></span>
+                <span style="flex: 1; font-size: 12px; color: oklch(0.505 0.012 65)">Linjens egen aritmetik</span>
+                <span style="font-size: 11px; font-weight: 600; color: oklch(0.505 0.012 65)">OK</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: #fff">
+                <span style="width: 8px; height: 8px; border-radius: 999px; background: oklch(0.47 0.1 155)"></span>
+                <span style="flex: 1; font-size: 12px; color: oklch(0.505 0.012 65)">Sedlens egne timetal stemmer indbyrdes</span>
+                <span style="font-size: 11px; font-weight: 600; color: oklch(0.505 0.012 65)">OK</span>
+              </div>
+            </div>
+
+            <span style="display: inline-flex; align-items: center; gap: 6px; border: 1px solid oklch(0.5 0.21 27 / 0.3); background: oklch(0.953 0.028 30); color: oklch(0.5 0.21 27); border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 600">
+              <span style="width: 6px; height: 6px; border-radius: 999px; background: oklch(0.5 0.21 27)"></span>
+              Afvigelse med beløb
+            </span>
+            <div style="font-size: 15px; font-weight: 600; line-height: 1.35; margin-top: 10px">Mindstesats — sats under gulvet</div>
+
+            <!-- ETAPE 3: nøgletal over regnestykket -->
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px">
+              <div style="border: 1px solid oklch(0.885 0.008 80); background: #fff; border-radius: 8px; padding: 10px 12px">
+                <div class="caps" style="font-size: 10px">Forventet</div>
+                <div class="num" style="font-size: 16px; font-weight: 600; margin-top: 2px">97,30 <span style="font-size: 11px; font-weight: 400; color: oklch(0.505 0.012 65)">kr/t</span></div>
+              </div>
+              <div style="border: 1px solid oklch(0.885 0.008 80); background: #fff; border-radius: 8px; padding: 10px 12px">
+                <div class="caps" style="font-size: 10px">Trykt på sedlen</div>
+                <div class="num" style="font-size: 16px; font-weight: 600; margin-top: 2px">94,00 <span style="font-size: 11px; font-weight: 400; color: oklch(0.505 0.012 65)">kr/t</span></div>
+              </div>
+              <div style="border: 1px solid oklch(0.5 0.21 27 / 0.3); background: oklch(0.953 0.028 30); border-radius: 8px; padding: 10px 12px">
+                <div class="caps" style="font-size: 10px; color: oklch(0.5 0.21 27)">Afvigelse</div>
+                <div class="num" style="font-size: 16px; font-weight: 600; color: oklch(0.5 0.21 27); margin-top: 2px">544,50 <span style="font-size: 11px; font-weight: 400">kr</span></div>
+              </div>
+            </div>
+
+            <!-- ETAPE 3: regnestykket i læsbare punkter — ordret middleware-tekst -->
+            <div style="border: 1px solid oklch(0.885 0.008 80); background: #fff; border-radius: 8px; padding: 14px 16px; margin-top: 12px">
+              <div class="caps" style="font-size: 10px; margin-bottom: 8px">Regnestykket — ordret fra middleware</div>
+              <div class="num" style="font-size: 13px; line-height: 1.6; font-weight: 600">trykt sats 94,00 kr/t &lt; regelens mindstesats 97,30 kr/t</div>
+              <div style="display: flex; flex-direction: column; gap: 7px; margin-top: 8px; font-size: 12px; line-height: 1.55; color: oklch(0.505 0.012 65)">
+                <div style="display: flex; gap: 8px"><span style="color: oklch(0.52 0.22 27)">·</span><span>trinnet er ikke gættet: lønsedlen for 2025-11 betaler en trykt sats på præcis <span class="num" style="color: oklch(0.21 0.012 60)">94,00 kr/t</span>, som er kolonnen for uddannelsesår 2 i regel IND25-elevlon-aar2, gyldig 01.05.2025–28.02.2026, så arbejdsgiveren har selv indplaceret lærlingen der</span></div>
+                <div style="display: flex; gap: 8px"><span style="color: oklch(0.52 0.22 27)">·</span><span>sammenligningen er foretaget mod uddannelsesår 2 (<span class="num" style="color: oklch(0.21 0.012 60)">97,30 kr/t</span>, gyldig 01.03.2026–28.02.2027)</span></div>
+                <div style="display: flex; gap: 8px"><span style="color: oklch(0.52 0.22 27)">·</span><span>satsen svarer ikke til nogen kolonne, der var gyldig i perioden, men præcis til kolonnen i regel IND25-elevlon-aar2, der udløb 28.02.2026</span></div>
+              </div>
+              <div style="font-size: 12px; font-weight: 600; color: oklch(0.52 0.22 27); margin-top: 10px">Vis hele regnestykket (9 linjer)</div>
+            </div>
+
+            <span style="display: inline-flex; align-items: center; gap: 8px; background: oklch(0.28 0.018 60); color: oklch(0.98 0.004 85); border-radius: 6px; padding: 9px 14px; font-size: 12px; font-weight: 600; margin-top: 16px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><path d="M14 2v6h6"></path><circle cx="11.5" cy="14.5" r="2.5"></circle><path d="M13.3 16.3L15 18"></path></svg>
+              Åbn bevisark
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

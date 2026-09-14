@@ -76,3 +76,28 @@ describe("slipLevelChecks", () => {
     expect(slipLevelChecks(report(checks, lines)).map((c) => c.check_id)).toEqual(["c-slip"]);
   });
 });
+
+import { calcSegments } from "../src/components/report/PayslipWorkspace";
+
+describe("calcSegments", () => {
+  test("deler ét-linjes regnestykke på middlewarens semikolon-adskillelse", () => {
+    const result = calcSegments(
+      "trykt sats 94,00 < mindstesats 97,30; trinnet er ikke gættet; satsen udløb",
+    );
+    expect(result.mode).toBe("segments");
+    expect(result.parts).toHaveLength(3);
+    expect(result.parts[0]).toBe("trykt sats 94,00 < mindstesats 97,30");
+  });
+
+  test("flerlinjede regnestykker beholder deres egne linjer", () => {
+    const result = calcSegments("linje 1\nlinje 2; med semikolon\nlinje 3");
+    expect(result.mode).toBe("lines");
+    expect(result.parts).toHaveLength(3);
+  });
+
+  test("kort regnestykke uden semikolon forbliver én linje", () => {
+    const result = calcSegments("165,00 × 94,00 = 15.510,00");
+    expect(result.mode).toBe("lines");
+    expect(result.parts).toHaveLength(1);
+  });
+});
