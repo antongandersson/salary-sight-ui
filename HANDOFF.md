@@ -1,6 +1,95 @@
 # PayTjek frontend — implementeringshandoff
 
-Senest opdateret: 14. september 2026 (fuldt sessions-handoff, afløser tillægget fra 9. september)
+Senest opdateret: 14. september 2026 (session 14/9 øverst; sessions-handoff 9.–11. september
+bevaret nedenfor)
+
+## Sessions-handoff 14. september 2026
+
+Alt arbejde ligger på branchen **`arbejde`** (bygget oven på `claude/understand-repo-04223d`),
+og **`main` er fast-forwardet til samme commit (`72eceab`)** — beslutningen om merge til main
+(= Lovable-sync) er hermed truffet og udført. Deploy til Railway er kørt og verificeret.
+
+### 1. Demo-miljøet er nulstillet — nye case-id'er
+
+Alle case-id'er fra 9.–11. september er døde (404). DM-C1 hedder nu
+`63758bbf-8f07-46f8-b6a0-ce8c41a682fc` (25 rapporter, juli 2024–juni 2026, IND23+IND25).
+Find aktuelle id'er med `GET /api/v1/cases` (nu officielt dokumenteret). OBS: et dødt
+case-id i URL'en falder stumt tilbage til upload-siden (fejlteksten står under folden i
+formularen) — kendt UX-hul.
+
+### 2. Middleware er opdateret (OpenAPI v0.2.0)
+
+- **Nyt endpoint `POST /api/v1/cases/{id}/satsberegning`**: Dansk Metals satstrin-dokument
+  (én PDF ≤ 15 MB, gemmes som `SATSBEREGNING`; re-upload erstatter og genkører audits).
+- Batch-klassifikationen kan nu returnere `kind: "satsberegning"`.
+- `GET /api/v1/cases` og `GET /api/v1/schema/report` er dokumenterede. Rapportformatet er
+  uændret (`cycle11-raw-verification-report-v1`).
+- Case-sheetet har fået mange nye afsnit (claims_ledger, forbehold, refused, coverage_checks,
+  step_timing, by_class_terminal, substance_summary m.fl.) og fulde måneds-beregninger i
+  `findings[].months[]`. En referencekørsel ligger i
+  `/Users/leifandersson/Desktop/latest_DM_C/DM-C1/`.
+
+### 3. Commits i denne session (alle på main)
+
+- `173fb63` **Satstrin-upload**: nyt valgfrit uploadfelt; `DocumentKind` udvidet;
+  kontrakt-specialtilfældet i `src/routes/index.tsx` generaliseret til `extraUploads`
+  (dedikerede én-PDF-uploads polles ens).
+- `6d1f44f` **Responsivt arbejdsbord**: trepanels-grid fra `lg:` (1024 px, før `xl:`);
+  under 1024 px: vandret periode-chip-strip (`PeriodStrip` i `PeriodRail.tsx`) og
+  Beregning som sticky bundpanel (maks 45vh). `grid-cols-1` fixer grid-blowout fra lange
+  regnestykker; sektionen bruger `overflow-clip` (ikke `-hidden`), ellers dør sticky.
+- `ba7ddd0` + `72eceab` **Datakomplethed vist — og rullet tilbage**: en etape der viste ALT
+  nyt case-sheet-indhold blev afvist af brugeren ("det modsatte af en forbedring") og
+  revertet. **Beholdt**: (a) Gennemgangen viser `forventet/trykt/lønlinje` pr. måned +
+  "ældre end forældelsesfrist"; (b) **Trin-tidslinje** på sagsoversigten (step_timing med
+  forfald → givet, forsinkelse, sats før/efter, rollup-beløb). VIGTIG LÆRE: nye
+  middleware-felter renderes kun efter eksplicit accept pr. flade — foreslå én-to
+  arbejdsunderstøttende visninger ad gangen.
+
+### 4. Deploy 14/9
+
+`railway up` fra repo-roden efter **eksplicit** `railway link --project
+4b1e3194-a39c-458d-94ae-fcbd9dc6c364 --service paytjek-frontend --environment production`.
+ADVARSEL: CLI'en kan være linket til et andet projekt (`raia-prod`) — tjek altid
+`railway status` før `railway up`. Deploy verificeret: 401 uden login, 200 med
+service-variablernes login, nye features bekræftet i det serverede JS-bundle.
+
+### 5. Meldt til middleware-teamet 14/9
+
+1. Genberegnings-stormen (stale-flag ryddes aldrig — handoff-punkt 7.1 nedenfor).
+2. Parser-problemet med uafkodede rækker (7.2 nedenfor).
+3. `step_timing` mangler en `sum_rule`: rollup-vinduerne overlapper (DM-C1: Σ rollups
+   17.513,86 = fund-total 11.336,85 + 6.840,01 dobbelttalt overlap − 663,00 uden for
+   vinduerne) — frontenden viser gerne middlewarens tekst, men skriver den ikke selv.
+4. Brev-grundlagets `step_timing` mangler `rollup_kr`/`rollup_months` (case-sheetets har dem).
+
+### 6. Forslag: gør Lønsedler-fanen mere intuitiv (IKKE godkendt endnu)
+
+Brugerens vurdering: Sagsoversigt/Gennemgang/Spørgsmål/Brev er gode — **Lønsedler er den
+klart svageste flade**. Foreslået etapeplan (hver etape lille, reversibel og 100 %
+API-sporbar; implementér kun etaper brugeren har sagt ja til):
+
+1. **"Kræver handling"-stribe** øverst i lønpostkolonnen: sedlens MISMATCH/NEEDS_INPUT-
+   kontroller som klikbare rækker (vælger lønpost + kontrol direkte). Konsulenten ser
+   straks det vigtige i stedet for at jage gennem 31 linjer.
+2. **Støj-oprydning via `section`** (= det gamle åbne punkt 8.1): "Hele lønsedlen" viser kun
+   `slip_level`; `coverage`/linjeløse `cross_slip` vises én gang under Grundlag & kilder;
+   "N markeret" splittes i "X afvigelser · Y forbehold".
+3. **Læsbart regnestykke**: typografisk formatering af `arithmetic`-blokken (ordret tekst,
+   kun typografi: tal/resultatlinje fremhæves) + `expected`/`printed` som nøgletal over
+   regnestykket, når de findes i `kroner`.
+4. **Skimbar lønpostliste**: dæmp rene OK-linjer, statusfarve kun ved reelt udfald, tydelig
+   Saldi-gruppering — så afvigelser springer i øjnene.
+5. **Originalseddel-visning** (kræver middleware-endpoint, jf. etape 4 i den gamle plan) —
+   den største gevinst på sigt: konsulenten genkender sedlen visuelt.
+6. **Brugertest med 2–3 lønkonsulenter** før/efter etaperne.
+
+### Praktisk (uændret fra 9.–11. sep, undtagen case-id)
+
+Dev-server: `.claude/launch.json`-konfigurationen `paytjek-dev` (port 5199). Genåbn DM-C1:
+`http://localhost:5199/?case_id=63758bbf-8f07-46f8-b6a0-ce8c41a682fc&period=2026-06`.
+Verifikation ved dette handoff: `bunx tsc --noEmit`, `bun test` (15 tests), `bun run lint`
+(0 fejl, 8 kendte Fast Refresh-advarsler), `bun run build` — alle bestået; deploy verificeret.
 
 ## Sessions-handoff 9.–11. september 2026
 
@@ -128,9 +217,10 @@ kontrolstatus, regnestykker, fund, spørgsmål og brevgrundlag.
 
 ```text
 Projekt: /Users/leifandersson/Projects/salary-sight-ui-codex
-Branch:  claude/understand-repo-04223d (pushet; indeholder hele codex/middleware-integration)
+Branch:  arbejde (pushet; main er fast-forwardet til samme commit 72eceab 14/9)
 Remote:  https://github.com/antongandersson/salary-sight-ui.git
-Deploy:  https://paytjek-frontend-production.up.railway.app (Basic Auth, se sessions-handoff pkt. 6)
+Deploy:  https://paytjek-frontend-production.up.railway.app (Basic Auth; deployet 14/9,
+         se sessions-handoff 14/9 pkt. 4)
 ```
 
 Arbejdstræet er rent, og alt er committet og pushet. Se sessions-handoffet øverst for
