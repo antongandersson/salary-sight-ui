@@ -109,24 +109,16 @@ export type LetterBasisFinding = {
   first_month: string;
   last_month: string;
   limitation_flag?: boolean;
-  limitation_months?: string[];
   months: Array<{
     computation?: string | null;
-    expected?: number | null;
     kr: number | null;
     line?: string | null;
     period: string;
-    printed?: number | null;
     row_arithmetic?: string | null;
   }>;
   months_count: number;
-  months_kr_undetermined?: number | null;
   pattern?: string;
-  quote_source?: string | null;
   quotes?: string[];
-  rule_id?: string | null;
-  settled?: boolean;
-  settled_period?: string | null;
   settlement_status?: string;
   source_location?: string;
   title: string;
@@ -136,49 +128,19 @@ export type LetterBasisFinding = {
 export type LetterBasis = {
   agreements: string[];
   case: string;
-  control_points?: {
-    count?: number;
-    label?: string;
-    note?: string;
-    months_affected?: string[];
-    sum_rule?: string;
-    total_kr?: number | null;
-  } | null;
   findings: LetterBasisFinding[];
   limitation_rule?: { text?: string; years?: number | null };
-  pension?: unknown;
-  possible_claims?: unknown;
   provenance?: {
     built_from?: string;
     llm_in_render_path?: boolean;
     renderer?: string;
   };
-  recurring_issues?: Array<{
-    statement?: string | null;
-    title?: string | null;
-    months_count?: number;
-  }>;
   schema: string;
   session_id?: string;
-  slips?: unknown;
-  step_timing?: Array<{
-    headline?: string | null;
-    label?: string | null;
-    rollup_kr?: number | null;
-    rollup_months?: number | null;
-    terminal?: string | null;
-  }>;
   totals?: {
     axes?: Record<string, { findings: number; label: string; total_kr: number | null }>;
-    axis_rule?: string;
     count?: number;
-    enkeltstaaende?: number;
-    findings_with_undetermined_kr?: number;
-    konsekvent?: number;
-    limitation_flagged?: number;
     money_rule?: string;
-    months_affected?: number;
-    three_figures_rule?: string;
     total_kr?: number | null;
   };
 };

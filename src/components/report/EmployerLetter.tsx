@@ -51,28 +51,6 @@ export function EmployerLetter({ basis }: { basis: LetterBasis | null }) {
             <p className="num mt-1 text-xl font-semibold text-mismatch">
               {amount(basis.totals?.total_kr)}
             </p>
-            {basis.totals &&
-            (basis.totals.konsekvent != null ||
-              basis.totals.enkeltstaaende != null ||
-              basis.totals.findings_with_undetermined_kr ||
-              basis.totals.limitation_flagged) ? (
-              <p className="num mt-1 text-[11px] text-muted-foreground">
-                {[
-                  basis.totals.konsekvent != null ? `${basis.totals.konsekvent} konsekvente` : null,
-                  basis.totals.enkeltstaaende != null
-                    ? `${basis.totals.enkeltstaaende} enkeltstående`
-                    : null,
-                  basis.totals.findings_with_undetermined_kr
-                    ? `${basis.totals.findings_with_undetermined_kr} med ubestemt beløb`
-                    : null,
-                  basis.totals.limitation_flagged
-                    ? `${basis.totals.limitation_flagged} berørt af forældelse`
-                    : null,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </p>
-            ) : null}
           </div>
         </div>
         <ol className="mt-2">
@@ -93,13 +71,6 @@ export function EmployerLetter({ basis }: { basis: LetterBasis | null }) {
                     {periodLabel(finding.first_month)}–{periodLabel(finding.last_month)} ·{" "}
                     {finding.months_count} perioder
                     {finding.settlement_status ? ` · ${finding.settlement_status}` : ""}
-                    {finding.settled_period
-                      ? ` · afregnet ${periodLabel(finding.settled_period)}`
-                      : ""}
-                    {finding.months_kr_undetermined
-                      ? ` · ${finding.months_kr_undetermined} måneder uden fastsat beløb`
-                      : ""}
-                    {finding.limitation_flag ? " · berørt af forældelsesfrist" : ""}
                   </p>
                 </div>
                 <span className="num text-[14px] font-semibold text-mismatch">
@@ -124,54 +95,6 @@ export function EmployerLetter({ basis }: { basis: LetterBasis | null }) {
             </li>
           ))}
         </ol>
-        {basis.step_timing?.length ? (
-          <section className="mt-5 border-t border-border pt-4">
-            <h3 className="text-[13px] font-semibold text-foreground">Trin-forløb</h3>
-            <ul className="mt-2 space-y-2">
-              {basis.step_timing.map((step, index) => (
-                <li className="flex items-start justify-between gap-3 text-[12px]" key={index}>
-                  <span className="min-w-0 text-muted-foreground">
-                    <strong className="font-semibold text-foreground">
-                      {step.label ?? `Trin ${index + 1}`}
-                    </strong>
-                    {step.headline ? ` — ${step.headline}` : ""}
-                  </span>
-                  {step.rollup_kr != null ? (
-                    <span className="num shrink-0 font-semibold text-mismatch">
-                      {amount(step.rollup_kr)}
-                    </span>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-        {basis.recurring_issues?.length ? (
-          <section className="mt-5 border-t border-border pt-4">
-            <h3 className="text-[13px] font-semibold text-foreground">Gennemgående forhold</h3>
-            <ul className="mt-2 space-y-2">
-              {basis.recurring_issues.map((issue, index) => (
-                <li className="text-[12px] leading-relaxed text-muted-foreground" key={index}>
-                  {issue.statement ?? issue.title ?? "—"}
-                  {issue.months_count ? (
-                    <span className="num"> · {issue.months_count} måneder</span>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-        {basis.control_points?.note || basis.control_points?.count != null ? (
-          <p className="mt-4 rounded-md border border-border bg-muted/25 p-3 text-[12px] leading-relaxed text-muted-foreground">
-            {basis.control_points?.count != null
-              ? `${basis.control_points.count} kontrolpunkter`
-              : ""}
-            {basis.control_points?.total_kr != null
-              ? ` · ${amount(basis.control_points.total_kr)}`
-              : ""}
-            {basis.control_points?.note ? ` — ${basis.control_points.note}` : ""}
-          </p>
-        ) : null}
         {basis.limitation_rule?.text ? (
           <p className="mt-4 rounded-md border border-forbehold/30 bg-forbehold-soft p-3 text-[12px] leading-relaxed text-muted-foreground">
             {basis.limitation_rule.text}

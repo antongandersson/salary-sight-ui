@@ -42,12 +42,6 @@ export type Check = {
   section: string;
   surface: string;
   superseded?: string[];
-  // Peger fremad: kontrollen på en erstattet seddel er afløst af en senere seddel.
-  superseded_by?: { slip_key?: string; note?: string } | null;
-  // Satstrin-kontroller grupperes under den trin-kontrol de dokumenterer.
-  grouped_under?: string | null;
-  // Timegrundlaget bag normen (fx {hours, kind, reason, source}).
-  norm_basis?: CheckFacts | null;
   claim_axis?: string | null;
   basis?: unknown;
   note_source?: string | null;
