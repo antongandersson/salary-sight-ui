@@ -1,7 +1,55 @@
 # PayTjek frontend — implementeringshandoff
 
-Senest opdateret: 14. september 2026 (session 14/9 øverst; sessions-handoff 9.–11. september
-bevaret nedenfor)
+Senest opdateret: 15. september 2026 (session 15/9 øverst; 14/9 og 9.–11. september bevaret
+nedenfor)
+
+## Sessions-handoff 15. september 2026
+
+### 1. Demo-miljøet er nulstillet IGEN — nye case-id'er
+
+Alle id'er fra 14/9 er døde. Aktuel "Case 1" = `fc0c3f3d-b76c-41c3-a8c5-d3feef0e8e89`
+(25 rapporter), "DM-C1" = `08e5b20c-13c5-411c-abe5-78e2394eba56`. Find altid aktuelle id'er med
+`GET /api/v1/cases`. Case-sheetet meldte kortvarigt stale under formiddagens genopbygning — badgen
+"Forældet generation" forsvandt af sig selv.
+
+### 2. To små UI-fixes (commit `21e107b`) — begge verificeret mod Case 1, juni 2026
+
+- **Perioderail-overlap fixet**: `truncate` på perioden, rail 136→164 px, "rev."-badge uden ikon.
+  Fund-tal og badges kunne før lægge sig oven i "10/2024"-teksten ved smalle bredder/zoom.
+- **"Kræver handling" forenklet**: striben viser kun MISMATCH som klikbare rækker;
+  de (i juni) 15 NEEDS_INPUT samles i én linje "15 mangler oplysning — se Spørgsmål", der skifter
+  til Spørgsmål-fanen (ny prop `onShowQuestions`). Baggrund: 16 rækker, hvoraf 12 var
+  gentagelser af "kontrakten mangler"/"Mindstesats", druknede den ene afvigelse.
+- Logik-tjek mod middleware: chips/stribe-tal matcher API'et 1:1
+  (1 MISMATCH + 15 NEEDS_INPUT + 7 FORBEHOLD + 27 OK + 1 KONTROLPUNKT = 51 kontroller).
+  De to oktober 2024-rapporter (rev./erstattet) er korrekt middleware-data, ikke en frontendfejl.
+
+### 3. Statussprog-eksperiment — prøvet og FORKASTET (vigtig lære)
+
+Problemet "fem statusser er svære at navigere" blev udforsket i et mock-canvas:
+https://claude.ai/code/artifact/0f63f27f-f588-4fe0-a575-1f130bfb7cbc (tre spande; retning A
+"sætninger", B "destinationer", C "fem, lærbare" — inkl. A og B som fulde arbejdsbord-mocks).
+Brugeren valgte B (→ Brev / → Spørgsmål / → Gennemgang), fik den implementeret — og forkastede
+den samme dag efter at have set den i den rigtige app: "ALT for uoverskueligt, der sker alt for
+meget". Alt er revertet; gældende statussprog er det oprindelige. LÆRE: forbedringer i
+Lønsedler-fladen skal FJERNE støj, ikke tilføje nye begreber/chips — et mock med én afvigelse
+kan se roligt ud, men chips i fire lag støjer i den tætte, rigtige flade. Retning C-light
+(kun omdøbning af rå ord som REFUSED, ingen nye elementer) står åben, ikke besluttet.
+
+### 4. Git og deploy 15/9
+
+`main` og `arbejde` er fast-forwardet til dagens commits og pushet (Lovable-sync via main).
+Railway-deploy kørt fra repo-roden efter **eksplicit** `railway link --project
+4b1e3194-a39c-458d-94ae-fcbd9dc6c364 --service paytjek-frontend --environment production` —
+CLI'en stod (igen) linket til `raia-prod`; tjek altid `railway status` først.
+
+### Praktisk 15/9
+
+`.claude/launch.json` har nu `autoPort: true` — kører en anden session allerede på 5199, får
+den næste server automatisk en fri port. Genåbn Case 1:
+`/?case_id=fc0c3f3d-b76c-41c3-a8c5-d3feef0e8e89&period=2026-06`. Verifikation ved dette handoff:
+`bunx tsc --noEmit`, `bun test` (18 tests), `bun run lint` (0 fejl, 9 kendte
+Fast Refresh-advarsler), `bun run build` — alle bestået.
 
 ## Sessions-handoff 14. september 2026
 
