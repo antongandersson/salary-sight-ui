@@ -414,9 +414,10 @@ export function UploadCase({
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-surface">
-        <div className="mx-auto flex max-w-[1180px] items-baseline gap-3 px-6 py-4">
-          <span className="text-sm font-bold tracking-tight text-accent">PAYTJEK</span>
-          <span className="text-sm font-semibold text-foreground">Ny lønseddelkontrol</span>
+        <div className="mx-auto flex max-w-[1180px] items-center gap-3 px-6 py-4">
+          <img alt="PayTjek" className="h-9 w-auto" src="/paytjek-logo.svg" />
+          <span className="h-5 w-px bg-border" aria-hidden="true" />
+          <span className="text-sm font-semibold text-foreground">Dansk Metal Lønplatform</span>
           {isDemoApi() ? (
             <span className="ml-auto rounded-full border border-forbehold/40 bg-forbehold-soft px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-forbehold">
               Testmiljø

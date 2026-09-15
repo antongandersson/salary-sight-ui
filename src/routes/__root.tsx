@@ -72,10 +72,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "PayTjek — lønseddelkontrol" },
+      { title: "Dansk Metal Lønplatform" },
       { name: "description", content: "Sagsskærm til faglige konsulenters kontrol af lønsedler." },
       { name: "author", content: "PayTjek" },
-      { property: "og:title", content: "PayTjek — lønseddelkontrol" },
+      { property: "og:title", content: "Dansk Metal Lønplatform" },
       {
         property: "og:description",
         content: "Sagsskærm til faglige konsulenters kontrol af lønsedler.",

@@ -42,7 +42,7 @@ import { buildReviewQueue, type ReviewItem } from "@/lib/review-queue";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "PayTjek — upload og lønseddelkontrol" },
+      { title: "Dansk Metal Lønplatform" },
       {
         name: "description",
         content:
@@ -556,9 +556,10 @@ function CaseScreen({
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-6 gap-y-2 px-6 py-3">
-          <div className="flex items-baseline gap-3">
-            <span className="text-sm font-bold tracking-tight text-accent">PAYTJEK</span>
-            <span className="text-sm font-semibold text-foreground">Lønseddelkontrol</span>
+          <div className="flex items-center gap-3">
+            <img alt="PayTjek" className="h-9 w-auto" src="/paytjek-logo.svg" />
+            <span className="h-5 w-px bg-border" aria-hidden="true" />
+            <span className="text-sm font-semibold text-foreground">Dansk Metal Lønplatform</span>
           </div>
           <div className="num flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-muted-foreground">
             <span>{caseLabel}</span>
