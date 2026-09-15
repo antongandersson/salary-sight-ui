@@ -1,7 +1,7 @@
-import { ArrowRight, CircleDollarSign, FileQuestion, ShieldCheck, TrendingUp } from "lucide-react";
+import { ArrowRight, CircleDollarSign, FileQuestion, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 
-import type { CaseSheet, CaseSheetMonthReference, CaseSheetStepTiming } from "@/lib/case-sheet";
+import type { CaseSheet, CaseSheetMonthReference } from "@/lib/case-sheet";
 import type { CaseSheetSource } from "@/lib/paytjek-api";
 import { reportForReference, type ReportPointer } from "@/lib/report-index";
 import { kr, periodLabel, periodShort } from "@/lib/report";
@@ -122,73 +122,6 @@ function FamilyList({
       ) : (
         <p className="px-4 py-5 text-[13px] text-muted-foreground">{emptyText}</p>
       )}
-    </section>
-  );
-}
-
-function unpricedCount(value: string[] | number | null | undefined): number {
-  return Array.isArray(value) ? value.length : (value ?? 0);
-}
-
-// Trin-tidslinjen (step_timing): hvornår et løntrin forfaldt, hvornår det blev
-// givet, og hvad forsinkelsen er opgjort til — alt fra middleware.
-function StepTimingSection({ steps }: { steps: CaseSheetStepTiming[] }) {
-  if (steps.length === 0) return null;
-  return (
-    <section className="paper overflow-hidden rounded-xl" aria-labelledby="step-timing-title">
-      <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-        <TrendingUp className="size-4 text-accent" aria-hidden="true" />
-        <h2 className="text-[14px] font-semibold text-foreground" id="step-timing-title">
-          Trin-tidslinje
-        </h2>
-      </div>
-      <ol>
-        {steps.map((step, index) => (
-          <li className="border-b border-border px-4 py-3 last:border-0" key={index}>
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <span className="min-w-0 flex-1">
-                <strong className="block text-[12px] font-semibold text-foreground">
-                  {step.label ?? step.kind ?? `Trin ${index + 1}`}
-                </strong>
-                {step.headline ? (
-                  <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">
-                    {step.headline}
-                  </span>
-                ) : null}
-                <span className="num mt-0.5 block text-[11px] text-muted-foreground">
-                  {step.due_month ? `Forfald ${periodLabel(step.due_month)}` : null}
-                  {step.moved_month ? ` · givet ${periodLabel(step.moved_month)}` : ""}
-                  {step.months_late != null && step.months_late > 0
-                    ? ` · ${step.months_late} mdr. forsinket`
-                    : ""}
-                  {step.rate_before != null && step.rate_after != null
-                    ? ` · ${kr(step.rate_before)} → ${kr(step.rate_after)} kr/t`
-                    : ""}
-                  {step.missing_artifact ? ` · mangler: ${step.missing_artifact}` : ""}
-                </span>
-              </span>
-              {step.rollup_kr != null ? (
-                <span className="text-right">
-                  <span className="num block text-[13px] font-semibold text-mismatch">
-                    {amount(step.rollup_kr)}
-                  </span>
-                  <span className="num block text-[11px] text-muted-foreground">
-                    {step.rollup_months != null ? `${step.rollup_months} mdr.` : ""}
-                    {unpricedCount(step.rollup_unpriced_months) > 0
-                      ? ` · ${unpricedCount(step.rollup_unpriced_months)} uden beløb`
-                      : ""}
-                  </span>
-                </span>
-              ) : null}
-            </div>
-            {step.source_location ? (
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Kilde: {step.source_location}
-              </p>
-            ) : null}
-          </li>
-        ))}
-      </ol>
     </section>
   );
 }
@@ -381,9 +314,6 @@ export function ReportOverview({
             title="Mulige krav — kræver dokumentation"
             tone="needs"
           />
-          {caseSheet.step_timing?.length ? (
-            <StepTimingSection steps={caseSheet.step_timing} />
-          ) : null}
         </div>
 
         <section className="paper overflow-hidden rounded-xl" aria-labelledby="input-title">

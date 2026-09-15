@@ -36,6 +36,14 @@ Lønsedler-fladen skal FJERNE støj, ikke tilføje nye begreber/chips — et moc
 kan se roligt ud, men chips i fire lag støjer i den tætte, rigtige flade. Retning C-light
 (kun omdøbning af rå ord som REFUSED, ingen nye elementer) står åben, ikke besluttet.
 
+### 3b. Trin-tidslinjen er FJERNET fra sagsoversigten (senere samme dag)
+
+Brugeren bad om at få Trin-tidslinjen (step_timing-sektionen fra 14/9) helt ud af UI'et —
+`StepTimingSection` er slettet fra `ReportOverview.tsx`. Typen `CaseSheetStepTiming` og feltet
+`step_timing` i `case-sheet.ts` er bevaret (de dokumenterer API'et). Dermed er hele
+datakompletheds-etapen fra 14/9 nu rullet tilbage. OBS: demo-id'erne blev nulstillet endnu en
+gang i løbet af dagen — stol aldrig på id'er i dette dokument, brug `GET /api/v1/cases`.
+
 ### 4. Git og deploy 15/9
 
 `main` og `arbejde` er fast-forwardet til dagens commits og pushet (Lovable-sync via main).
