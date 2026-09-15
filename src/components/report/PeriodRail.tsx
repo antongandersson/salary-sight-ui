@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, FileClock } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
 import type { CaseSheet } from "@/lib/case-sheet";
@@ -211,7 +211,9 @@ export function PeriodRail({
                                   : "bg-muted-foreground/35"
                           }`}
                         />
-                        <span className="num min-w-0 flex-1">{shortPeriod(entry.period)}</span>
+                        <span className="num min-w-0 flex-1 truncate">
+                          {shortPeriod(entry.period)}
+                        </span>
                         {counts.findings > 0 ? (
                           <span className="num text-[11px] font-bold text-mismatch">
                             {counts.findings}
@@ -222,9 +224,7 @@ export function PeriodRail({
                           </span>
                         ) : null}
                         {entry.is_revision ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-accent">
-                            <FileClock className="size-3" aria-hidden="true" /> rev.
-                          </span>
+                          <span className="text-[11px] font-semibold text-accent">rev.</span>
                         ) : isSuperseded ? (
                           <span className="text-[11px]">erstattet</span>
                         ) : null}

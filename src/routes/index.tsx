@@ -706,6 +706,7 @@ function CaseScreen({
               loading={loading}
               onOpenEvidence={selectControl}
               onSelectReport={(nextKey) => void openReport(nextKey)}
+              onShowQuestions={() => setTab("sporgsmaal")}
               report={report}
               selectedReportKey={selectedReportKey}
             />

@@ -4,7 +4,8 @@
     {
       "name": "paytjek-dev",
       "runtimeExecutable": "bun",
-      "runtimeArgs": ["run", "dev", "--", "--host", "127.0.0.1", "--port", "5199"],
+      "runtimeArgs": ["run", "dev", "--", "--host", "127.0.0.1"],
+      "autoPort": true,
       "port": 5199
     }
   ]

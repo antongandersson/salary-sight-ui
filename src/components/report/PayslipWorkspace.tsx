@@ -201,6 +201,7 @@ export function PayslipWorkspace({
   loading,
   onOpenEvidence,
   onSelectReport,
+  onShowQuestions,
   report,
   selectedReportKey,
 }: {
@@ -209,6 +210,7 @@ export function PayslipWorkspace({
   loading: boolean;
   onOpenEvidence: (checkId: string) => void;
   onSelectReport: (key: string) => void;
+  onShowQuestions: () => void;
   report: Report;
   selectedReportKey: string;
 }) {
@@ -248,9 +250,10 @@ export function PayslipWorkspace({
   const forbeholdCount = allChecks.filter((check) => check.terminal === "FORBEHOLD").length;
   const restCount = allChecks.length - mismatchChecks.length - needsChecks.length - forbeholdCount;
 
-  // "Kræver handling": sedlens afvigelser og manglende oplysninger som direkte
-  // indgange — klik vælger lønpost og kontrol i ét hop.
-  const actionChecks = [...mismatchChecks, ...needsChecks];
+  // "Kræver handling": kun sedlens afvigelser som direkte indgange — klik
+  // vælger lønpost og kontrol i ét hop. Manglende oplysninger samles i én
+  // henvisning til Spørgsmål-fanen, som grupperer dem pr. oplysning.
+  const actionChecks = mismatchChecks;
 
   function openCheck(check: Check) {
     const target = lineForCheck(report, check.check_id);
@@ -351,7 +354,7 @@ export function PayslipWorkspace({
         </div>
       </header>
 
-      <div className="grid min-h-[620px] grid-cols-1 lg:grid-cols-[136px_minmax(0,1.05fr)_minmax(300px,.95fr)]">
+      <div className="grid min-h-[620px] grid-cols-1 lg:grid-cols-[164px_minmax(0,1.05fr)_minmax(300px,.95fr)]">
         <div className="hidden lg:block">
           <PeriodRail
             caseSheet={caseSheet}
@@ -373,12 +376,16 @@ export function PayslipWorkspace({
         </div>
 
         <div className="border-t border-border lg:border-l lg:border-t-0">
-          {actionChecks.length > 0 ? (
-            <div className="border-b border-border bg-mismatch-soft/35">
-              <p className="label-caps flex items-center gap-2 px-4 pb-1.5 pt-2.5 text-mismatch">
-                <TriangleAlert className="size-3.5" aria-hidden="true" /> Kræver handling ·{" "}
-                {actionChecks.length}
-              </p>
+          {actionChecks.length > 0 || needsChecks.length > 0 ? (
+            <div
+              className={`border-b border-border ${actionChecks.length > 0 ? "bg-mismatch-soft/35" : ""}`}
+            >
+              {actionChecks.length > 0 ? (
+                <p className="label-caps flex items-center gap-2 px-4 pb-1.5 pt-2.5 text-mismatch">
+                  <TriangleAlert className="size-3.5" aria-hidden="true" /> Kræver handling ·{" "}
+                  {actionChecks.length}
+                </p>
+              ) : null}
               {actionChecks.map((check) => {
                 const line = lineForCheck(report, check.check_id);
                 const selected = check.check_id === selectedCheck?.check_id;
@@ -388,9 +395,6 @@ export function PayslipWorkspace({
                   check.kroner?.expected != null &&
                   check.kroner?.printed != null
                     ? `forventet ${kr(check.kroner.expected)} · trykt ${kr(check.kroner.printed)}`
-                    : null,
-                  check.terminal === "NEEDS_INPUT" && check.missing?.artifact
-                    ? `afventer ${check.missing.artifact}`
                     : null,
                 ]
                   .filter(Boolean)
@@ -433,6 +437,25 @@ export function PayslipWorkspace({
                   </button>
                 );
               })}
+              {needsChecks.length > 0 ? (
+                <button
+                  className={`flex w-full items-center gap-2.5 px-4 py-2 text-left transition-colors hover:bg-muted/35 ${
+                    actionChecks.length > 0 ? "border-t border-border" : ""
+                  }`}
+                  onClick={onShowQuestions}
+                  type="button"
+                >
+                  <span className="h-7 w-1 shrink-0 rounded-full bg-needs" aria-hidden="true" />
+                  <span className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground">
+                    <span className="num font-semibold text-foreground">{needsChecks.length}</span>{" "}
+                    mangler oplysning — se Spørgsmål
+                  </span>
+                  <ChevronRight
+                    className="size-4 shrink-0 text-muted-foreground/50"
+                    aria-hidden="true"
+                  />
+                </button>
+              ) : null}
             </div>
           ) : null}
           <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
