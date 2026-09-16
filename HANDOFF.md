@@ -36,7 +36,15 @@ er bekræftet via CLI: projekt `4b1e3194-a39c-458d-94ae-fcbd9dc6c364`, miljø
 `ebad6c4f-c318-4d12-ad99-c3a484ecc93c`, service `34801b45-7ee2-44e2-bc42-d705005abd6c`
 (`paytjek-frontend`). `NITRO_PRESET=node-server` og eksisterende login er sat på servicen;
 det lokale build med dette preset består. Adresse:
-https://paytjek-frontend-production.up.railway.app. Deployment-resultat tilføjes efter verifikation.
+https://paytjek-frontend-production.up.railway.app.
+
+Releasekode: `315580e`. Railway-deployment `3302b3f4-a073-46a6-9221-d8e2ff131ca3`
+(16. september 2026, oprettet 15:06:55 UTC) er verificeret som `SUCCESS`.
+Upload er udført fra den nye worktree med eksplicit `--path-as-root`, projekt-, miljø-
+og service-id. Produktionskontrol: HTTP 401 uden login, HTTP 200 med eksisterende login;
+alle tre publicerede JS/CSS-filer har identiske SHA-256-fingeraftryk med det godkendte
+lokale build. Den nye lønpostvisning er dermed verificeret i produktionsfilerne.
+GitHub/Lovable synkroniseres ved fast-forward af `main`; udgivet historie omskrives ikke.
 
 Demo-sager nulstilles løbende: hent aktuelle id'er med `GET /api/v1/cases`.
 Gamle id'er længere nede i dette dokument kan være udløbet.
