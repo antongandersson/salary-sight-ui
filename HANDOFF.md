@@ -2,6 +2,40 @@
 
 Senest opdateret: 16. september 2026 (tidligere sessions-handoffs bevaret nedenfor).
 
+## Filtre for afgjorte afvigelser og mulige krav — 16. september 2026
+
+Den tidligere toggle er erstattet af `Alle poster`, `Afgjorte afvigelser` og
+`Mulige krav`. Klassifikationen kommer fra case-sheetets `findings` og
+`possible_claims.families`, med præcis match på `period`, `slip_key` og `check_id`.
+NEEDS_INPUT er ikke i sig selv et muligt krav. Manglende case-sheet giver ingen
+konklusion om, at sagen ikke har krav.
+
+- Filteret følger med ved periodeskift. En tom periode peger på de præcise rapporter,
+  hvor middleware har placeret fund eller krav, inklusive revisionsidentitet.
+- Mulige krav får en blå markering. Kontroller for hele lønsedlen kan åbnes direkte;
+  deres mulige krav er også synlige under `Alle poster`.
+- Kravfilteret vælger kravkontrollen, også hvis samme post har en MISMATCH-kontrol.
+- Beløb og dokumentationskrav vises direkte fra kravets månedsreference. Beløbet
+  mærkes `Muligt beløb — betinget`; nul bevares, og manglende beløb udfyldes ikke.
+- Et klik på et fund eller krav i sagsoversigten åbner præcis periode, revision,
+  kontrol og filter på Lønsedler. Bevisarket åbnes via sin egen knap.
+- Søgning omfatter både lønposter og titler på kontroller for hele lønsedlen.
+  Andre kontroller og det fulde bevisark er fortsat tilgængelige.
+
+Verificeret: 25 tests, 70 assertions, typekontrol og lint (0 fejl, 9 kendte
+Fast Refresh-advarsler), samt produktionsbuild med både cloudflare-module og
+Railways node-server-preset. Browserkontrol mod aktuel Case 1
+`2368e225-37d4-4b37-b180-acb3e12deaf4`: juni 2026 filtrerer to afgjorte afvigelser;
+kravfilteret peger på middlewareens aktuelle kravperioder. Oktober 2024-revisionen
+`dfeb9ddfa556` åbner K7-E3-capacity med 614,08 kr, det ordrette regnestykke,
+dokumentationskravet og det fulde bevisark. Den erstattede rapport `afee8ec49330`
+får ikke revisionens krav. Navigation fra både fund og krav på forsiden, søgning
+og tomt søgeresultat er afprøvet. Mobilbredde 390 × 844 har læsbare filtre og
+kravoplysninger, uden vandret overløb.
+
+Publicering følger det samme eksplicit afgrænsede Railway-mål som releasen nedenfor.
+Deploy- og produktionsverifikation tilføjes, når publiceringen er afsluttet.
+
 ## Godkendt roligere lønseddelarbejdsbord — 16. september 2026
 
 Implementeret lokalt på `codex/calmer-payslips` i worktree

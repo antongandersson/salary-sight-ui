@@ -209,7 +209,7 @@ export function ReportOverview({
   caseSheetSource: CaseSheetSource | null;
   currentReportKey: string;
   onOpenReport: (reportKey: string) => void;
-  onSelect: (reportKey: string, checkId: string) => void;
+  onSelect: (reportKey: string, checkId: string, source: "finding" | "claim") => void;
   reports: OverviewReport[];
 }) {
   if (!caseSheet) {
@@ -295,7 +295,7 @@ export function ReportOverview({
               months: finding.months,
               totalKr: finding.total_kr,
             }))}
-            onSelect={onSelect}
+            onSelect={(key, checkId) => onSelect(key, checkId, "finding")}
             reports={reports}
             title="Dokumenterede fund"
             tone="mismatch"
@@ -309,7 +309,7 @@ export function ReportOverview({
               months: family.months,
               totalKr: family.total_kr,
             }))}
-            onSelect={onSelect}
+            onSelect={(key, checkId) => onSelect(key, checkId, "claim")}
             reports={reports}
             title="Mulige krav — kræver dokumentation"
             tone="needs"

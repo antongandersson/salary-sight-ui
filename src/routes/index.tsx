@@ -36,6 +36,7 @@ import {
   type ReportSource,
 } from "@/lib/paytjek-api";
 import { readyReports, reportKey } from "@/lib/report-index";
+import type { PayslipFilter } from "@/lib/payslip-filter";
 import { allReportChecks, periodLabel, type Report } from "@/lib/report";
 import { buildReviewQueue, type ReviewItem } from "@/lib/review-queue";
 
@@ -495,6 +496,7 @@ function CaseScreen({
   selectedReportKey: string;
 }) {
   const [tab, setTab] = useState<ReportTab>("overblik");
+  const [payslipFilter, setPayslipFilter] = useState<PayslipFilter>("all");
   const [focus, setFocus] = useState<string | null>(null);
   const [evidenceOpen, setEvidenceOpen] = useState(false);
   const [reviewed, setReviewed] = useState<ReadonlySet<string>>(new Set());
@@ -539,11 +541,22 @@ function CaseScreen({
     setEvidenceOpen(true);
   }
 
-  async function showCheck(checkId: string, nextReportKey = selectedReportKey) {
+  async function showCheck(
+    checkId: string,
+    nextReportKey = selectedReportKey,
+    source?: PayslipFilter,
+    openEvidence = true,
+  ) {
     if (nextReportKey !== selectedReportKey) await onSelectReport(nextReportKey);
+    const item = reviewQueue.find(
+      (item) =>
+        item.checkId === checkId &&
+        reportKey({ period: item.period, slip_key: item.slipKey }) === nextReportKey,
+    );
+    setPayslipFilter(source ?? item?.source ?? "all");
     setFocus(checkId);
     setTab("seddel");
-    setEvidenceOpen(true);
+    setEvidenceOpen(openEvidence);
   }
 
   async function openReport(nextReportKey: string) {
@@ -663,7 +676,9 @@ function CaseScreen({
                 void openReport(nextReportKey);
                 setTab("seddel");
               }}
-              onSelect={(nextReportKey, checkId) => void showCheck(checkId, nextReportKey)}
+              onSelect={(nextReportKey, checkId, source) =>
+                void showCheck(checkId, nextReportKey, source, false)
+              }
               reports={reportEntries.map((entry) => ({
                 key: reportKey(entry),
                 period: entry.period,
@@ -703,10 +718,18 @@ function CaseScreen({
         ) : (
           <div className="mt-5">
             <PayslipWorkspace
+              caseSheet={caseSheetResult?.caseSheet ?? null}
               entries={reportEntries}
+              filter={payslipFilter}
+              focusedCheckId={focus}
               key={report.slip.slip_key}
               loading={loading}
               onOpenEvidence={selectControl}
+              onFocusCheck={setFocus}
+              onFilterChange={(nextFilter) => {
+                setPayslipFilter(nextFilter);
+                setFocus(null);
+              }}
               onSelectReport={(nextKey) => void openReport(nextKey)}
               report={report}
               selectedReportKey={selectedReportKey}
