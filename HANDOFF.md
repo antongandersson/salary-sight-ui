@@ -2,6 +2,33 @@
 
 Senest opdateret: 16. september 2026 (tidligere sessions-handoffs bevaret nedenfor).
 
+## Gemt fødselsdato og 45 lønsedler — 16. september 2026
+
+- Spørgsmålet med artifact `fødselsdato` skjules i Sagsoversigt, Spørgsmål og
+  spørgsmålsoptællingen, når middlewareens sagscontext har en gyldig fuld
+  `birth_date`. Både v1-feltets `value` og et direkte datofelt understøttes.
+- Ufuldstændige eller ugyldige datoer skjuler intet. Andre spørgsmål, herunder
+  middlewareens uafklarede alder, bevares. Auditstatus, beløb, regnestykker og
+  aldersberegning ændres ikke; middleware er fortsat den autoritative kilde.
+- Filgrænsen er 45 lønsedler pr. batch, jf. middlewareens aktuelle OpenAPI.
+  Kontrakt og satstrin har egne uploads og tæller ikke med i de 45.
+  Grænserne på 15 MB pr. PDF og 1 MB member-context er bevaret.
+
+Verificeret: 29 tests, 85 assertions, typekontrol og lint (0 fejl, 9 kendte
+Fast Refresh-advarsler), samt produktionsbuild med cloudflare-module og
+node-server. Browserkontrol mod den aktuelle Case 2 viser tre spørgsmål til
+medlemmet og ingen fødselsdato i Næste materiale eller Spørgsmål. Filvælgeren
+accepterer 34 og 45 filer, samt 45 + kontrakt + satstrin; fil nummer 46 afvises,
+og de allerede valgte filer bevares. Denne grænsekontrol bruger lokale
+fil-input-fixtures uden løndata; der oprettes ingen sag, og intet indsendes til
+middleware. React-komponenternes dataflow og tilstand er gennemgået.
+
+Publikation: ændringen lægges på det eksisterende Railway-produktionsmål med
+eksplicit projekt-, miljø- og service-id fra denne worktree med `--path-as-root`.
+Deploymentstatus og onlinefiler kontrolleres efter upload. Ved fejl i appens
+login eller de afprøvede flows kan den tidligere verificerede deployment
+`343fae26-b326-4c0c-b2c4-66956e486eb9` genudrulles.
+
 ## Filtre for afgjorte afvigelser og mulige krav — 16. september 2026
 
 Den tidligere toggle er erstattet af `Alle poster`, `Afgjorte afvigelser` og

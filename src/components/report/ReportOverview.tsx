@@ -1,7 +1,7 @@
 import { ArrowRight, CircleDollarSign, FileQuestion, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 
-import type { CaseSheet, CaseSheetMonthReference } from "@/lib/case-sheet";
+import type { CaseSheet, CaseSheetMonthReference, CaseSheetNeedInput } from "@/lib/case-sheet";
 import type { CaseSheetSource } from "@/lib/paytjek-api";
 import { reportForReference, type ReportPointer } from "@/lib/report-index";
 import { kr, periodLabel, periodShort } from "@/lib/report";
@@ -201,6 +201,7 @@ export function ReportOverview({
   caseSheet,
   caseSheetSource,
   currentReportKey,
+  needsInput,
   onOpenReport,
   onSelect,
   reports,
@@ -208,6 +209,7 @@ export function ReportOverview({
   caseSheet: CaseSheet | null;
   caseSheetSource: CaseSheetSource | null;
   currentReportKey: string;
+  needsInput: readonly CaseSheetNeedInput[];
   onOpenReport: (reportKey: string) => void;
   onSelect: (reportKey: string, checkId: string, source: "finding" | "claim") => void;
   reports: OverviewReport[];
@@ -223,7 +225,7 @@ export function ReportOverview({
   }
 
   const visibleFindings = caseSheet.findings;
-  const visibleInputs = caseSheet.needs_input;
+  const visibleInputs = needsInput;
 
   return (
     <div className="space-y-5">

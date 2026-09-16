@@ -41,10 +41,15 @@ function InputRow({
   );
 }
 
-export function MemberQuestions({ caseSheet }: { caseSheet: CaseSheet | null }) {
-  const memberInputs =
-    caseSheet?.needs_input.filter((input) => input.ask_target === "member") ?? [];
-  const otherInputs = caseSheet?.needs_input.filter((input) => input.ask_target !== "member") ?? [];
+export function MemberQuestions({
+  caseSheet,
+  needsInput,
+}: {
+  caseSheet: CaseSheet | null;
+  needsInput: readonly CaseSheetNeedInput[];
+}) {
+  const memberInputs = needsInput.filter((input) => input.ask_target === "member");
+  const otherInputs = needsInput.filter((input) => input.ask_target !== "member");
   const [selected, setSelected] = useState<string[]>(() =>
     memberInputs.map((input) => input.artifact),
   );
@@ -103,7 +108,7 @@ export function MemberQuestions({ caseSheet }: { caseSheet: CaseSheet | null }) 
             ))
           ) : (
             <p className="px-4 py-5 text-[13px] text-muted-foreground">
-              Middleware efterspørger ikke oplysninger fra medlemmet.
+              Ingen åbne spørgsmål til medlemmet.
             </p>
           )}
           <p className="border-t border-border bg-muted/25 px-4 py-3 text-[11px] text-muted-foreground">

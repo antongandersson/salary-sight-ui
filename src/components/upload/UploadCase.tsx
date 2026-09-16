@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { isDemoApi, type AgreementFamily } from "@/lib/paytjek-api";
 
-const MAX_FILES = 30;
+const MAX_PAYSLIPS = 45;
 const MAX_FILE_BYTES = 15 * 1024 * 1024;
 const MAX_CONTEXT_BYTES = 1024 * 1024;
 const COMPLETE_ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -354,7 +354,8 @@ export function UploadCase({
     nextSatsberegning: readonly File[],
   ) {
     const allFiles = [...nextPayslips, ...nextContract, ...nextSatsberegning];
-    if (allFiles.length > MAX_FILES) return "Du kan højst uploade 30 PDF-filer ad gangen.";
+    if (nextPayslips.length > MAX_PAYSLIPS)
+      return `Du kan højst uploade ${MAX_PAYSLIPS} lønsedler ad gangen.`;
     return allFiles.map(validatePdf).find((result) => result !== null) ?? null;
   }
 
@@ -539,7 +540,8 @@ export function UploadCase({
             />
 
             <p className="text-[12px] text-muted-foreground">
-              PDF · højst 30 dokumenter samlet · 15 MB pr. dokument · member context højst 1 MB
+              PDF · højst {MAX_PAYSLIPS} lønsedler samt kontrakt og satstrin · 15 MB pr. dokument ·
+              member context højst 1 MB
             </p>
 
             {validationError || error ? (

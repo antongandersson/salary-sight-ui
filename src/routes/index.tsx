@@ -37,6 +37,7 @@ import {
 } from "@/lib/paytjek-api";
 import { readyReports, reportKey } from "@/lib/report-index";
 import type { PayslipFilter } from "@/lib/payslip-filter";
+import { pendingCaseInputs } from "@/lib/case-inputs";
 import { allReportChecks, periodLabel, type Report } from "@/lib/report";
 import { buildReviewQueue, type ReviewItem } from "@/lib/review-queue";
 
@@ -504,6 +505,10 @@ function CaseScreen({
   const checks = allReportChecks(report);
   const focused = focus ? (checks.find((check) => check.check_id === focus) ?? null) : null;
   const reviewQueue = buildReviewQueue(caseSheetResult?.caseSheet ?? null);
+  const visibleInputs = pendingCaseInputs(
+    caseSheetResult?.caseSheet.needs_input ?? [],
+    caseContext,
+  );
   const queueIndex = focused
     ? reviewQueue.findIndex(
         (item) => item.checkId === focused.check_id && item.slipKey === report.slip.slip_key,
@@ -658,7 +663,7 @@ function CaseScreen({
                   : nextTab === "seddel"
                     ? "Lønsedler"
                     : nextTab === "sporgsmaal"
-                      ? `Spørgsmål ${caseSheetResult?.caseSheet.needs_input.filter((input) => input.ask_target === "member").length ?? 0}`
+                      ? `Spørgsmål ${visibleInputs.filter((input) => input.ask_target === "member").length}`
                       : nextTab === "brev"
                         ? "Arbejdsgiverbrev"
                         : "Grundlag & kilder"}
@@ -672,6 +677,7 @@ function CaseScreen({
               caseSheet={caseSheetResult?.caseSheet ?? null}
               caseSheetSource={caseSheetResult?.source ?? null}
               currentReportKey={selectedReportKey}
+              needsInput={visibleInputs}
               onOpenReport={(nextReportKey) => {
                 void openReport(nextReportKey);
                 setTab("seddel");
@@ -697,7 +703,10 @@ function CaseScreen({
           </div>
         ) : tab === "sporgsmaal" ? (
           <div className="mt-5">
-            <MemberQuestions caseSheet={caseSheetResult?.caseSheet ?? null} />
+            <MemberQuestions
+              caseSheet={caseSheetResult?.caseSheet ?? null}
+              needsInput={visibleInputs}
+            />
           </div>
         ) : tab === "brev" ? (
           <div className="mt-5">
