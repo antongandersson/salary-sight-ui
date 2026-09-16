@@ -33,8 +33,14 @@ får ikke revisionens krav. Navigation fra både fund og krav på forsiden, søg
 og tomt søgeresultat er afprøvet. Mobilbredde 390 × 844 har læsbare filtre og
 kravoplysninger, uden vandret overløb.
 
-Publicering følger det samme eksplicit afgrænsede Railway-mål som releasen nedenfor.
-Deploy- og produktionsverifikation tilføjes, når publiceringen er afsluttet.
+Releasekode: `1830c7b`. Railway-deployment `343fae26-b326-4c0c-b2c4-66956e486eb9`
+(16. september 2026, oprettet 15:36:52 UTC) er verificeret som `SUCCESS` på det
+samme eksplicit afgrænsede produktionsmål som releasen nedenfor. Upload er udført
+fra denne worktree med `--path-as-root` og eksplicit projekt-, miljø- og service-id.
+Produktionskontrol: HTTP 401 uden login, HTTP 200 med eksisterende login, og identiske
+SHA-256-fingeraftryk for alle tre JS/CSS-filer i det afprøvede lokale build og online.
+De tre nye filtre og den betingede beløbsvisning er bekræftet i produktionsfilerne.
+GitHub/Lovable publiceres ved almindeligt fast-forward af `main`; historikken bevares.
 
 ## Godkendt roligere lønseddelarbejdsbord — 16. september 2026
 
