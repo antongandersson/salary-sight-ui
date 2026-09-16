@@ -23,11 +23,16 @@ og de allerede valgte filer bevares. Denne grænsekontrol bruger lokale
 fil-input-fixtures uden løndata; der oprettes ingen sag, og intet indsendes til
 middleware. React-komponenternes dataflow og tilstand er gennemgået.
 
-Publikation: ændringen lægges på det eksisterende Railway-produktionsmål med
-eksplicit projekt-, miljø- og service-id fra denne worktree med `--path-as-root`.
-Deploymentstatus og onlinefiler kontrolleres efter upload. Ved fejl i appens
-login eller de afprøvede flows kan den tidligere verificerede deployment
-`343fae26-b326-4c0c-b2c4-66956e486eb9` genudrulles.
+Releasekode: `7657acd`. Railway-deployment `9f9f0b47-2643-459c-815f-7fac80ba0afe`
+(16. september 2026, oprettet 19:59:28 UTC) er verificeret som `SUCCESS` på det
+eksisterende produktionsmål med eksplicit projekt-, miljø- og service-id fra
+denne worktree med `--path-as-root`. Onlinekontrol: HTTP 401 uden login,
+HTTP 200 med eksisterende login og identiske SHA-256-fingeraftryk for alle tre
+JS/CSS-filer i det afprøvede lokale build og online. De nye upload- og
+fødselsdatoændringer er dermed verificeret i den aktive produktionsudgave.
+`main` og arbejdsgrenen er publiceret til GitHub/Lovable uden omskrevet historik.
+Ved fejl i appens login eller de afprøvede flows kan den tidligere verificerede
+deployment `343fae26-b326-4c0c-b2c4-66956e486eb9` genudrulles.
 
 ## Filtre for afgjorte afvigelser og mulige krav — 16. september 2026
 
