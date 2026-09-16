@@ -1,252 +1,124 @@
-import { ChevronDown, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 
-import type { CaseSheet } from "@/lib/case-sheet";
 import type { ReportIndexEntry } from "@/lib/paytjek-api";
+import { reportKey } from "@/lib/report-index";
 import { periodLabel } from "@/lib/report";
+
+type PeriodNavigationProps = {
+  entries: ReportIndexEntry[];
+  loading: boolean;
+  onSelect: (key: string) => void;
+  selectedKey: string;
+};
 
 function shortPeriod(period: string): string {
   return `${period.slice(5)}/${period.slice(0, 4)}`;
 }
 
-function reportKey(entry: ReportIndexEntry): string {
-  return `${entry.period}:${entry.slip_key}`;
-}
-
-function periodCounts(
-  caseSheet: CaseSheet | null,
-  entry: ReportIndexEntry,
-): { findings: number; claims: number } {
-  if (!caseSheet) return { findings: 0, claims: 0 };
-  const matches = (reference: { period: string; slip_key: string }) =>
-    reference.period === entry.period && reference.slip_key === entry.slip_key;
-  return {
-    findings: caseSheet.findings.reduce(
-      (count, finding) => count + finding.months.filter(matches).length,
-      0,
-    ),
-    claims: caseSheet.possible_claims.families.reduce(
-      (count, family) => count + family.months.filter(matches).length,
-      0,
-    ),
-  };
-}
-
-// Fold kun årene sammen når listen er lang; små sager viser alt.
-const FOLD_THRESHOLD = 8;
-
-// Kompakt vandret variant til smalle skærme, hvor den fulde rail ville
-// skubbe lønposterne langt ned. Samme data, samme farvekoder.
-export function PeriodStrip({
-  caseSheet,
-  entries,
-  loading,
-  onSelect,
-  selectedKey,
-}: {
-  caseSheet: CaseSheet | null;
-  entries: ReportIndexEntry[];
-  loading: boolean;
-  onSelect: (key: string) => void;
-  selectedKey: string;
-}) {
+export function PeriodStrip({ entries, loading, onSelect, selectedKey }: PeriodNavigationProps) {
+  const superseded = new Set(
+    entries.flatMap((entry) => (entry.revises_slip_key ? [entry.revises_slip_key] : [])),
+  );
   return (
-    <nav aria-label="Lønperioder" className="border-b border-border">
-      <div className="flex items-center gap-2 overflow-x-auto px-3 py-2.5">
-        <span className="label-caps shrink-0">Perioder</span>
-        {entries.map((entry) => {
-          const key = reportKey(entry);
-          const selected = key === selectedKey;
-          const counts = periodCounts(caseSheet, entry);
-          return (
-            <button
-              aria-label={`${periodLabel(entry.period)}${entry.is_revision ? ", revision" : ""}`}
-              aria-pressed={selected}
-              className={`num flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] transition-colors ${
-                selected
-                  ? "border-accent bg-accent/8 font-semibold text-foreground"
-                  : "border-border bg-card text-muted-foreground hover:text-foreground"
-              }`}
-              disabled={loading}
-              key={key}
-              onClick={() => onSelect(key)}
-              type="button"
-            >
-              <span
-                className={`size-1.5 shrink-0 rounded-full ${
-                  counts.findings > 0
-                    ? "bg-mismatch"
-                    : counts.claims > 0
-                      ? "bg-needs"
-                      : caseSheet
-                        ? "bg-ok"
-                        : "bg-muted-foreground/35"
-                }`}
-                aria-hidden="true"
-              />
-              {shortPeriod(entry.period)}
-              {entry.is_revision ? <span className="font-semibold text-accent">rev.</span> : null}
-            </button>
-          );
-        })}
-      </div>
+    <nav className="border-b border-border px-5 py-4" aria-label="Lønperioder">
+      <label className="text-[13px] font-medium" htmlFor="payslip-period">
+        Periode
+      </label>
+      <select
+        className="mt-2 h-10 w-full rounded-lg border border-input bg-card px-3 text-[13px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        disabled={loading}
+        id="payslip-period"
+        onChange={(event) => onSelect(event.target.value)}
+        value={selectedKey}
+      >
+        {entries.map((entry) => (
+          <option key={reportKey(entry)} value={reportKey(entry)}>
+            {periodLabel(entry.period)}
+            {entry.is_revision
+              ? " · revision"
+              : superseded.has(entry.slip_key)
+                ? " · erstattet"
+                : ""}
+            {entries.filter((candidate) => candidate.period === entry.period).length > 1
+              ? ` · ${entry.slip_key.slice(0, 6)}`
+              : ""}
+          </option>
+        ))}
+      </select>
     </nav>
   );
 }
 
-export function PeriodRail({
-  caseSheet,
-  contained = false,
-  entries,
-  loading,
-  onSelect,
-  selectedKey,
-}: {
-  caseSheet: CaseSheet | null;
-  contained?: boolean;
-  entries: ReportIndexEntry[];
-  loading: boolean;
-  onSelect: (key: string) => void;
-  selectedKey: string;
-}) {
+export function PeriodRail({ entries, loading, onSelect, selectedKey }: PeriodNavigationProps) {
   const superseded = new Set(
     entries.flatMap((entry) => (entry.revises_slip_key ? [entry.revises_slip_key] : [])),
   );
-  const years: string[] = [];
   const byYear = new Map<string, ReportIndexEntry[]>();
+  const periodCounts = new Map<string, number>();
   for (const entry of entries) {
     const year = entry.period.slice(0, 4);
-    if (!byYear.has(year)) {
-      years.push(year);
-      byYear.set(year, []);
-    }
-    byYear.get(year)!.push(entry);
+    const group = byYear.get(year) ?? [];
+    group.push(entry);
+    byYear.set(year, group);
+    periodCounts.set(entry.period, (periodCounts.get(entry.period) ?? 0) + 1);
   }
-  const selectedYear =
-    entries.find((entry) => reportKey(entry) === selectedKey)?.period.slice(0, 4) ?? years[0];
-  const [openYears, setOpenYears] = useState<ReadonlySet<string>>(
-    () => new Set(entries.length > FOLD_THRESHOLD ? [selectedYear ?? ""] : years),
-  );
-
-  function toggleYear(year: string) {
-    setOpenYears((current) => {
-      const next = new Set(current);
-      if (next.has(year)) {
-        next.delete(year);
-      } else {
-        next.add(year);
-      }
-      return next;
-    });
-  }
-
-  function yearSummary(year: string): string {
-    const yearEntries = byYear.get(year) ?? [];
-    const findings = yearEntries.reduce(
-      (count, entry) => count + periodCounts(caseSheet, entry).findings,
-      0,
-    );
-    return findings > 0 ? `${findings} fund` : `${yearEntries.length} rapp.`;
-  }
-
+  const selectedYear = entries
+    .find((entry) => reportKey(entry) === selectedKey)
+    ?.period.slice(0, 4);
   return (
-    <aside
-      className={contained ? "overflow-hidden" : "paper overflow-hidden rounded-xl"}
-      aria-label="Lønperioder"
-    >
-      <div className="border-b border-border px-3 py-3">
-        <p className="label-caps">Perioder</p>
+    <nav aria-label="Lønperioder">
+      <div className="px-5 py-5">
+        <h2 className="text-lg font-semibold">Perioder</h2>
         <p className="mt-1 text-[13px] text-muted-foreground">
           {entries.length} rapport{entries.length === 1 ? "" : "er"}
         </p>
       </div>
-      <div className="max-h-[calc(100vh-16rem)] overflow-y-auto py-1">
-        {years.map((year) => {
-          const open = openYears.has(year);
-          const yearEntries = byYear.get(year) ?? [];
-          return (
-            <div key={year}>
-              <button
-                aria-expanded={open}
-                className="flex w-full items-center gap-1.5 px-3 py-1.5 text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
-                onClick={() => toggleYear(year)}
-                type="button"
-              >
-                {open ? (
-                  <ChevronDown className="size-3" aria-hidden="true" />
-                ) : (
-                  <ChevronRight className="size-3" aria-hidden="true" />
-                )}
-                <span className="num">{year}</span>
-                <span className="ml-auto font-normal normal-case">{yearSummary(year)}</span>
-              </button>
-              {open
-                ? yearEntries.map((entry) => {
-                    const key = reportKey(entry);
-                    const selected = key === selectedKey;
-                    const isSuperseded = superseded.has(entry.slip_key);
-                    const counts = periodCounts(caseSheet, entry);
-                    return (
-                      <button
-                        aria-label={`${periodLabel(entry.period)}${entry.is_revision ? ", revision" : ""}`}
-                        aria-pressed={selected}
-                        className={`flex w-full items-center gap-2 border-l-2 px-3 py-2 text-left text-[13px] transition-colors ${
-                          selected
-                            ? "border-l-accent bg-accent/8 font-semibold text-foreground"
-                            : "border-l-transparent text-muted-foreground hover:bg-muted/45 hover:text-foreground"
-                        } ${isSuperseded ? "opacity-55" : ""}`}
-                        disabled={loading}
-                        key={key}
-                        onClick={() => onSelect(key)}
-                        type="button"
-                      >
-                        <span
-                          className={`size-2 shrink-0 rounded-full ${
-                            counts.findings > 0
-                              ? "bg-mismatch"
-                              : counts.claims > 0
-                                ? "bg-needs"
-                                : caseSheet
-                                  ? "bg-ok"
-                                  : "bg-muted-foreground/35"
-                          }`}
-                        />
-                        <span className="num min-w-0 flex-1 truncate">
-                          {shortPeriod(entry.period)}
-                        </span>
-                        {counts.findings > 0 ? (
-                          <span className="num text-[11px] font-bold text-mismatch">
-                            {counts.findings}
-                          </span>
-                        ) : counts.claims > 0 ? (
-                          <span className="num text-[11px] font-bold text-needs">
-                            {counts.claims}
-                          </span>
-                        ) : null}
-                        {entry.is_revision ? (
-                          <span className="text-[11px] font-semibold text-accent">rev.</span>
-                        ) : isSuperseded ? (
-                          <span className="text-[11px]">erstattet</span>
-                        ) : null}
-                      </button>
-                    );
-                  })
-                : null}
-            </div>
-          );
-        })}
+      <div className="max-h-[740px] overflow-y-auto pb-4">
+        {[...byYear].map(([year, yearEntries]) => (
+          <details className="group" key={year} open={entries.length <= 8 || year === selectedYear}>
+            <summary className="flex cursor-pointer list-none items-center gap-2 px-5 py-3 text-[13px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+              <ChevronDown
+                className="size-3.5 -rotate-90 text-muted-foreground transition-transform group-open:rotate-0"
+                aria-hidden="true"
+              />
+              {year}
+            </summary>
+            {yearEntries.map((entry) => {
+              const selected = reportKey(entry) === selectedKey;
+              const isSuperseded = superseded.has(entry.slip_key);
+              const revision = entry.is_revision ? "revision" : isSuperseded ? "erstattet" : null;
+              const duplicatePeriod = (periodCounts.get(entry.period) ?? 0) > 1;
+              return (
+                <button
+                  aria-label={`${periodLabel(entry.period)}${revision ? `, ${revision}` : ""}${duplicatePeriod ? `, ${entry.slip_key.slice(0, 6)}` : ""}`}
+                  aria-pressed={selected}
+                  className={`relative block w-full px-5 py-3 pl-8 text-left text-[14px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${selected ? "bg-mismatch-soft/55 font-semibold" : "text-muted-foreground hover:bg-muted/30"} ${isSuperseded ? "opacity-65" : ""}`}
+                  disabled={loading}
+                  key={reportKey(entry)}
+                  onClick={() => onSelect(reportKey(entry))}
+                  title={entry.slip_key}
+                  type="button"
+                >
+                  {selected ? (
+                    <span
+                      className="absolute bottom-2 left-1 top-2 w-[3px] rounded-full bg-accent"
+                      aria-hidden="true"
+                    />
+                  ) : null}
+                  <span className="num">{shortPeriod(entry.period)}</span>
+                  {revision || duplicatePeriod ? (
+                    <span className="mt-1 block text-[10px] font-normal">
+                      {revision}
+                      {revision && duplicatePeriod ? " · " : ""}
+                      {duplicatePeriod ? entry.slip_key.slice(0, 6) : ""}
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </details>
+        ))}
       </div>
-      <div className="space-y-1 border-t border-border bg-muted/25 px-3 py-2.5 text-[11px] text-muted-foreground">
-        <p className="flex items-center gap-1.5">
-          <span className="size-1.5 rounded-full bg-mismatch" /> Afgjort fund (antal)
-        </p>
-        <p className="flex items-center gap-1.5">
-          <span className="size-1.5 rounded-full bg-needs" /> Muligt krav (antal)
-        </p>
-        <p className="flex items-center gap-1.5">
-          <span className="size-1.5 rounded-full bg-ok" /> Ingen af de to
-        </p>
-      </div>
-    </aside>
+    </nav>
   );
 }

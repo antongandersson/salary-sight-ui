@@ -563,7 +563,7 @@ function CaseScreen({
           </div>
           <div className="num flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-muted-foreground">
             <span>{caseLabel}</span>
-            <span>Periode {periodLabel(report.slip.period)}</span>
+            {tab !== "seddel" ? <span>Periode {periodLabel(report.slip.period)}</span> : null}
           </div>
           <div className="ml-auto flex flex-wrap items-center gap-2">
             {isDemoApi() ? (
@@ -579,7 +579,7 @@ function CaseScreen({
                 Forældet generation
               </span>
             ) : null}
-            {reportEntries.length > 1 ? (
+            {tab !== "seddel" && reportEntries.length > 1 ? (
               <select
                 aria-label="Vælg lønperiode"
                 className="h-8 rounded-md border border-input bg-card px-2 text-[13px]"
@@ -613,12 +613,15 @@ function CaseScreen({
             {error}
           </p>
         ) : null}
-        <div className="paper flex flex-wrap items-center gap-1 rounded-lg px-3 py-1.5">
+        <nav
+          aria-label="Sagens arbejdsflader"
+          className="flex flex-wrap items-center gap-x-6 gap-y-1 border-b border-border"
+        >
           {(
             [
               "overblik",
-              "gennemgang",
               "seddel",
+              "gennemgang",
               "sporgsmaal",
               "brev",
               "datagrundlag",
@@ -626,10 +629,10 @@ function CaseScreen({
           ).map((nextTab) => (
             <button
               aria-pressed={tab === nextTab}
-              className={`rounded-md px-3 py-1.5 text-[14px] font-semibold transition-colors ${
+              className={`border-b-2 px-1 py-3 text-[14px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                 tab === nextTab
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  ? "border-accent font-semibold text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
               key={nextTab}
               onClick={() => setTab(nextTab)}
@@ -640,7 +643,7 @@ function CaseScreen({
                 : nextTab === "gennemgang"
                   ? `Gennemgang ${reviewQueue.length}`
                   : nextTab === "seddel"
-                    ? `Lønsedler ${reportEntries.length}`
+                    ? "Lønsedler"
                     : nextTab === "sporgsmaal"
                       ? `Spørgsmål ${caseSheetResult?.caseSheet.needs_input.filter((input) => input.ask_target === "member").length ?? 0}`
                       : nextTab === "brev"
@@ -648,7 +651,7 @@ function CaseScreen({
                         : "Grundlag & kilder"}
             </button>
           ))}
-        </div>
+        </nav>
 
         {tab === "overblik" ? (
           <div className="mt-5">
@@ -700,13 +703,11 @@ function CaseScreen({
         ) : (
           <div className="mt-5">
             <PayslipWorkspace
-              caseSheet={caseSheetResult?.caseSheet ?? null}
               entries={reportEntries}
               key={report.slip.slip_key}
               loading={loading}
               onOpenEvidence={selectControl}
               onSelectReport={(nextKey) => void openReport(nextKey)}
-              onShowQuestions={() => setTab("sporgsmaal")}
               report={report}
               selectedReportKey={selectedReportKey}
             />

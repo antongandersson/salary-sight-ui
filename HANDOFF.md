@@ -1,7 +1,45 @@
 # PayTjek frontend — implementeringshandoff
 
-Senest opdateret: 15. september 2026 (session 15/9 øverst; 14/9 og 9.–11. september bevaret
-nedenfor)
+Senest opdateret: 16. september 2026 (tidligere sessions-handoffs bevaret nedenfor).
+
+## Godkendt roligere lønseddelarbejdsbord — 16. september 2026
+
+Implementeret lokalt på `codex/calmer-payslips` i worktree
+`.claude/worktrees/understand-repo-d73dbf`, fra commit `877a72f`.
+
+- Det godkendte mock er omsat til én lønpostliste; den dobbelte "Kræver handling"-liste er fjernet.
+- Perioderailen viser perioder og revisionsidentitet uden statusprikker, fund-tal og farveforklaring.
+- Den valgte kontrol, middleware-beløbet og middleware-regnestykket står først i højre panel.
+- Andre kontroller er foldet sammen. Alle terminaler og interne kontroller er fortsat tilgængelige.
+- Saldi og kontroller for hele lønsedlen har hver sin foldbare indgang. Udeladte parserlinjer bevares.
+- Søgning og "Kun afvigelser" filtrerer API-linjer via deres faktiske MISMATCH-kontroller.
+- Den første lønpost med en MISMATCH vælges som udgangspunkt; det er kun navigation.
+- Overskriftens eneste statusoptælling kommer fra `report.counters.by_terminal.MISMATCH`.
+- Den lokale beløbssummering og formuleringen "øvrige i orden" er fjernet.
+- Forventet og trykt vises uden gættede enheder. Manglende felter erstattes ikke af værdier.
+- Lønposternes hjælpetekst navngiver antal, sats og grundlag uden at gætte satsens enhed eller regnestykke.
+- Det komplette regnestykke kan foldes ud ordret; bevisarket og gennemgangskøen er bevaret.
+- Den dobbelte periodevælger skjules på Lønsedler. Smalle skærme har en lokal periodevælger.
+- På mobil ligger kontrollen under den rullebare postliste. Et bundfast panel dækkede filteret under browserkontrollen og er derfor fjernet.
+- Middlewareprincippet er tilføjet `AGENTS.md`, så det følger arbejdet i kommende sessioner.
+
+Verificeret: `bun test` (21 tests, 52 assertions), `tsc --noEmit`, `eslint .` (0 fejl,
+9 eksisterende Fast Refresh-advarsler) og `vite build` består. Browserkontrol mod aktuel
+Case 1 med 25 rapporter: juni og maj 2026, begge afvigelser, alle seks kontroller på
+normaltimer inklusive intern REFUSED og OK, bevisark, søgning/tomt resultat, saldi,
+hele-seddel-kontroller med afvigelsesfilter samt særskilt revisionsidentitet for oktober 2024.
+Mobilbredde 390 × 844: periodevalg, filter, postvalg og bevisark afprøvet; ingen vandret
+overløb eller browserfejl.
+
+Brugeren har efter lokal gennemgang godkendt publicering på Railway. Produktionsmålet
+er bekræftet via CLI: projekt `4b1e3194-a39c-458d-94ae-fcbd9dc6c364`, miljø
+`ebad6c4f-c318-4d12-ad99-c3a484ecc93c`, service `34801b45-7ee2-44e2-bc42-d705005abd6c`
+(`paytjek-frontend`). `NITRO_PRESET=node-server` og eksisterende login er sat på servicen;
+det lokale build med dette preset består. Adresse:
+https://paytjek-frontend-production.up.railway.app. Deployment-resultat tilføjes efter verifikation.
+
+Demo-sager nulstilles løbende: hent aktuelle id'er med `GET /api/v1/cases`.
+Gamle id'er længere nede i dette dokument kan være udløbet.
 
 ## Sessions-handoff 15. september 2026
 
@@ -472,23 +510,23 @@ Formålet er at reducere læsetid uden at fjerne sporbarhed.
 
 ## Centrale filer
 
-| Fil | Ansvar |
-| --- | --- |
-| `src/routes/index.tsx` | Upload, polling, genåbning, lazy rapporthentning og fanenavigation |
-| `src/lib/paytjek-api.ts` | Klient og typer til middleware-endpoints |
-| `src/lib/report.ts` | Rapporttyper, statusmetadata og kontrol↔lønlinje-helpers |
-| `src/lib/case-sheet.ts` | Typer for middlewarets case-sheet |
-| `src/lib/report-index.ts` | Sortering og opslag med `period + slip_key` |
-| `src/components/report/PayslipWorkspace.tsx` | Tre-panel arbejdsbord for perioder, lønposter og beregning |
-| `src/components/report/PeriodRail.tsx` | Perioder, revisioner og case-sheet-status |
-| `src/components/report/EvidenceSheet.tsx` | Fuld dokumentation for én kontrol |
-| `src/components/report/ReportOverview.tsx` | Kompakt case-sheet-baseret sagsoversigt |
-| `src/components/report/SourceProof.tsx` | Grundlag, regelkilder, dokumenter og provenance |
-| `src/components/report/ReportRegister.tsx` | Register over alle rapporter i sagen |
-| `src/components/report/MemberQuestions.tsx` | Grupperede inputbehov |
-| `src/components/report/EmployerLetter.tsx` | Låst brevgrundlag fra middleware |
-| `src/components/upload/UploadCase.tsx` | Uploadfelter og klientvalidering |
-| `src/components/upload/ProcessingCase.tsx` | Behandlingsstatus og dokumentklassifikation |
+| Fil                                          | Ansvar                                                             |
+| -------------------------------------------- | ------------------------------------------------------------------ |
+| `src/routes/index.tsx`                       | Upload, polling, genåbning, lazy rapporthentning og fanenavigation |
+| `src/lib/paytjek-api.ts`                     | Klient og typer til middleware-endpoints                           |
+| `src/lib/report.ts`                          | Rapporttyper, statusmetadata og kontrol↔lønlinje-helpers           |
+| `src/lib/case-sheet.ts`                      | Typer for middlewarets case-sheet                                  |
+| `src/lib/report-index.ts`                    | Sortering og opslag med `period + slip_key`                        |
+| `src/components/report/PayslipWorkspace.tsx` | Tre-panel arbejdsbord for perioder, lønposter og beregning         |
+| `src/components/report/PeriodRail.tsx`       | Perioder og særskilt revisionsidentitet                            |
+| `src/components/report/EvidenceSheet.tsx`    | Fuld dokumentation for én kontrol                                  |
+| `src/components/report/ReportOverview.tsx`   | Kompakt case-sheet-baseret sagsoversigt                            |
+| `src/components/report/SourceProof.tsx`      | Grundlag, regelkilder, dokumenter og provenance                    |
+| `src/components/report/ReportRegister.tsx`   | Register over alle rapporter i sagen                               |
+| `src/components/report/MemberQuestions.tsx`  | Grupperede inputbehov                                              |
+| `src/components/report/EmployerLetter.tsx`   | Låst brevgrundlag fra middleware                                   |
+| `src/components/upload/UploadCase.tsx`       | Uploadfelter og klientvalidering                                   |
+| `src/components/upload/ProcessingCase.tsx`   | Behandlingsstatus og dokumentklassifikation                        |
 
 `PayslipFacsimile.tsx`, `PayslipView.tsx` og `ReportChecks.tsx` findes fortsat, men bruges ikke af
 det nye primære lønseddelarbejdsbord. Fjern dem først, når det er bekræftet, at ingen anden route

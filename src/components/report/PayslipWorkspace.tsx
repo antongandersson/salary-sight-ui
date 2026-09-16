@@ -1,13 +1,12 @@
-import { Calculator, ChevronRight, FileSearch, Search, TriangleAlert } from "lucide-react";
+import { Calculator, ChevronDown, ChevronRight, FileSearch, Search } from "lucide-react";
 import { useState } from "react";
 
-import type { CaseSheet } from "@/lib/case-sheet";
+import { Switch } from "@/components/ui/switch";
 import type { ReportIndexEntry } from "@/lib/paytjek-api";
 import {
   allReportChecks,
   checksForLine,
   kr,
-  lineForCheck,
   periodLabel,
   TERMINALS,
   type Check,
@@ -26,10 +25,6 @@ const STATUS_BAR: Record<Terminal, string> = {
   KONTROLPUNKT: "bg-refused",
   OK: "bg-ok",
 };
-
-// Kun disse udfald fremhæves i lønpostlisten — alt andet dæmpes, så
-// afvigelser springer i øjnene.
-const ATTENTION_TERMINALS = new Set<Terminal>(["MISMATCH", "NEEDS_INPUT", "FORBEHOLD"]);
 
 export function partitionLines(report: Report): {
   transactions: SlipLine[];
@@ -53,62 +48,36 @@ export function slipLevelChecks(report: Report): Check[] {
   );
 }
 
-function strongestTerminal(checks: Check[]): Terminal | null {
-  let strongest: Terminal | null = null;
-  for (const check of checks) {
-    if (strongest === null || TERMINALS[check.terminal].order < TERMINALS[strongest].order) {
-      strongest = check.terminal;
-    }
-  }
-  return strongest;
-}
-
 function strongestCheck(checks: Check[]): Check | null {
   let strongest: Check | null = null;
   for (const check of checks) {
-    if (
-      strongest === null ||
-      TERMINALS[check.terminal].order < TERMINALS[strongest.terminal].order
-    ) {
+    if (strongest === null || TERMINALS[check.terminal].order < TERMINALS[strongest.terminal].order)
       strongest = check;
-    }
   }
   return strongest;
 }
 
+function defaultLine(report: Report, lines: SlipLine[]): SlipLine | null {
+  return (
+    lines.find((line) =>
+      checksForLine(report, line).some((check) => check.terminal === "MISMATCH"),
+    ) ??
+    lines.find((line) => checksForLine(report, line).length > 0) ??
+    lines[0] ??
+    null
+  );
+}
+
 function inputHint(line: SlipLine): string | null {
-  if (line.quantity != null && line.rate != null) {
-    return `${kr(line.quantity)} × ${kr(line.rate)} kr`;
-  }
-  if (line.basis != null && line.rate != null) {
-    return `${kr(line.rate)} % af ${kr(line.basis)} kr`;
-  }
-  if (line.quantity != null) return `${kr(line.quantity)} enheder`;
+  if (line.quantity != null && line.rate != null)
+    return `Antal ${kr(line.quantity)} · sats ${kr(line.rate)}`;
+  if (line.basis != null && line.rate != null)
+    return `Sats ${kr(line.rate)} · grundlag ${kr(line.basis)} kr`;
+  if (line.quantity != null) return `Antal ${kr(line.quantity)}`;
   if (line.rate != null) return `Sats ${kr(line.rate)}`;
   return null;
 }
 
-function calculation(check: Check): string | null {
-  return check.computation?.arithmetic ?? check.kroner?.arithmetic ?? null;
-}
-
-function slipSummary(checks: Check[]): string {
-  const mismatches = checks.filter((check) => check.terminal === "MISMATCH").length;
-  const needs = checks.filter((check) => check.terminal === "NEEDS_INPUT").length;
-  const rest = checks.length - mismatches - needs;
-  const parts: string[] = [];
-  if (mismatches > 0) parts.push(`${mismatches} afvigelse${mismatches === 1 ? "" : "r"} med beløb`);
-  if (needs > 0) parts.push(`${needs} kræver oplysning`);
-  if (rest > 0) parts.push(`${rest} øvrige kontroller`);
-  return parts.join(" · ");
-}
-
-const CALC_PREVIEW_LINES = 8;
-const CALC_PREVIEW_SEGMENTS = 4;
-
-// Deler et langt én-linjes regnestykke i middlewarens egne "; "-adskilte
-// delsætninger. Flerlinjede regnestykker beholder deres egne linjer (de kan
-// være tabel-opstillinger, hvor bullets ville ødelægge justeringen).
 export function calcSegments(text: string): { mode: "lines" | "segments"; parts: string[] } {
   const lines = text.split("\n").filter((line) => line.trim() !== "");
   if (lines.length > 1) return { mode: "lines", parts: lines };
@@ -116,164 +85,105 @@ export function calcSegments(text: string): { mode: "lines" | "segments"; parts:
   return { mode: parts.length > 1 ? "segments" : "lines", parts };
 }
 
-// Fremhæver tal (inkl. enheder som kr/t, kr og %) typografisk — teksten
-// gengives ordret, kun formateringen ændres.
-function NumText({ text }: { text: string }) {
-  const parts = text.split(/(\d[\d.,]*(?:\s?(?:kr\/t|kr|%))?)/g);
-  return (
-    <>
-      {parts.map((part, index) =>
-        index % 2 === 1 ? (
-          <span className="num font-medium text-foreground" key={index}>
-            {part}
-          </span>
-        ) : (
-          part
-        ),
-      )}
-    </>
-  );
-}
-
+// Uddraget og hele regnestykket kommer begge ordret fra middleware.
 function Calculation({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false);
   const { mode, parts } = calcSegments(text);
-
-  if (mode === "segments") {
-    const [first, ...rest] = parts;
-    const clamped = !expanded && rest.length > CALC_PREVIEW_SEGMENTS + 1;
-    const visible = clamped ? rest.slice(0, CALC_PREVIEW_SEGMENTS) : rest;
-    return (
-      <div className="mt-4 rounded-lg border border-border bg-card p-4">
-        <p className="label-caps text-[10px]">Regnestykket — ordret fra middleware</p>
-        <p className="num mt-2 text-[13px] font-semibold leading-relaxed text-foreground">
-          {first}
-        </p>
-        {visible.length > 0 ? (
-          <div className="mt-2 space-y-1.5 text-[12px] leading-relaxed text-muted-foreground">
-            {visible.map((part, index) => (
-              <p className="flex gap-2" key={index}>
-                <span aria-hidden="true" className="text-accent">
-                  ·
-                </span>
-                <span className="min-w-0">
-                  <NumText text={part} />
-                </span>
-              </p>
-            ))}
-          </div>
-        ) : null}
-        {rest.length > CALC_PREVIEW_SEGMENTS + 1 ? (
-          <button
-            className="mt-2 text-[12px] font-semibold text-accent hover:underline"
-            onClick={() => setExpanded((current) => !current)}
-            type="button"
-          >
-            {clamped ? `Vis hele regnestykket (${parts.length} punkter)` : "Vis færre"}
-          </button>
-        ) : null}
-      </div>
-    );
-  }
-
-  const clamped = !expanded && parts.length > CALC_PREVIEW_LINES + 2;
+  const rawLines = text.split("\n");
+  const hasMore = mode === "segments" ? parts.length > 1 : rawLines.length > 4;
+  const preview = mode === "segments" ? (parts[0] ?? text) : rawLines.slice(0, 4).join("\n");
   return (
-    <div>
-      <pre className="num mt-4 whitespace-pre-wrap rounded-lg border border-border bg-card p-4 text-[13px] leading-relaxed text-foreground">
-        {clamped ? `${parts.slice(0, CALC_PREVIEW_LINES).join("\n")}\n…` : text}
+    <section className="mt-5 rounded-lg border border-border bg-muted/25 p-4">
+      <h4 className="text-[12px] font-medium text-muted-foreground">Regnestykke fra middleware</h4>
+      <pre className="num mt-3 whitespace-pre-wrap break-words text-[13px] leading-relaxed text-foreground">
+        {expanded || !hasMore ? text : preview}
       </pre>
-      {parts.length > CALC_PREVIEW_LINES + 2 ? (
+      {hasMore ? (
         <button
-          className="mt-1.5 text-[12px] font-semibold text-accent hover:underline"
+          aria-expanded={expanded}
+          className="mt-3 text-[12px] font-semibold text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           onClick={() => setExpanded((current) => !current)}
           type="button"
         >
-          {clamped ? `Vis hele regnestykket (${parts.length} linjer)` : "Vis færre"}
+          {expanded ? "Vis uddrag" : "Vis hele regnestykket"}
         </button>
       ) : null}
-    </div>
+    </section>
   );
 }
 
+const DISCLOSURE_STYLE =
+  "flex cursor-pointer list-none items-center justify-between gap-3 rounded-sm py-2 text-[13px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden";
+
 export function PayslipWorkspace({
-  caseSheet,
   entries,
   loading,
   onOpenEvidence,
   onSelectReport,
-  onShowQuestions,
   report,
   selectedReportKey,
 }: {
-  caseSheet: CaseSheet | null;
   entries: ReportIndexEntry[];
   loading: boolean;
   onOpenEvidence: (checkId: string) => void;
   onSelectReport: (key: string) => void;
-  onShowQuestions: () => void;
   report: Report;
   selectedReportKey: string;
 }) {
   const { transactions, balances, dropped } = partitionLines(report);
   const lines = [...transactions, ...balances];
   const reportChecks = slipLevelChecks(report);
-  const firstLine =
-    lines.find((line) => checksForLine(report, line).length > 0) ?? lines[0] ?? null;
+  const firstLine = defaultLine(report, lines);
   const [selection, setSelection] = useState<number | "slip" | null>(
     firstLine?.index ?? (reportChecks.length > 0 ? "slip" : null),
   );
   const [requestedCheckId, setRequestedCheckId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
-  const matchesQuery = (line: SlipLine) =>
-    (line.description ?? line.concept ?? "").toLowerCase().includes(query.trim().toLowerCase());
-  const filteredTransactions = query ? transactions.filter(matchesQuery) : transactions;
-  const filteredBalances = query ? balances.filter(matchesQuery) : balances;
+  const [onlyMismatches, setOnlyMismatches] = useState(false);
+  const normalizedQuery = query.trim().toLowerCase();
+  const hasFilters = normalizedQuery !== "" || onlyMismatches;
+
+  function matchesFilter(line: SlipLine): boolean {
+    return (
+      (line.description ?? line.concept ?? "").toLowerCase().includes(normalizedQuery) &&
+      (!onlyMismatches ||
+        checksForLine(report, line).some((check) => check.terminal === "MISMATCH"))
+    );
+  }
+
+  const filteredTransactions = transactions.filter(matchesFilter);
+  const filteredBalances = balances.filter(matchesFilter);
+  const filteredDropped = dropped.filter(matchesFilter);
   const filteredLines = [...filteredTransactions, ...filteredBalances];
-  const selectedLine =
-    selection === "slip" ? null : (lines.find((line) => line.index === selection) ?? firstLine);
-  const lineChecks =
-    selection === "slip" ? reportChecks : selectedLine ? checksForLine(report, selectedLine) : [];
+  const showingSlip = selection === "slip";
+  const selectedLine = showingSlip
+    ? null
+    : ([...filteredLines, ...filteredDropped].find((line) => line.index === selection) ??
+      defaultLine(report, filteredLines));
+  const lineChecks = showingSlip
+    ? reportChecks
+    : selectedLine
+      ? checksForLine(report, selectedLine)
+      : [];
   const selectedCheck =
     lineChecks.find((check) => check.check_id === requestedCheckId) ?? strongestCheck(lineChecks);
-  const allChecks = allReportChecks(report);
   const orderedChecks = [...lineChecks].sort(
     (left, right) => TERMINALS[left.terminal].order - TERMINALS[right.terminal].order,
   );
-  const slipTerminal = strongestTerminal(reportChecks);
-  const slipAttention = slipTerminal !== null && ATTENTION_TERMINALS.has(slipTerminal);
-
-  // Statuschips i klart sprog: afvigelser (med sum), manglende oplysninger og
-  // forbehold hver for sig — resten er i orden. Tallene er rene optællinger.
-  const mismatchChecks = allChecks.filter((check) => check.terminal === "MISMATCH");
-  const mismatchKr = mismatchChecks.reduce((sum, check) => sum + (check.kroner?.kr ?? 0), 0);
-  const needsChecks = allChecks.filter((check) => check.terminal === "NEEDS_INPUT");
-  const forbeholdCount = allChecks.filter((check) => check.terminal === "FORBEHOLD").length;
-  const restCount = allChecks.length - mismatchChecks.length - needsChecks.length - forbeholdCount;
-
-  // "Kræver handling": kun sedlens afvigelser som direkte indgange — klik
-  // vælger lønpost og kontrol i ét hop. Manglende oplysninger samles i én
-  // henvisning til Spørgsmål-fanen, som grupperer dem pr. oplysning.
-  const actionChecks = mismatchChecks;
-
-  function openCheck(check: Check) {
-    const target = lineForCheck(report, check.check_id);
-    setSelection(target ? target.index : "slip");
-    setRequestedCheckId(check.check_id);
-  }
+  const selectedBalance = filteredBalances.some((line) => line.index === selectedLine?.index);
+  const selectedDropped = filteredDropped.some((line) => line.index === selectedLine?.index);
+  // API-optælling; ingen lokal beløbssum eller konklusion om øvrige kontroller.
+  const mismatchCount = report.counters.by_terminal.MISMATCH;
+  const arithmetic = selectedCheck?.computation?.arithmetic ?? selectedCheck?.kroner?.arithmetic;
 
   function renderLine(line: SlipLine) {
-    const checks = checksForLine(report, line);
-    const terminal = strongestTerminal(checks);
-    const selected = selection !== "slip" && line.index === selectedLine?.index;
-    const attention = terminal !== null && ATTENTION_TERMINALS.has(terminal);
-    const emphasized = attention || selected;
+    const mismatch = checksForLine(report, line).some((check) => check.terminal === "MISMATCH");
+    const selected = !showingSlip && line.index === selectedLine?.index;
     const hint = inputHint(line);
     return (
       <button
         aria-pressed={selected}
-        className={`group grid w-full grid-cols-[4px_minmax(0,1fr)_auto_auto] items-center gap-3 border-b border-border px-3 py-3 text-left transition-colors ${
-          selected ? "bg-accent/8" : "hover:bg-muted/35"
-        }`}
+        className={`group relative grid w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 border-b border-border px-5 py-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${selected ? (mismatch ? "bg-mismatch-soft/55" : "bg-muted/45") : "hover:bg-muted/30"}`}
         key={line.index}
         onClick={() => {
           setSelection(line.index);
@@ -281,84 +191,59 @@ export function PayslipWorkspace({
         }}
         type="button"
       >
-        <span
-          className={`h-8 w-1 rounded-full ${attention && terminal ? STATUS_BAR[terminal] : "bg-border"}`}
-          aria-hidden="true"
-        />
+        {mismatch || selected ? (
+          <span
+            className={`absolute bottom-3 left-1 top-3 w-[3px] rounded-full ${mismatch ? "bg-mismatch" : "bg-muted-foreground/40"}`}
+            aria-hidden="true"
+          />
+        ) : null}
         <span className="min-w-0">
           <strong
-            className={`block truncate text-[13px] ${
-              emphasized ? "font-semibold text-foreground" : "font-normal text-muted-foreground"
-            }`}
+            className={`block text-[14px] leading-snug ${selected || mismatch ? "font-semibold" : "font-normal"}`}
           >
             {line.description ?? line.concept ?? `Lønlinje ${line.index}`}
           </strong>
           {hint ? (
-            <span className="num mt-0.5 block truncate text-[11px] text-muted-foreground">
-              {hint}
+            <span className="num mt-1 block text-[12px] text-muted-foreground">{hint}</span>
+          ) : null}
+          {mismatch ? (
+            <span className="mt-2 inline-block rounded border border-mismatch/20 bg-mismatch-soft px-2 py-0.5 text-[11px] font-medium text-mismatch">
+              Afvigelse
             </span>
           ) : null}
         </span>
         <span
-          className={`num whitespace-nowrap text-[13px] ${
-            emphasized ? "font-semibold text-foreground" : "text-muted-foreground"
-          }`}
+          className={`num whitespace-nowrap text-[14px] ${selected ? "font-semibold" : "text-muted-foreground"}`}
         >
           {line.amount == null ? "—" : `${kr(line.amount)} kr`}
         </span>
-        <ChevronRight
-          className={`size-4 ${selected ? "text-accent" : "text-muted-foreground/50"}`}
-          aria-hidden="true"
-        />
+        <ChevronRight className="size-4 text-muted-foreground/60" aria-hidden="true" />
       </button>
     );
   }
 
   return (
-    // overflow-clip (ikke -hidden): et scroll-container-forfader ville slå
-    // beregningspanelets sticky bottom-sheet fra på smalle skærme.
-    <section className="paper overflow-clip rounded-xl" aria-label="Lønseddelarbejdsbord">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
-        <div>
-          <p className="label-caps text-accent">Lønseddel + kontrol</p>
-          <h1 className="mt-0.5 text-lg font-semibold tracking-tight text-foreground">
-            {periodLabel(report.slip.period)}
-          </h1>
+    <section
+      className="paper overflow-clip rounded-xl"
+      aria-label="Lønseddelarbejdsbord"
+      aria-busy={loading}
+    >
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-5">
+        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">Lønsedler</h1>
+          <p className="text-lg text-muted-foreground">{periodLabel(report.slip.period)}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold">
-          {mismatchChecks.length > 0 ? (
-            <span className="rounded-full border border-mismatch/30 bg-mismatch-soft px-2.5 py-1 text-mismatch">
-              {mismatchChecks.length} afvigelse{mismatchChecks.length === 1 ? "" : "r"}
-              {mismatchKr > 0 ? <span className="num"> · {kr(mismatchKr)} kr</span> : null}
-            </span>
-          ) : null}
-          {needsChecks.length > 0 ? (
-            <span className="rounded-full border border-needs/30 bg-needs-soft px-2.5 py-1 text-needs">
-              {needsChecks.length} mangler oplysning
-            </span>
-          ) : null}
-          {forbeholdCount > 0 ? (
-            <span className="rounded-full border border-forbehold/35 bg-forbehold-soft px-2.5 py-1 text-forbehold">
-              {forbeholdCount} forbehold
-            </span>
-          ) : null}
-          {actionChecks.length === 0 && forbeholdCount === 0 ? (
-            <span className="rounded-full border border-ok/25 bg-ok-soft px-2.5 py-1 text-ok">
-              Alle {allChecks.length} kontroller i orden
-            </span>
-          ) : restCount > 0 ? (
-            <span className="rounded-full border border-border bg-muted/35 px-2.5 py-1 text-muted-foreground">
-              {restCount} øvrige i orden
-            </span>
-          ) : null}
-        </div>
+        {mismatchCount !== undefined ? (
+          <span
+            className={`rounded-full border px-3 py-1.5 text-[12px] font-medium ${mismatchCount > 0 ? "border-mismatch/20 bg-mismatch-soft/50 text-mismatch" : "border-border bg-muted/25 text-muted-foreground"}`}
+          >
+            {mismatchCount} afvigelse{mismatchCount === 1 ? "" : "r"}
+          </span>
+        ) : null}
       </header>
-
-      <div className="grid min-h-[620px] grid-cols-1 lg:grid-cols-[164px_minmax(0,1.05fr)_minmax(300px,.95fr)]">
+      <div className="grid min-h-[620px] grid-cols-1 lg:grid-cols-[180px_minmax(0,1.15fr)_minmax(320px,1fr)] xl:grid-cols-[200px_minmax(0,1.15fr)_minmax(340px,1fr)]">
         <div className="hidden lg:block">
           <PeriodRail
-            caseSheet={caseSheet}
-            contained
             entries={entries}
             loading={loading}
             onSelect={onSelectReport}
@@ -367,333 +252,240 @@ export function PayslipWorkspace({
         </div>
         <div className="lg:hidden">
           <PeriodStrip
-            caseSheet={caseSheet}
             entries={entries}
             loading={loading}
             onSelect={onSelectReport}
             selectedKey={selectedReportKey}
           />
         </div>
-
-        <div className="border-t border-border lg:border-l lg:border-t-0">
-          {actionChecks.length > 0 || needsChecks.length > 0 ? (
-            <div
-              className={`border-b border-border ${actionChecks.length > 0 ? "bg-mismatch-soft/35" : ""}`}
-            >
-              {actionChecks.length > 0 ? (
-                <p className="label-caps flex items-center gap-2 px-4 pb-1.5 pt-2.5 text-mismatch">
-                  <TriangleAlert className="size-3.5" aria-hidden="true" /> Kræver handling ·{" "}
-                  {actionChecks.length}
-                </p>
-              ) : null}
-              {actionChecks.map((check) => {
-                const line = lineForCheck(report, check.check_id);
-                const selected = check.check_id === selectedCheck?.check_id;
-                const context = [
-                  line?.description ?? line?.concept ?? "Hele lønsedlen",
-                  check.terminal === "MISMATCH" &&
-                  check.kroner?.expected != null &&
-                  check.kroner?.printed != null
-                    ? `forventet ${kr(check.kroner.expected)} · trykt ${kr(check.kroner.printed)}`
-                    : null,
-                ]
-                  .filter(Boolean)
-                  .join(" · ");
-                return (
-                  <button
-                    aria-pressed={selected}
-                    className={`flex w-full items-center gap-2.5 border-t border-border px-4 py-2 text-left transition-colors ${
-                      selected ? "bg-accent/8" : "hover:bg-muted/35"
-                    }`}
-                    key={check.check_id}
-                    onClick={() => openCheck(check)}
-                    type="button"
-                  >
-                    <span
-                      className={`h-7 w-1 shrink-0 rounded-full ${STATUS_BAR[check.terminal]}`}
-                      aria-hidden="true"
-                    />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[13px] font-semibold text-foreground">
-                        {check.title}
-                      </span>
-                      <span className="num mt-0.5 block truncate text-[11px] text-muted-foreground">
-                        {context}
-                      </span>
-                    </span>
-                    {check.terminal === "MISMATCH" && check.kroner?.kr != null ? (
-                      <span className="num whitespace-nowrap text-[13px] font-semibold text-mismatch">
-                        {kr(check.kroner.kr)} kr
-                      </span>
-                    ) : (
-                      <span className="whitespace-nowrap text-[11px] font-semibold text-needs">
-                        {TERMINALS[check.terminal].short}
-                      </span>
-                    )}
-                    <ChevronRight
-                      className={`size-4 shrink-0 ${selected ? "text-accent" : "text-muted-foreground/50"}`}
-                      aria-hidden="true"
-                    />
-                  </button>
-                );
-              })}
-              {needsChecks.length > 0 ? (
-                <button
-                  className={`flex w-full items-center gap-2.5 px-4 py-2 text-left transition-colors hover:bg-muted/35 ${
-                    actionChecks.length > 0 ? "border-t border-border" : ""
-                  }`}
-                  onClick={onShowQuestions}
-                  type="button"
-                >
-                  <span className="h-7 w-1 shrink-0 rounded-full bg-needs" aria-hidden="true" />
-                  <span className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground">
-                    <span className="num font-semibold text-foreground">{needsChecks.length}</span>{" "}
-                    mangler oplysning — se Spørgsmål
-                  </span>
-                  <ChevronRight
-                    className="size-4 shrink-0 text-muted-foreground/50"
-                    aria-hidden="true"
-                  />
-                </button>
-              ) : null}
-            </div>
-          ) : null}
-          <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
-            <div>
-              <h2 className="text-[13px] font-semibold text-foreground">Lønposter</h2>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">
-                Alle sedlens linjer — afvigelser er fremhævet
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="relative">
+        <div className="min-w-0 border-t border-border lg:border-l lg:border-t-0">
+          <div className="border-b border-border px-5 py-5">
+            <h2 className="text-lg font-semibold">Lønposter</h2>
+            <p className="mt-1 text-[13px] text-muted-foreground">
+              {hasFilters ? `${filteredLines.length} af ${lines.length}` : lines.length} poster
+            </p>
+            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-3">
+              <div className="relative min-w-[160px] flex-1">
                 <Search
-                  className="pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground/60"
+                  className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/60"
                   aria-hidden="true"
                 />
                 <input
-                  aria-label="Filtrér lønposter"
-                  className="h-7 w-36 rounded-md border border-input bg-card pl-7 pr-2 text-[12px] placeholder:text-muted-foreground/60"
+                  aria-label="Søg i lønposter"
+                  className="h-10 w-full rounded-lg border border-input bg-card pl-9 pr-3 text-[13px] placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Filtrér…"
+                  placeholder="Søg i lønposter…"
                   type="search"
                   value={query}
                 />
               </div>
-              <span className="num whitespace-nowrap text-[11px] text-muted-foreground">
-                {query ? `${filteredLines.length} af ${lines.length}` : lines.length} poster
-              </span>
+              <label
+                className="flex cursor-pointer items-center gap-2.5 whitespace-nowrap text-[12px] text-muted-foreground"
+                htmlFor="only-mismatches"
+              >
+                <Switch
+                  checked={onlyMismatches}
+                  id="only-mismatches"
+                  onCheckedChange={setOnlyMismatches}
+                />
+                Kun afvigelser
+              </label>
             </div>
           </div>
-
-          {lines.length > 0 || reportChecks.length > 0 ? (
-            <div className="max-h-[680px] overflow-y-auto" style={{ contentVisibility: "auto" }}>
-              {reportChecks.length > 0 ? (
+          <div className="max-h-[50dvh] overflow-y-auto lg:max-h-[680px]">
+            {filteredTransactions.map(renderLine)}
+            {filteredLines.length === 0 ? (
+              <p className="px-5 py-8 text-[13px] leading-relaxed text-muted-foreground">
+                {hasFilters
+                  ? "Ingen lønposter matcher dit filter."
+                  : "Rapporten indeholder ingen lønposter."}
+              </p>
+            ) : null}
+            {filteredBalances.length > 0 ? (
+              <details
+                className="group border-b border-border"
+                open={selectedBalance || hasFilters || undefined}
+              >
+                <summary className={`${DISCLOSURE_STYLE} px-5 py-4`}>
+                  Saldi
+                  <ChevronDown
+                    className="size-4 text-muted-foreground transition-transform group-open:rotate-180"
+                    aria-hidden="true"
+                  />
+                </summary>
+                {filteredBalances.map(renderLine)}
+              </details>
+            ) : null}
+            {reportChecks.length > 0 ? (
+              <details className="group border-b border-border" open={showingSlip || undefined}>
+                <summary className={`${DISCLOSURE_STYLE} px-5 py-4`}>
+                  Kontroller for hele lønsedlen
+                  <ChevronDown
+                    className="size-4 text-muted-foreground transition-transform group-open:rotate-180"
+                    aria-hidden="true"
+                  />
+                </summary>
                 <button
-                  aria-pressed={selection === "slip"}
-                  className={`group grid w-full grid-cols-[4px_minmax(0,1fr)_auto_auto] items-center gap-3 border-b border-border px-3 py-3 text-left transition-colors ${
-                    selection === "slip" ? "bg-accent/8" : "hover:bg-muted/35"
-                  }`}
+                  aria-pressed={showingSlip}
+                  className={`flex w-full items-center justify-between gap-3 px-5 py-4 text-left text-[13px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${showingSlip ? "bg-muted/45" : "hover:bg-muted/30"}`}
                   onClick={() => {
                     setSelection("slip");
                     setRequestedCheckId(null);
                   }}
                   type="button"
                 >
-                  <span
-                    className={`h-8 w-1 rounded-full ${slipAttention && slipTerminal ? STATUS_BAR[slipTerminal] : "bg-border"}`}
-                    aria-hidden="true"
-                  />
-                  <span className="min-w-0">
-                    <strong
-                      className={`block truncate text-[13px] ${
-                        slipAttention || selection === "slip"
-                          ? "font-semibold text-foreground"
-                          : "font-normal text-muted-foreground"
-                      }`}
-                    >
-                      Hele lønsedlen
-                    </strong>
-                    <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
-                      {slipSummary(reportChecks)}
-                    </span>
+                  <span>
+                    Åbn kontroller{" "}
+                    <span className="ml-2 text-muted-foreground">({reportChecks.length})</span>
                   </span>
-                  <span aria-hidden="true" />
-                  <ChevronRight
-                    className={`size-4 ${selection === "slip" ? "text-accent" : "text-muted-foreground/50"}`}
+                  <ChevronRight className="size-4 text-muted-foreground" aria-hidden="true" />
+                </button>
+              </details>
+            ) : null}
+            {filteredDropped.length > 0 ? (
+              <details className="group border-b border-border" open={selectedDropped || undefined}>
+                <summary
+                  className={`${DISCLOSURE_STYLE} px-5 py-4 text-[12px] text-muted-foreground`}
+                >
+                  Linjer udeladt af middleware ({filteredDropped.length})
+                  <ChevronDown
+                    className="size-4 transition-transform group-open:rotate-180"
                     aria-hidden="true"
                   />
-                </button>
-              ) : null}
-              {filteredTransactions.map(renderLine)}
-              {filteredBalances.length > 0 ? (
-                <>
-                  <p className="border-b border-border bg-muted/25 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Saldi
-                  </p>
-                  {filteredBalances.map(renderLine)}
-                </>
-              ) : null}
-              {query && filteredLines.length === 0 ? (
-                <p className="px-4 py-6 text-[13px] text-muted-foreground">
-                  Ingen lønposter matcher »{query.trim()}«.
-                </p>
-              ) : null}
-              {dropped.length > 0 ? (
-                <details className="border-b border-border text-[11px] text-muted-foreground">
-                  <summary className="cursor-pointer px-3 py-2 font-semibold">
-                    {dropped.length} linjer udeladt af parser (PARSE_DROPPED)
-                  </summary>
-                  <ul>
-                    {dropped.map((line) => (
-                      <li
-                        className="flex items-center justify-between gap-3 px-3 py-1.5"
-                        key={line.index}
-                      >
-                        <span className="truncate">
-                          {line.description ?? line.concept ?? `Lønlinje ${line.index}`}
-                        </span>
-                        <span className="num shrink-0">
-                          {line.amount == null ? "—" : `${kr(line.amount)} kr`}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </details>
-              ) : null}
-            </div>
-          ) : (
-            <p className="px-4 py-8 text-[13px] text-muted-foreground">
-              Rapporten indeholder ingen viste lønposter.
-            </p>
-          )}
-        </div>
-
-        {/* Under lg: fastgjort bund-panel, så regnestykket er synligt med det
-            samme, når en lønpost vælges i den stakkede visning. */}
-        <aside
-          className="sticky bottom-0 z-10 max-h-[45vh] overflow-y-auto border-t border-border bg-card shadow-[0_-10px_24px_-16px_rgb(0_0_0/0.35)] lg:static lg:z-auto lg:max-h-none lg:overflow-visible lg:border-l lg:border-t-0 lg:bg-muted/15 lg:shadow-none"
-          aria-live="polite"
-        >
-          <div className="border-b border-border px-4 py-3">
-            <h2 className="text-[13px] font-semibold text-foreground">Beregning</h2>
-            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
-              {selection === "slip"
-                ? "Hele lønsedlen"
-                : (selectedLine?.description ?? "Vælg en lønpost")}
-            </p>
+                </summary>
+                {filteredDropped.map(renderLine)}
+              </details>
+            ) : null}
           </div>
-
-          {lineChecks.length > 0 ? (
-            <div className="p-4">
-              {orderedChecks.length > 1 ? (
-                <div
-                  className="mb-4 overflow-hidden rounded-lg border border-border"
-                  role="group"
-                  aria-label="Kontroller på lønposten"
-                >
-                  {orderedChecks.map((check) => {
-                    const selected = check.check_id === selectedCheck?.check_id;
-                    return (
-                      <button
-                        aria-pressed={selected}
-                        className={`flex w-full items-center gap-2 border-b border-border px-2.5 py-1.5 text-left transition-colors last:border-0 ${
-                          selected ? "bg-accent/10" : "bg-card hover:bg-muted/35"
-                        }`}
-                        key={check.check_id}
-                        onClick={() => setRequestedCheckId(check.check_id)}
-                        type="button"
-                      >
-                        <span
-                          className={`size-2 shrink-0 rounded-full ${STATUS_BAR[check.terminal]}`}
-                          aria-hidden="true"
-                        />
-                        <span
-                          className={`min-w-0 flex-1 truncate text-[12px] ${
-                            selected ? "font-semibold text-foreground" : "text-muted-foreground"
-                          }`}
-                          title={check.title}
-                        >
-                          {check.title}
-                        </span>
-                        <span className="shrink-0 text-[11px] font-semibold text-muted-foreground">
-                          {TERMINALS[check.terminal].short}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : null}
-
-              {selectedCheck ? (
-                <div>
-                  <StatusPill long terminal={selectedCheck.terminal} />
-                  <h3 className="mt-3 text-[15px] font-semibold leading-snug text-foreground">
+        </div>
+        <aside
+          className="min-w-0 border-t border-border bg-card lg:border-l lg:border-t-0"
+          aria-live="polite"
+          aria-label="Valgt kontrol"
+        >
+          <div className="px-5 py-5 lg:p-6">
+            <p className="label-caps text-muted-foreground">
+              {showingSlip ? "Hele lønsedlen" : "Valgt lønpost"}
+            </p>
+            <h2 className="mt-2 text-xl font-semibold leading-snug tracking-tight">
+              {showingSlip
+                ? "Kontroller for hele lønsedlen"
+                : (selectedLine?.description ?? selectedLine?.concept ?? "Vælg en lønpost")}
+            </h2>
+            {selectedCheck ? (
+              <>
+                <div className="mt-5 flex flex-wrap items-start gap-3 rounded-lg bg-muted/30 px-3 py-3">
+                  <StatusPill terminal={selectedCheck.terminal} />
+                  <h3 className="min-w-0 flex-1 text-[14px] font-semibold leading-relaxed">
                     {selectedCheck.title}
                   </h3>
-                  {selectedCheck.kroner?.expected != null ||
-                  selectedCheck.kroner?.printed != null ? (
-                    <div className="mt-3 flex gap-2">
-                      {selectedCheck.kroner?.expected != null ? (
-                        <div className="flex-1 rounded-lg border border-border bg-card px-3 py-2.5">
-                          <p className="label-caps text-[10px]">Forventet</p>
-                          <p className="num mt-0.5 text-[16px] font-semibold text-foreground">
-                            {kr(selectedCheck.kroner.expected)}
-                          </p>
-                        </div>
-                      ) : null}
-                      {selectedCheck.kroner?.printed != null ? (
-                        <div className="flex-1 rounded-lg border border-border bg-card px-3 py-2.5">
-                          <p className="label-caps text-[10px]">Trykt på sedlen</p>
-                          <p className="num mt-0.5 text-[16px] font-semibold text-foreground">
-                            {kr(selectedCheck.kroner.printed)}
-                          </p>
-                        </div>
-                      ) : null}
-                      {selectedCheck.terminal === "MISMATCH" && selectedCheck.kroner?.kr != null ? (
-                        <div className="flex-1 rounded-lg border border-mismatch/30 bg-mismatch-soft px-3 py-2.5">
-                          <p className="label-caps text-[10px] text-mismatch">Afvigelse</p>
-                          <p className="num mt-0.5 text-[16px] font-semibold text-mismatch">
-                            {kr(selectedCheck.kroner.kr)}{" "}
-                            <span className="text-[11px] font-normal">kr</span>
-                          </p>
-                        </div>
-                      ) : null}
+                </div>
+                {selectedCheck.kroner?.kr != null ? (
+                  <div className="mt-5">
+                    <p className="text-[12px] text-muted-foreground">
+                      {selectedCheck.terminal === "MISMATCH" ? "Afvigelse" : "Beløb fra kontrollen"}
+                    </p>
+                    <p
+                      className={`num mt-1 text-2xl font-semibold ${selectedCheck.terminal === "MISMATCH" ? "text-mismatch" : "text-foreground"}`}
+                    >
+                      {kr(selectedCheck.kroner.kr)} kr
+                    </p>
+                    {selectedCheck.kroner.summed === false ? (
+                      <p className="mt-1 text-[11px] text-muted-foreground">
+                        Indgår ikke i opgørelsen
+                      </p>
+                    ) : null}
+                  </div>
+                ) : selectedCheck.terminal === "MISMATCH" ? (
+                  <p className="mt-5 text-[13px] text-muted-foreground">
+                    Middleware har ikke opgjort et beløb.
+                  </p>
+                ) : null}
+                {selectedCheck.kroner?.expected != null || selectedCheck.kroner?.printed != null ? (
+                  <dl className="mt-5 grid grid-cols-2 divide-x divide-border">
+                    <div className="pr-4">
+                      <dt className="text-[12px] text-muted-foreground">Forventet</dt>
+                      <dd className="num mt-1 text-[16px] font-semibold">
+                        {kr(selectedCheck.kroner?.expected)}
+                      </dd>
                     </div>
-                  ) : null}
-                  {calculation(selectedCheck) ? (
-                    <Calculation
-                      key={selectedCheck.check_id}
-                      text={calculation(selectedCheck) ?? ""}
-                    />
-                  ) : (
-                    <div className="mt-4 flex gap-2 rounded-lg border border-border bg-card p-4 text-[12px] leading-relaxed text-muted-foreground">
-                      <Calculator
-                        className="mt-0.5 size-4 shrink-0 text-accent"
+                    <div className="pl-4">
+                      <dt className="text-[12px] text-muted-foreground">Trykt på sedlen</dt>
+                      <dd className="num mt-1 text-[16px] font-semibold">
+                        {kr(selectedCheck.kroner?.printed)}
+                      </dd>
+                    </div>
+                  </dl>
+                ) : null}
+                {arithmetic ? (
+                  <Calculation key={selectedCheck.check_id} text={arithmetic} />
+                ) : (
+                  <p className="mt-5 flex items-start gap-2 rounded-lg border border-border bg-muted/25 p-4 text-[12px] leading-relaxed text-muted-foreground">
+                    <Calculator className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                    Middleware har ikke leveret et særskilt regnestykke til denne kontrol.
+                  </p>
+                )}
+                <button
+                  className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-3 text-[13px] font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  onClick={() => onOpenEvidence(selectedCheck.check_id)}
+                  type="button"
+                >
+                  <FileSearch className="size-4" aria-hidden="true" />
+                  Åbn bevisark
+                </button>
+                {orderedChecks.length > 1 ? (
+                  <details
+                    className="group mt-6 border-t border-border pt-4"
+                    key={showingSlip ? "slip" : selectedLine?.index}
+                  >
+                    <summary className={DISCLOSURE_STYLE}>
+                      {showingSlip
+                        ? "Andre kontroller for hele lønsedlen"
+                        : "Andre kontroller på denne post"}
+                      <ChevronDown
+                        className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
                         aria-hidden="true"
                       />
-                      Middleware har ikke leveret et særskilt regnestykke til denne kontrol.
+                    </summary>
+                    <p className="text-[12px] text-muted-foreground">Se alle kontroller</p>
+                    <div
+                      className="mt-3 overflow-hidden rounded-lg border border-border"
+                      role="group"
+                      aria-label="Vælg kontrol"
+                    >
+                      {orderedChecks.map((check) => (
+                        <button
+                          aria-pressed={check.check_id === selectedCheck.check_id}
+                          className={`flex w-full items-start gap-2.5 border-b border-border px-3 py-3 text-left text-[12px] transition-colors last:border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${check.check_id === selectedCheck.check_id ? "bg-accent/5" : "hover:bg-muted/35"}`}
+                          key={check.check_id}
+                          onClick={() => setRequestedCheckId(check.check_id)}
+                          type="button"
+                        >
+                          <span
+                            className={`mt-1.5 size-2 shrink-0 rounded-full ${STATUS_BAR[check.terminal]}`}
+                            aria-hidden="true"
+                          />
+                          <span className="min-w-0 flex-1 leading-relaxed">{check.title}</span>
+                          <span className="shrink-0 text-[11px] text-muted-foreground">
+                            {TERMINALS[check.terminal].short}
+                          </span>
+                        </button>
+                      ))}
                     </div>
-                  )}
-                  <button
-                    className="mt-4 inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-[12px] font-semibold text-primary-foreground hover:bg-primary/90"
-                    onClick={() => onOpenEvidence(selectedCheck.check_id)}
-                    type="button"
-                  >
-                    <FileSearch className="size-3.5" aria-hidden="true" /> Åbn bevisark
-                  </button>
-                </div>
-              ) : null}
-            </div>
-          ) : selectedLine ? (
-            <div className="p-5 text-[13px] leading-relaxed text-muted-foreground">
-              Ingen kontrol er knyttet til denne lønpost i middleware-rapporten.
-            </div>
-          ) : (
-            <div className="p-5 text-[13px] leading-relaxed text-muted-foreground">
-              Vælg en lønpost for at se dens kontrol og regnestykke.
-            </div>
-          )}
+                  </details>
+                ) : null}
+              </>
+            ) : (
+              <p className="mt-5 text-[13px] leading-relaxed text-muted-foreground">
+                {selectedLine
+                  ? "Ingen kontrol er knyttet til denne lønpost i middleware-rapporten."
+                  : "Vælg en lønpost for at se dens kontrol og regnestykke."}
+              </p>
+            )}
+            <p className="mt-6 border-t border-border pt-4 text-[11px] text-muted-foreground">
+              Resultater og regnestykker fra middleware
+            </p>
+          </div>
         </aside>
       </div>
     </section>
